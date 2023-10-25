@@ -40,13 +40,12 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, ...) {
                                                  config = config)
   return(epiestim_estimates)
     },
-  warning = function(warning_message)
+  warning = function(warning_message) {
     # TO DO: confirm number of time-points 
     message("Number of timepoints used for forecasting too low. Consider 
             increasing to atleast 14 timepoints for accurate estimate of R
             with EpiEstim")
-  message(warning_message)
-  return(NA)
+  return(epiestim_estimates)
   }
 ) 
  
