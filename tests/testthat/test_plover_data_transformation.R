@@ -12,11 +12,11 @@ plover_data <- readRDS(plover_data_file)
 
 # Run Package Data Transformation Function --------------------------------
 
-weekly_plover <- get_weekly_plover(plover_data)
+weekly_plover_data <- get_weekly_plover(plover_data)
 
 disease_type <- "flu_a"
 weekly_plover_date_type <- get_weekly_plover_by_date_type(
-                              weekly_plover,
+                               weekly_plover_data = weekly_plover_data,
                                type = disease_type,
                                start_date = "2022-01-01",
                                end_date = "2022-02-01")
@@ -24,7 +24,7 @@ weekly_plover_date_type <- get_weekly_plover_by_date_type(
 # test data transformation function ---------------------------------------
 
 test_that("weekly plover column name correct", {
-  expect_equal(colnames(weekly_plover), c("epiWeek_date","epiWeek_year","Epiweek","flu_a","flu_b"))
+  expect_equal(colnames(weekly_plover_data), c("epiWeek_date","epiWeek_year","Epiweek","flu_a","flu_b"))
 })
 
 
