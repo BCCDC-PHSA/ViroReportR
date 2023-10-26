@@ -8,42 +8,55 @@
 #' 
 #' @param data *data frame* containing two columns: date and confirm (number of cases per day)
 #' @param dt *Integer* Number of days aggregated (set to 7 by default for weekly aggregate)
-#' @param Type *character* Specifies type of epidemic. Must be one of "Influenza", "RSV" and "COVID-19"
+#' @param Type *character* Specifies type of epidemic. Must be one of "Influenza", "RSV" and "COVID"
+#' @param mean_si *Numeric* User specification of mean of parametric serial interval 
+#' @param std_si *Numeric* User specification of standard deviation of parametric serial interval 
+#' @param ... Optional parameters to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page) to control estimation of reproduction number
 
-
-fit_epiestim_model <- function(data, dt = 7L, type = NULL, ...) {
-  if(!isTRUE(is.data.frame(data) && ncol(data) == 2)) {
+fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
+                               method = "parametric_si", ...) {
+  if(isFALSE(is.data.frame(data)) | isFALSE(colnames(data) %in% c("date", "confirm")) ) {
     stop("Must pass a data frame with two columns: date and confirm")
   }
-  if(is.null(type)) {
-    stop("Must specify type of epidemic")
+  if(missing(type)) {
+    stop("Must specify type of epidemic (Influenza, RSV or COVID)")
+  }
+ if(!(type %in% c("Influenza", "RSV", "COVID")) ) {
+   stop("Must specify type of epidemic (Influenza, RSV or COVID)")
   }
   incid <- data$confirm
-  if (type = "Influenza") {
-  config <- make_config(list(mean_si = 3.6,
-                               std_si = 1.6))
-  } else if (type = "RSV") {
-    # TO DO: Scan literature for serial interval values 
-    config <- make_config(list(mean_si = 5.6,
-                               std_si = 1.6))
-  } else if (type = "COVID-19") { 
-    # TO DO: Scan literature for serial interval values 
-    config <- make_config(list(mean_si = 5.6,
-                               std_si = 1.6))
+  if(is.null(mean_si) && is.null(std_si)) {
+    if (type == "Influenza") {
+      config <- make_config(list(mean_si = 3.6,
+                                 std_si = 1.6))
+    } else if (type == "RSV") {
+      config <- make_config(list(mean_si = 7.5,
+                                 std_si = 2.1))
+    } else if (type == "COVID") { 
+      # TO DO: Scan literature for serial interval values 
+      config <- make_config(list(mean_si = 5.6,
+                                 std_si = 1.6))
+    }
+  } else {
+    config <- make_config(list(mean_si = mean_si,
+                               std_si = std_si))
   }
+  a_prior <- (config$mean_prior / config$std_prior)^2
+  min_nb_cases_per_time_period <- ceiling(1 / config$cv_posterior^2 - a_prior)
   tryCatch(
     {
   epiestim_estimates <- EpiEstim::estimate_R(incid = incid,
                                                  dt = dt,
-                                                 recon_opt = "match",
+                                                 recon_opt = recon_opt,
                                                  method = method,
                                                  config = config)
   return(epiestim_estimates)
     },
   warning = function(warning_message) {
-    # TO DO: confirm number of time-points 
-    message("Number of timepoints used for forecasting too low. Consider 
-            increasing to atleast 14 timepoints for accurate estimate of R
+    min_reliable_date <- data %>% filter(confirm >=  min_nb_cases_per_time_period) %>% pull(date)
+  
+    message("Incidence too low on current forecasting start date. Consider 
+            starting R estimation from ", min_reliable_date[1] , " for accurate estimate 
             with EpiEstim")
   return(epiestim_estimates)
   }
