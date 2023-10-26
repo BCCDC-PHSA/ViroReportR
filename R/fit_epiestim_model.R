@@ -3,7 +3,8 @@
 #' @description A wrapper function for {\code{\link[EpiEstim]{estimate_R}}} from the \code{EpiEstim} library to estimate the reproduction number of epidemics to support short-term forecasts
 #' 
 #' 
-#' @details \code{fit_epiestim_model} currently supports the following epidemics: Influenza, RSV and COVID-19
+#' @details \code{fit_epiestim_model} currently supports the following epidemics: Influenza, RSV and COVID-19. The serial intervals for the estimation of R were retrieved from 
+#' [Cowling et al., 2011], [Vink et al., 2014] and [Madewell et al., 2023] for Influenza, RSV and COVID (BA.5 Omicron variant) respectively
 #' 
 #' 
 #' @param data *data frame* containing two columns: date and confirm (number of cases per day)
@@ -33,9 +34,8 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
       config <- make_config(list(mean_si = 7.5,
                                  std_si = 2.1))
     } else if (type == "COVID") { 
-      # TO DO: Scan literature for serial interval values 
-      config <- make_config(list(mean_si = 5.6,
-                                 std_si = 1.6))
+      config <- make_config(list(mean_si = 2.3,
+                                 std_si = 1.4))
     }
   } else {
     config <- make_config(list(mean_si = mean_si,
@@ -55,8 +55,8 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
   warning = function(warning_message) {
     min_reliable_date <- data %>% filter(confirm >=  min_nb_cases_per_time_period) %>% pull(date)
   
-    message("Incidence too low on current forecasting start date. Consider 
-            starting R estimation from ", min_reliable_date[1] , " for accurate estimate 
+    message("Incidence too low on current start date. Consider 
+            starting R estimation from ", min_reliable_date[1] , " for accurate estimate of reproduction number
             with EpiEstim")
   return(epiestim_estimates)
   }
