@@ -23,8 +23,8 @@ get_weekly_plover_by_date_type - filter the weekly plover data by date & disease
 }
 \examples{
 get_weekly_plover_by_date_type(
-                             get_weekly_plover(data.frame(
-                             epiWeek_date = c(2019-09-08,2019-09-29,2019-10-06,2019-10-13),
+get_weekly_plover(data.frame(
+epiWeek_date = as.Date(c('2019-09-08','2019-09-29','2019-10-06','2019-10-13')),
                              epiWeek_year = c(2019, 2019, 2019, 2019),
                              Epiweek = c(37,40,41,42),
                              flu_a = c(1,2,3,4),
