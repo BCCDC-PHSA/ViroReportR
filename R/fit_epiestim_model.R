@@ -94,12 +94,11 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #'   @param n_sim The number of epicurves to simulate. Defaults to 1000
 #'  @param ... Optional parameters to pass on to {\code{\link[projections]{project}}} (see help page)
 #'
-#' @return
+#' @return data-frame of daily forecast samples from all simulations
 #' @export
 #'
 #' @examples
 #' 
-#' @return data-frame of daily forecast samples from all simulations
 #' 
 #' plover_example_data <- get_weekly_plover_by_date_type(
 #'                              get_weekly_plover(data.frame(
@@ -148,6 +147,43 @@ data_proj <- as.data.frame(proj, long = TRUE)
  return (data_proj)
 }
 
+#' iterate_forecasts
+#' 
+#' @description 
+#' 
+#' 
+
+#' 
+#' 
+#' 
+#' 
+iterate_forecasts <- function(data, i) {
+  print(paste0("Current time period", i)
+ model_data <- extract_model_data_with_extension(start_date_str,
+      end_date_str, i, type)
+ cur_model <- fit_epiestim_model(data, type = "Influenza")
+ cur_daily_samples <- extract_daily_samples_epiestim_fit(cur_model, model_data)
+ cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
+ cur_daily_samples <- cur_daily_samples %>%
+   rename(daily_date = date, daily_sim = sim, daily_value = incidence)
+ 
+ # extract samples quantiles
+ cur_samples_quantiles <- cur_samples %>% 
+   create_quantiles(week_date,variable = "value") %>%
+   rename(quantile_week_date = week_date)
+ 
+ model_data <- model_data %>%
+   rename(model_data_date = date)
+ 
+ # at each iteration, we will create the below output
+ row <- c(cur_model, i+1, model_data, cur_daily_samples, cur_samples, cur_samples_quantiles)
+ 
+ # append the row to the list
+ list[[i]] <- row
+}
+}
+
+
 
 #' fit_epiestim_model - Function to estimate the reproduction number of an epidemic from PLOVER data
 #' 
@@ -159,41 +195,16 @@ data_proj <- as.data.frame(proj, long = TRUE)
 #' 
 #' 
 #' 
-epiestim_fit_predict <- function(start_date_str = , end_date_str = , time_period = "weekly", 
-                                 ){
+experiment_time_period_epiestim <- function(start_date_str,
+                                            end_date_str,
+                                            time_period=c(7,14,21),
+                                            type="flu_a"){
+  
   n = length(time_period)
   list = vector("list", length = n)
+   lapply(list, iterate_forecasts)
   
-  for (i in 1:n) {
-    print(paste0("cur time_period : " , time_period[[i]]))
-    # extract model data with the given time period of interest
-    model_data <- extract_model_data_with_extension(start_date_str,
-                                                    end_date_str,
-                                                    time_period[[i]],
-                                                    type)
-    # fit model [diff]
-    cur_model <- fit_epiestim(model_data)
-    
-    # extract current 1000 samples [diff]
-    cur_daily_samples <- extract_daily_samples_epiestim_fit(cur_model, model_data,trunc_days)
-    cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
-    
-    cur_daily_samples <- cur_daily_samples %>%
-      rename(daily_date = date, daily_sim = sim, daily_value = incidence)
-    
-    # extract samples quantiles
-    cur_samples_quantiles <- cur_samples %>% 
-      create_quantiles(week_date,variable = "value") %>%
-      rename(quantile_week_date = week_date)
-    
-    model_data <- model_data %>%
-      rename(model_data_date = date)
-    
-    # at each iteration, we will create the below output
-    row <- c(cur_model, i+1, model_data, cur_daily_samples, cur_samples, cur_samples_quantiles)
-    
-    # append the row to the list
-    list[[i]] <- row
-  }
+  return(list)
+  
   
 }
