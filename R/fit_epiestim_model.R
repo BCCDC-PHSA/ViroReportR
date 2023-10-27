@@ -114,8 +114,6 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #' mod_fit1 <- fit_epiestim_model(plover_example_data, type = "Influenza")    
 #'  
 #' extract_daily_samples_epiestim_fit(data = plover_example_data, model_fit = mod_fit1, dt = 7L)                         
-
-
 extract_daily_samples_epiestim_fit <- function(data, model_fit, dt = 7L, n_days = 14, n_sim = 1000, ...){
   if(isFALSE(is.data.frame(data)) | isFALSE(colnames(data) %in% c("date", "confirm")) ) {
     stop("Must pass a data frame with two columns: date and confirm")
@@ -147,6 +145,7 @@ data_proj <- as.data.frame(proj, long = TRUE)
  return (data_proj)
 }
 
+
 #' iterate_forecasts
 #' 
 #' @description 
@@ -157,18 +156,17 @@ data_proj <- as.data.frame(proj, long = TRUE)
 #' 
 #' 
 #' 
-iterate_forecasts <- function(data, i) {
-  print(paste0("Current time period", i)
- model_data <- extract_model_data_with_extension(start_date_str,
-      end_date_str, i, type)
- cur_model <- fit_epiestim_model(data, type = "Influenza")
- cur_daily_samples <- extract_daily_samples_epiestim_fit(cur_model, model_data)
+iterate_forecasts <- function(data, i, type = NULL) {
+  print(paste0("Current time period", i))
+ model_data <- extend_rows_model_data(data, start_date_str, i, type = type)
+ current_model <- fit_epiestim_model(data, type = "Influenza")
+ current_daily_samples <- extract_daily_samples_epiestim_fit(model_data, current_model)
  cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
  cur_daily_samples <- cur_daily_samples %>%
    rename(daily_date = date, daily_sim = sim, daily_value = incidence)
  
  # extract samples quantiles
- cur_samples_quantiles <- cur_samples %>% 
+ current_samples_quantiles <- current_samples %>% 
    create_quantiles(week_date,variable = "value") %>%
    rename(quantile_week_date = week_date)
  
@@ -177,10 +175,6 @@ iterate_forecasts <- function(data, i) {
  
  # at each iteration, we will create the below output
  row <- c(cur_model, i+1, model_data, cur_daily_samples, cur_samples, cur_samples_quantiles)
- 
- # append the row to the list
- list[[i]] <- row
-}
 }
 
 
@@ -195,14 +189,10 @@ iterate_forecasts <- function(data, i) {
 #' 
 #' 
 #' 
-experiment_time_period_epiestim <- function(start_date_str,
-                                            end_date_str,
-                                            time_period=c(7,14,21),
-                                            type="flu_a"){
-  
+experiment_time_period_epiestim <- function(data, start_date_str, time_period=c(7,14,21), type= NULL){
   n = length(time_period)
   list = vector("list", length = n)
-   lapply(list, iterate_forecasts)
+   lapply(1:n, list, iterate_forecasts(type = type))
   
   return(list)
   
