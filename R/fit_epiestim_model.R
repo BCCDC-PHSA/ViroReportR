@@ -9,7 +9,7 @@
 #' 
 #' @param data *data frame* containing two columns: date and confirm (number of cases per day)
 #' @param dt *Integer* Number of days aggregated (set to 7 by default for weekly aggregate)
-#' @param Type *character* Specifies type of epidemic. Must be one of "Influenza", "RSV" and "COVID"
+#' @param type *character* Specifies type of epidemic. Must be one of "Influenza", "RSV" and "COVID"
 #' @param mean_si *Numeric* User specification of mean of parametric serial interval 
 #' @param std_si *Numeric* User specification of standard deviation of parametric serial interval 
 #' @param ... Optional parameters to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page) to control estimation of reproduction number
@@ -31,16 +31,17 @@
 #'                              
 #' fit_epiestim_model(plover_example_data, type = "Influenza")                              
 
+
 fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
                                method = "parametric_si", ...) {
   if(isFALSE(is.data.frame(data)) | isFALSE(colnames(data) %in% c("date", "confirm")) ) {
     stop("Must pass a data frame with two columns: date and confirm")
   }
   if(missing(type)) {
-    stop("Must specify type of epidemic (Influenza, RSV or COVID)")
+    stop("Must specify the type of epidemic (Influenza, RSV, or COVID)")
   }
- if(!(type %in% c("Influenza", "RSV", "COVID")) ) {
-   stop("Must specify type of epidemic (Influenza, RSV or COVID)")
+  if(!(type %in% c("Influenza", "RSV", "COVID")) ) {
+    stop("Must specify the type of epidemic (Influenza, RSV, or COVID)")
   }
   incid <- data$confirm
   if(is.null(mean_si) && is.null(std_si)) {
@@ -60,27 +61,22 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
   }
   a_prior <- (config$mean_prior / config$std_prior)^2
   min_nb_cases_per_time_period <- ceiling(1 / config$cv_posterior^2 - a_prior)
-  tryCatch(
-    {
-  epiestim_estimates <- EpiEstim::estimate_R(incid = incid,
+  
+  epiestim_estimates <- NULL
+      epiestim_estimates <- suppressWarnings(EpiEstim::estimate_R(incid = incid,
                                                  dt = dt,
                                                  recon_opt = recon_opt,
                                                  method = method,
-                                                 config = config)
-  return(epiestim_estimates)
-    },
-  warning = function(warning_message) {
-    min_reliable_date <- data %>% filter(confirm >=  min_nb_cases_per_time_period) %>% pull(date)
-  
-    warning("Incidence too low on current start date. Consider 
-            starting R estimation from ", min_reliable_date[1] , " for accurate estimate of reproduction number
-            with EpiEstim")
-  return(epiestim_estimates)
-  }
-) 
- 
+                                                 config = config))
+      if (data$confirm[1] < min_nb_cases_per_time_period) {
+        min_reliable_date <- data %>% filter(confirm >=  min_nb_cases_per_time_period) %>% pull(date)
+        warning("Incidence is too low on the current start date. Consider starting R estimation from ", min_reliable_date[1], 
+                " for an accurate estimate of the reproduction number with EpiEstim")
+      }
+   
+    return(epiestim_estimates) 
+    
 }
-
 
 #' Extract daily forecast samples 
 #' 
@@ -113,7 +109,9 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #'                              
 #' mod_fit1 <- fit_epiestim_model(plover_example_data, type = "Influenza")    
 #'  
-#' extract_daily_samples_epiestim_fit(data = plover_example_data, model_fit = mod_fit1, dt = 7L)                         
+#' extract_daily_samples_epiestim_fit(data = plover_example_data, model_fit = mod_fit1, dt = 7L) 
+#' 
+#'                                                 
 extract_daily_samples_epiestim_fit <- function(data, model_fit, dt = 7L, n_days = 14, n_sim = 1000, ...){
   if(isFALSE(is.data.frame(data)) | isFALSE(colnames(data) %in% c("date", "confirm")) ) {
     stop("Must pass a data frame with two columns: date and confirm")
@@ -146,55 +144,257 @@ data_proj <- as.data.frame(proj, long = TRUE)
 }
 
 
-#' iterate_forecasts
-#' 
-#' @description 
-#' 
-#' 
 
+#' Iterate through a time-period as a sliding window to forecast 1-2 weeks ahead with the EpiEstim model fit 
 #' 
 #' 
+#' @description Function to produce short-term weekly forecasts from objects of class {\code{\link[EpiEstim]{estimate_R}}} 
+#'
+#' @param data *data frame* containing two columns: date and confirm (number of cases per day)
+#' @param start_date_str Initial starting time-point. Must match a timepoint in the input dataset 
+#'  @param time_period *vector* of multiples of 7 (for weekly forecast data) with the number of weeks forecasts are to be generated for. Default is c(0, 7, 14, 21) indicating that last forecasting will be done from a time-point 3 weeks ahead of the start date specified 
+#'  @param type *character* Specifies type of epidemic. Must be one of "Influenza", "RSV" and "COVID"
+#'
+#' @return List storing quantiles of 2 week ahead weekly forecasts from each sliding window
+#' @export
+#'
+#' @examples
 #' 
 #' 
-iterate_forecasts <- function(data, i, type = NULL) {
-  print(paste0("Current time period", i))
- model_data <- extend_rows_model_data(data, start_date_str, i, type = type)
- current_model <- fit_epiestim_model(data, type = "Influenza")
- current_daily_samples <- extract_daily_samples_epiestim_fit(model_data, current_model)
- cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
- cur_daily_samples <- cur_daily_samples %>%
+#' plover_example_data <- get_weekly_plover_by_date_type(
+#'                              get_weekly_plover(data.frame(
+#'                              epiWeek_date = c(2019-09-08,2019-09-29,2019-10-06,2019-10-13),
+#'                              epiWeek_year = c(2019, 2019, 2019, 2019),
+#'                              Epiweek = c(37,40,41,42),
+#'                              flu_a = c(1,2,3,4),
+#'                              flu_b = c(3,4,5,6))),
+#'                              'flu_a',
+#'                              '2019-09-01',
+#'                              '2019-10-13')
+#'                              
+#'  forecast_time_period_epiestim(data = plover_example_data, start_date_str = "2019-09-29, time_period = seq(0, 112, 7). type = "Influenza") 
+#' 
+#'          
+forecast_time_period_epiestim <- function(data, start_date_str,
+                                            time_period=c(0, 7, 14, 21),
+                                            type= NULL) {
+  if(isFALSE(lubridate::ymd(start_date_str) %in% data$date)) {
+    stop("Start date not present in dataset. Please check your input")
+  }
+  if(isTRUE(any(time_period %% 7 != 0))) {
+    stop("Time period input not weekly. Please check your input")
+  }
+  
+  results <- lapply(time_period, function(tp) {
+    print(paste0("Current time period: ", tp))
+    model_data <- extend_rows_model_data(data = data, min_model_date_str = start_date_str,
+                                                    extension_interval = tp)
+    cur_model <- fit_epiestim(model_data)
+   cur_daily_samples <- extract_daily_samples_epiestim_fit(data = model_data, model_fit = cur_model)
+    
+    cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
+    
+   cur_daily_samples <- cur_daily_samples %>%
    rename(daily_date = date, daily_sim = sim, daily_value = incidence)
- 
- # extract samples quantiles
- current_samples_quantiles <- current_samples %>% 
-   create_quantiles(week_date,variable = "value") %>%
-   rename(quantile_week_date = week_date)
- 
- model_data <- model_data %>%
-   rename(model_data_date = date)
- 
- # at each iteration, we will create the below output
- row <- c(cur_model, i+1, model_data, cur_daily_samples, cur_samples, cur_samples_quantiles)
+    
+   cur_samples_quantiles <- cur_samples %>% 
+    create_quantiles(week_date, variable = "value") %>%
+    rename(quantile_week_date = week_date)
+    
+   model_data <- model_data %>%
+    rename(model_data_date = date)
+    
+    row <- c(cur_model, tp, model_data, cur_daily_samples, cur_samples, cur_samples_quantiles)
+    
+  return(row)
+  })
+  
+  return(results)
 }
 
 
+#_____________________________ PROGRESS MARK ________________________#
 
-#' fit_epiestim_model - Function to estimate the reproduction number of an epidemic from PLOVER data
-#' 
-#' @description A wrapper function for {\code{\link[EpiEstim]{estimate_R}}} from the \code{EpiEstim} library to estimate the reproduction number of epidemics to support short-term forecasts
-#' 
-#' 
-#' @details \code{fit_epiestim_model} currently supports the following epidemics: Influenza, RSV and COVID-19
-#' 
-#' 
-#' 
-#' 
-experiment_time_period_epiestim <- function(data, start_date_str, time_period=c(7,14,21), type= NULL){
-  n = length(time_period)
-  list = vector("list", length = n)
-   lapply(1:n, list, iterate_forecasts(type = type))
+samples_with_quantile_helper <- function(tp) {
   
-  return(list)
+  extract_weekly_quantile_epiestim(tp) %>%
+  slice(1:2)
+cur_samples_with_week_date <- extract_weekly_samples_epiestim_fit(tp) %>%
+  filter(week_date %in% cur_samples_with_quantile$week_date)
+
+cur_1w_2w_samples <- extract_1w_2w_samples(cur_samples_with_week_date)
+week_1_prediction_value <- extract_prediction_value(cur_samples_with_quantile, week_ahead = 1, "p50")
+week_2_prediction_value <- extract_prediction_value(cur_samples_with_quantile, week_ahead = 2, "p50")
+
+# range of interest
+week_1_p25_value <- extract_prediction_value(cur_samples_with_quantile, week_ahead = 1, "p25")
+week_2_p25_value <- extract_prediction_value(cur_samples_with_quantile, week_ahead = 2, "p25")
+week_1_p75_value <- extract_prediction_value(cur_samples_with_quantile, week_ahead = 1, "p75")
+week_2_p75_value <- extract_prediction_value(cur_samples_with_quantile, week_ahead = 2, "p75")
+
+ahead_dates <- extract_1w_2w_date(cur_samples_with_week_date)
+
+week_1_ahead_date <- ahead_dates[[1]]
+week_2_ahead_date <- ahead_dates[[2]]
+
+week_1_epi_week <- extract_epiweek(week_1_ahead_date)
+week_2_epi_week <- extract_epiweek(week_2_ahead_date)
+
+
+df_1 <- data.frame(c(week_1_epi_week, "1 Week Ahead", list(cur_1w_2w_samples[[1]]), week_1_prediction_value,
+                     ahead_dates[[1]], week_1_p25_value, week_1_p75_value))
+colnames(df_1) <- c("week", "pred_horizon", "draw", "prediction", "week_date", "p25", "p75")
+df <- rbind(df, df_1)
+df_2 <- data.frame(c(week_2_epi_week, "2 Week Ahead", list(cur_1w_2w_samples[[2]]), week_2_prediction_value,
+                     ahead_dates[[2]], week_2_p25_value, week_2_p75_value))
+colnames(df_2) <- c("week", "pred_horizon", "draw", "prediction", "week_date", "p25", "p75")
+df <- rbind(df, df_2)
+
+colnames(df) <- c("week", "pred_horizon", "draw", "prediction", "week_date", "p25", "p75")
+return(df)
+
+}
+
+#' Create 1 week 2 week Distribution df for Violin plot
+#'
+#' @param time_period_result output from experiment_time_period_epiestim()
+#'
+#' @return
+#' @export
+#'
+#' @examples
+create_1w_2w_df_epiestim <- function(time_period_results){
   
   
+  results <- lapply(time_period_results, samples_with_quantile_helper)
+  return(results)
+}
+
+
+#' Extract the last experiment model data (aka all the fitted data in this experiment)
+#'
+#' @param time_period_result output from experiment_time_period_epiestim()
+#'
+#' @return
+#' @export
+#'
+#' @examples
+extract_experiment_model_data_epiestim <- function(time_period_result){
+  
+  return (tibble(week_date = time_period_result[[length(time_period_result)]]$model_data_date,
+                 confirm = time_period_result[[length(time_period_result)]]$confirm)
+  )
+}
+
+
+# Violin Plot -------------------------------------------------------------
+
+
+#' Plot Violin Plot (EpiEstim), with option to plot specific pred_horizon
+#'
+#' @param time_period_result output from experiment_time_period_epiestim()
+#' @param pred_horizon_str str value of a pred_horizon (e.g. "1 Week Ahead")
+#' @param filter_draw boolean value for extracting the draw by p25-p75 (if TRUE)
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot_violin_time_period_results_epiestim <- function(time_period_result, 
+                                                     pred_horizon_str="",
+                                                     filter_draw=TRUE){
+  # the column from the df_1w_2w outputted below
+  # [week,        --> epiweek number
+  # pred_horizon, --> str label 
+  # draw,         --> the 400 samples
+  # prediction,   --> the median (p50) from this 400 samples (draw)
+  # week_date,    --> the week date in number (used for ordering the violin plot in time ascending order)
+  # p25,          --> the 25% quantile
+  # p75]          --> the 75% quantile
+  # adding filter: avoid showing extreme value
+  if (filter_draw == TRUE){
+    df_1w_2w <- create_1w_2w_df_epiestim(time_period_result) %>% filter(draw <= p75, draw >= p25)
+  }else{
+    df_1w_2w <- create_1w_2w_df_epiestim(time_period_result)
+  }
+  
+  
+  # get the last (from min to max date) model_data
+  all_model_data <- extract_experiment_model_data_epiestim(time_period_result)
+  all_model_data <- all_model_data %>% filter(week_date >= min(df_1w_2w$week_date))
+  # create `pred_horizon` str label for each week_date for the violin plot
+  all_model_data <- all_model_data %>% mutate(epiweek = purrr::map_dbl(week_date, extract_epiweek))
+  
+  all_model_data_with_pred_horizon <- bind_rows(all_model_data %>% mutate(pred_horizon = "1 Week Ahead"),
+                                                all_model_data %>% slice(2:n()) %>% mutate(pred_horizon = "2 Week Ahead"))
+  all_model_data_with_pred_horizon <- all_model_data_with_pred_horizon %>% 
+    mutate(str_date = as.numeric(week_date)) %>%
+    arrange(str_date)# %>% 
+  #filter(!is.na(confirm))
+  
+  # [20231006] - Add pred_horizon filter
+  if(pred_horizon_str != ""){
+    df_1w_2w <- df_1w_2w %>% filter(pred_horizon == pred_horizon_str)
+    all_model_data_with_pred_horizon <- all_model_data_with_pred_horizon %>% filter(pred_horizon == pred_horizon_str)
+  }
+  
+  gg <- ggplot(df_1w_2w,
+               aes(x=fct_reorder(factor(week), week_date), y=draw, fill=factor(pred_horizon)))+
+    geom_violin(scale = "count") + 
+    labs(x = "Epi Week", y = "Prediction", subtitle = "Median (in black), Actual Confirmed Case (in blue)") +
+    ggtitle("Violin Plot of Predictions by Epi Week and Pred Horizon") +
+    scale_fill_discrete(name = "Pred Horizon")
+  
+  gg <- gg + geom_point(data = df_1w_2w, 
+                        aes(x = fct_reorder(factor(week), week_date), y = prediction), 
+                        color = "black", size = 2, position = position_dodge(width = 0.9)) +
+    # add filter extract epiweek that has prediction data
+    geom_point(data = all_model_data_with_pred_horizon %>% filter(week_date >= min(df_1w_2w$week_date)),
+               aes(x = fct_reorder(factor(epiweek), str_date), y = confirm),
+               color = "blue", size = 2, position = position_dodge(width = 0.9))
+  
+  gg
+}
+
+# Plot All Forecasting Data -----------------------------------------------
+
+#' Plot Individual Projection Data from A List of Time Period Result
+#'
+#' @param time_period_result output from experiment_time_period_epiestim()
+#'
+#' @return multiple plots
+#' @export
+#'
+#' @examples
+plot_all_time_period_forecast_data <- function(time_period_result){
+  n <- length(time_period_result)
+  
+  for(i in 1:n){
+    
+    cur_time_period_result <- time_period_result[[i]]
+    model_data <- tibble(date = cur_time_period_result$model_data_date,
+                         confirm = cur_time_period_result$confirm)
+    
+    data_proj <- tibble(date = cur_time_period_result$daily_date,
+                        sim = cur_time_period_result$daily_sim,
+                        incidence = cur_time_period_result$daily_value)
+    
+    plot(data_proj %>%
+           # multiply by 7 to account for 
+           mutate(incidence = 7*incidence) %>% 
+           create_quantiles(date,variable = "incidence") %>%
+           ggplot(aes(x = date)) +
+           theme_bw() +
+           geom_ribbon(aes(ymin = p05, ymax = p95), fill = "#08519C", alpha = 0.25) +
+           geom_ribbon(aes(ymin = p25, ymax = p75), fill = "#08519C", alpha = 0.25) +
+           geom_line(aes(y = p50), color = "#08519C") +
+           geom_point(aes(x = date, y = confirm), data = model_data) +
+           labs(
+             x = "",
+             y = "PLOVER Flu A cases",
+             fill = "", color = ""
+           )
+    )
+    
+  }
 }
