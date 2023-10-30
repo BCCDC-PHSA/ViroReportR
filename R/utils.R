@@ -14,7 +14,8 @@ create_quantiles <- function(d, ..., variable = NULL) {
     )
 }
 
-
+#' Summarise incidence values into weekly aggregate
+#' @param samples Daily samples generated from \code{extract_daily_samples_epiestim_fit}
 extract_agg_samples_epiestim_fit <- function(samples){
   
   samples <- samples %>% 
@@ -35,8 +36,7 @@ extract_agg_samples_epiestim_fit <- function(samples){
 #'
 #' @return model_data with # of days extension specified
 #' @export
-#'
-#' @examples
+
 extend_rows_model_data <- function(data, min_model_date_str,
                                               extension_interval=0){
   min_model_date <- lubridate::ymd(min_model_date_str)
