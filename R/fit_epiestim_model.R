@@ -186,9 +186,9 @@ forecast_time_period_epiestim <- function(data, start_date_str,
   }
   
   results <- lapply(time_period, function(tp) {
-    print(paste0("Current time period: ", tp))
     model_data <- extend_rows_model_data(data = data, min_model_date_str = start_date_str,
                                                     extension_interval = tp)
+    print(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
     cur_model <- fit_epiestim(model_data)
    cur_daily_samples <- extract_daily_samples_epiestim_fit(data = model_data, model_fit = cur_model)
     
