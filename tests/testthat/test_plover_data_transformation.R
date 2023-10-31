@@ -1,15 +1,4 @@
 
-
-# load plover data --------------------------------------------------------
-
-data_folder <- "O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data"
-
-data_filename <- "plover_weekly_resp.rds"
-
-plover_data_file <- file.path(data_folder, data_filename)
-plover_data <- readRDS(plover_data_file)
-
-
 # Run Package Data Transformation Function --------------------------------
 
 weekly_plover_data <- get_weekly_plover(plover_data)

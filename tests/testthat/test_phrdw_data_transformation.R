@@ -1,15 +1,7 @@
-# load phrdw data --------------------------------------------------------
-
-data_folder <- "O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data"
-
-vpp_only_data_file <- file.path(data_folder,"phrdw_flu_daily_count_vpp_only.rData")
-
-load(vpp_only_data_file) # dataframe named: phrdw_flu_daily_count
-
 
 # Run Package Data Transformation Function --------------------------------
 
-weekly_phrdw_data <- get_weekly_phrdw(phrdw_flu_daily_count)
+weekly_phrdw_data <- get_weekly_phrdw(phrdw_data)
 
 disease_type <- "rsv"
 
