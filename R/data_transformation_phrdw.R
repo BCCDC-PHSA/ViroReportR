@@ -8,14 +8,17 @@
 #'
 #' @importFrom magrittr "%>%"
 #'
-#' @examples get_weekly_phrdw(data.frame(
-#'lis_date_collection = as.Date(c('2023-01-08','2023-01-08','2023-01-08','2023-01-09')),
-#'                              result_lab_name = c("lab_a", "lab_b", "lab_a", "lab_b"),
-#'                              age_years = c(0, 1, 2, 3),
-#'                              sars_cov2 = c(1,2,3,4),
-#'                              rsv = c(1,2,3,4),
-#'                              flu_a = c(1,2,3,4),
-#'                              flu_b = c(3,4,5,6)))
+#' @examples
+#' phrdw_data <- data.frame(
+#' lis_date_collection = as.Date(c('2023-01-08','2023-01-08','2023-01-08','2023-01-09')),
+#'     result_lab_name = c("lab_a", "lab_b", "lab_a", "lab_b"),
+#'     age_years = c(0, 1, 2, 3),
+#'     sars_cov2 = c(1,2,3,4),
+#'     rsv = c(1,2,3,4),
+#'     flu_a = c(1,2,3,4),
+#'     flu_b = c(3,4,5,6))
+#'
+#' get_weekly_phrdw(phrdw_data)
 get_weekly_phrdw <- function(phrdw_flu_daily_count) {
 
   stopifnot(c("lis_date_collection","result_lab_name","age_years",
@@ -24,25 +27,18 @@ get_weekly_phrdw <- function(phrdw_flu_daily_count) {
 
   result_lab_name <- lis_date_collection <- age_years <- sars_cov2 <- rsv <- flu_a <- flu_b <- NULL
 
-  tryCatch(
-    return(phrdw_flu_daily_count %>%
-             dplyr::filter(result_lab_name != '*Missing') %>%
-             dplyr::mutate(date = lubridate::floor_date(lis_date_collection, unit="week"),
-                           age_years = as.numeric(age_years)) %>%
-             dplyr::group_by(date, age_years) %>%
-             dplyr::summarize(sars_cov2 = sum(sars_cov2),
-                              rsv = sum(rsv),
-                              flu_a = sum(flu_a),
-                              flu_b = sum(flu_b)) %>%
-             dplyr::ungroup()
-    ),
-    error = function(e){
-      message("An error occurred:\n", e)
-    },
-    warning = function(w){
-      message("A warning occured:\n", w)
-    }
-  )
+  agg_phrdw_data_date_type <- phrdw_flu_daily_count %>%
+    dplyr::filter(result_lab_name != '*Missing') %>%
+    dplyr::mutate(date = lubridate::floor_date(lis_date_collection, unit="week"),
+                  age_years = as.numeric(age_years)) %>%
+    dplyr::group_by(date, age_years) %>%
+    dplyr::summarize(sars_cov2 = sum(sars_cov2),
+                     rsv = sum(rsv),
+                     flu_a = sum(flu_a),
+                     flu_b = sum(flu_b)) %>%
+    dplyr::ungroup()
+
+  return(agg_phrdw_data_date_type)
 }
 
 #' get_weekly_phrdw_by_type_date_age - obtain weekly phrdw data filtered by disease type, date, age
@@ -59,15 +55,20 @@ get_weekly_phrdw <- function(phrdw_flu_daily_count) {
 #'
 #' @importFrom magrittr "%>%"
 #'
-#' @examples get_weekly_phrdw_by_type_date_age(
-#'weekly_phrdw_data = get_weekly_phrdw(data.frame(
-#'lis_date_collection = as.Date(c('2023-01-08','2023-01-08','2023-01-08','2023-01-09')),
-#'                                  result_lab_name = c("lab_a", "lab_b", "lab_a", "lab_b"),
-#'                                  age_years = c(0, 1, 2, 3),
-#'                                  sars_cov2 = c(1,2,3,4),
-#'                                  rsv = c(1,2,3,4),
-#'                                  flu_a = c(1,2,3,4),
-#'                                  flu_b = c(3,4,5,6))),
+#' @examples
+#' phrdw_data <- data.frame(
+#' lis_date_collection = as.Date(c('2023-01-08','2023-01-08','2023-01-08','2023-01-09')),
+#'     result_lab_name = c("lab_a", "lab_b", "lab_a", "lab_b"),
+#'     age_years = c(0, 1, 2, 3),
+#'     sars_cov2 = c(1,2,3,4),
+#'     rsv = c(1,2,3,4),
+#'     flu_a = c(1,2,3,4),
+#'     flu_b = c(3,4,5,6))
+#'
+#' weekly_phrdw_data <- get_weekly_phrdw(phrdw_data)
+#'
+#' get_weekly_phrdw_by_type_date_age(
+#'                              weekly_phrdw_data = weekly_phrdw_data,
 #'                              type='rsv',
 #'                              start_date='2023-01-01',
 #'                              end_date='2023-02-01',
@@ -85,22 +86,19 @@ get_weekly_phrdw_by_type_date_age <- function(weekly_phrdw_data, type,
 
   date <- age_years <- sars_cov2 <- rsv <- flu_a <- flu_b <- NULL
 
-  tryCatch(return(weekly_phrdw_data %>%
-             dplyr::filter(date >= start_date,
-                           date <= end_date,
-                           age_years >= start_age,
-                           age_years <= end_age) %>%
-             dplyr::group_by(date) %>%
-             dplyr::summarise(sars_cov2 = sum(sars_cov2),
-                              rsv = sum(rsv),
-                              flu_a = sum(flu_a),
-                              flu_b = sum(flu_b)) %>%
-             dplyr::select(date, dplyr::all_of(type)) %>%
-             dplyr::rename("confirm" = type) %>%
-             dplyr::ungroup()
-    ),
-    error = function(e){
-      message("An error occurred:\n", e)
-    }
-  )
+  filtered_weekly_phrdw_data <- weekly_phrdw_data %>%
+    dplyr::filter(date >= start_date,
+                  date <= end_date,
+                  age_years >= start_age,
+                  age_years <= end_age) %>%
+    dplyr::group_by(date) %>%
+    dplyr::summarise(sars_cov2 = sum(sars_cov2),
+                     rsv = sum(rsv),
+                     flu_a = sum(flu_a),
+                     flu_b = sum(flu_b)) %>%
+    dplyr::select(date, dplyr::all_of(type)) %>%
+    dplyr::rename("confirm" = type) %>%
+    dplyr::ungroup()
+
+  return(filtered_weekly_phrdw_data)
 }

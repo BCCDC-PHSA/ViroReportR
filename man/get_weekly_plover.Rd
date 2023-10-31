@@ -16,10 +16,12 @@ weekly_plover_data plover data aggregated by epiweek date, year, week type
 get_weekly_plover - calculate the weekly cases from plover data
 }
 \examples{
-get_weekly_plover(data.frame(
+plover_data <- data.frame(
 epiWeek_date = as.Date(c('2019-09-08','2019-09-29','2019-10-06','2019-10-13')),
                              epiWeek_year = c(2019, 2019, 2019, 2019),
                              Epiweek = c(37,40,41,42),
                              flu_a = c(1,2,3,4),
-                             flu_b = c(3,4,5,6)))
+                             flu_b = c(3,4,5,6))
+
+get_weekly_plover(plover_data)
 }

@@ -33,15 +33,19 @@ weekly phrdw data filtered by disease type, date, age
 get_weekly_phrdw_by_type_date_age - obtain weekly phrdw data filtered by disease type, date, age
 }
 \examples{
-get_weekly_phrdw_by_type_date_age(
-weekly_phrdw_data = get_weekly_phrdw(data.frame(
+phrdw_data <- data.frame(
 lis_date_collection = as.Date(c('2023-01-08','2023-01-08','2023-01-08','2023-01-09')),
-                                 result_lab_name = c("lab_a", "lab_b", "lab_a", "lab_b"),
-                                 age_years = c(0, 1, 2, 3),
-                                 sars_cov2 = c(1,2,3,4),
-                                 rsv = c(1,2,3,4),
-                                 flu_a = c(1,2,3,4),
-                                 flu_b = c(3,4,5,6))),
+    result_lab_name = c("lab_a", "lab_b", "lab_a", "lab_b"),
+    age_years = c(0, 1, 2, 3),
+    sars_cov2 = c(1,2,3,4),
+    rsv = c(1,2,3,4),
+    flu_a = c(1,2,3,4),
+    flu_b = c(3,4,5,6))
+
+weekly_phrdw_data <- get_weekly_phrdw(phrdw_data)
+
+get_weekly_phrdw_by_type_date_age(
+                             weekly_phrdw_data = weekly_phrdw_data,
                              type='rsv',
                              start_date='2023-01-01',
                              end_date='2023-02-01',
