@@ -52,32 +52,17 @@ model_data <- data %>%
 }
 
 
-# Extract 1w 2w sample distribution ---------------------------------------
-
-#' Extract Weekly Samples (week_date & value) ideally 1000 samples per date
-#'
-#' @param time_period_result output from experiment_time_period_epiestim() i-th
-#'
-#' @return
-#' @export
-#'
-#' @examples
-extract_weekly_samples_epiestim_fit <- function(time_period_result){
-  return(tibble(week_date = time_period_result$week_date,
-                value = time_period_result$value))
-}
-
 
 #' Extract calculated quantiles from the weekly samples
 #'
-#' @param time_period_result output from experiment_time_period_epiestim() i-th
+#' @param time_period_result output from \code{forecast_time_period_epiestim}
+#' 
 #'
 #' @return
 #' @export
 #'
 #' @examples
 extract_weekly_quantile_epiestim <- function(time_period_result){
-  # the samples are already generated/simulated
   return(tibble(week_date = time_period_result$quantile_week_date,
                 p50 = time_period_result$p50,
                 p25 = time_period_result$p25,
@@ -87,5 +72,18 @@ extract_weekly_quantile_epiestim <- function(time_period_result){
 }
 
 
+# Extract weekly simulated samples
 
+#' Extract Weekly Samples (week_date & value) ideally 1000 samples per date
+#'
+#' @param time_period_result output from \code{forecast_time_period_epiestim}
+#'
+#' @return
+#' @export
+#'
+#' @examples
+extract_weekly_samples_epiestim <- function(time_period_result){
+  return(tibble(week_date = time_period_result$week_date,
+                value = time_period_result$value))
+}
 
