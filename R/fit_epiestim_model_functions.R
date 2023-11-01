@@ -202,22 +202,6 @@ create_1w_2w_df_epiestim <- function(time_period_result){
   return(results)
 }
 
-############################################ PROGRESS #############################################
-
-#' Extract the last experiment model data (aka all the fitted data in this experiment)
-#'
-#' @param time_period_result output from experiment_time_period_epiestim()
-#'
-#' @return
-#' @export
-extract_experiment_model_data_epiestim <- function(time_period_result){
-
-  return (tibble(week_date = time_period_result[[length(time_period_result)]]$model_data_date,
-                 confirm = time_period_result[[length(time_period_result)]]$confirm)
-  )
-}
-
-
 #' Plot forecasts at each iteration with uncertainity quantile ranges
 #'
 #' @param time_period_result output from \code{forecast_time_period_epiestim()}
