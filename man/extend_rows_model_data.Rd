@@ -7,13 +7,11 @@
 extend_rows_model_data(data, min_model_date_str, extension_interval = 0)
 }
 \arguments{
+\item{data}{\emph{data frame} containing two columns: date and confirm (number of cases per day)}
+
 \item{min_model_date_str}{start date (in str)}
 
-\item{extension_interval}{an integer (# of days)
-
-#'  @importFrom magrittr "\%>\%"
-@import dplyr
-@import lubridate}
+\item{extension_interval}{an integer (# of days)}
 }
 \value{
 model_data with # of days extension specified

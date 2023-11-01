@@ -7,10 +7,7 @@
 extract_agg_samples_epiestim_fit(samples)
 }
 \arguments{
-\item{samples}{Daily samples generated from \code{extract_daily_samples_epiestim_fit}
-
-#'  @importFrom magrittr "\%>\%"
-@import dplyr}
+\item{samples}{Daily samples generated from \code{extract_daily_samples_epiestim_fit}}
 }
 \description{
 Summarise incidence values into weekly aggregate

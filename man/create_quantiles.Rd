@@ -14,7 +14,8 @@ create_quantiles(d, ..., variable = NULL)
 \item{variable}{string
 
 @importFrom magrittr "\%>\%"
-@import dplyr}
+@import dplyr
+@importFrom rlang .data}
 }
 \description{
 summarise a data frame \code{d} by groups along a \code{variable}

@@ -182,7 +182,7 @@ forecast_time_period_epiestim <- function(data, start_date_str,
 
   return(row)
   })
-  return(results)
+  return(time_period_result)
 
 }
 
