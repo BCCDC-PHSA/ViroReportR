@@ -153,3 +153,17 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result, xl
   }
 
 
+#' Sample from a truncated normal using inverse transform uniform sampling 
+#' 
+#'
+#' @param  n Number of random samples 
+#' @param mean Mean of distribution 
+#' @param sd Standard deviation of distribution 
+#' @param lower_lim Lower limit for truncation 
+#' 
+
+rtrunc_norm <- function(n, mean, sd, lower_lim = 0) {
+  lower_lim <- pnorm(lower_lim, mean = mean, sd = sd)
+  samples <- qnorm(runif(n, lower_lim, 1), mean = mean, sd = sd)
+  return(samples)
+}

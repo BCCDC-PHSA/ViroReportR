@@ -9,7 +9,7 @@
 #'
 #' @param data *data frame* containing two columns: date and confirm (number of cases per day)
 #' @param dt *Integer* Number of days aggregated (set to 7 by default for weekly aggregate)
-#' @param type *character* Specifies type of epidemic. Must be one of "Influenza", "RSV" and "COVID"
+#' @param type *character* Specifies type of epidemic. Must be one of "Influenza", "RSV", "COVID" or "Other"
 #' @param mean_si *Numeric* User specification of mean of parametric serial interval
 #' @param std_si *Numeric* User specification of standard deviation of parametric serial interval
 #' @param recon_opt One of "naive" or "match" to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page)
@@ -31,10 +31,10 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
     stop("Must pass a data frame with two columns: date and confirm")
   }
   if(missing(type)) {
-    stop("Must specify the type of epidemic (Influenza, RSV, or COVID)")
+    stop("Must specify the type of epidemic (Influenza, RSV, COVID or Other)")
   }
-  if(!(type %in% c("Influenza", "RSV", "COVID")) ) {
-    stop("Must specify the type of epidemic (Influenza, RSV, or COVID)")
+  if((type == "Other" && isTRUE(is.null(mean_si) & is.null(std_si)))) {
+    stop("Must specify mean and standard deviation of parametric serial interval for type Other")
   }
   incid <- data$confirm
   if(is.null(mean_si) && is.null(std_si)) {
@@ -111,7 +111,7 @@ extract_daily_samples_epiestim_fit <- function(data, model_fit, dt = 7L, n_days 
  incidence_obj <- incidence::incidence(model_data_linelist$date)
 
 r_vals <- utils::tail(model_fit$R,n=1)
-r_dist <- truncnorm::rtruncnorm(100, a = 0, mean = r_vals$`Mean(R)`,sd = r_vals$`Std(R)`)
+r_dist <- rtrunc_norm(100, mean = r_vals$`Mean(R)`,sd = r_vals$`Std(R)`, lower_lim = 0)
 
   # Use the project function
 proj <- projections::project(incidence_obj,
