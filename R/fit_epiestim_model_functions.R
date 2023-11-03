@@ -9,7 +9,7 @@
 #'
 #' @param data *data frame* containing two columns: date and confirm (number of cases per day)
 #' @param dt *Integer* Number of days aggregated (set to 7 by default for weekly aggregate)
-#' @param type *character* Specifies type of epidemic. Must be one of "Influenza", "RSV", "COVID" or "Other"
+#' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "covid" or "other"
 #' @param mean_si *Numeric* User specification of mean of parametric serial interval
 #' @param std_si *Numeric* User specification of standard deviation of parametric serial interval
 #' @param recon_opt One of "naive" or "match" to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page)
@@ -27,24 +27,28 @@
 fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
                                method = "parametric_si", ...) {
   confirm <- NULL
+  if(packageVersion("EpiEstim") == "2.2.4") {
+    stop("Please install latest version of EpiEstim from GitHub: 
+  install.packages('EpiEstim', repos = c('https://mrc-ide.r-universe.dev', 'https://cloud.r-project.org'))")
+  }
   if(isFALSE(is.data.frame(data)) | isFALSE(colnames(data) %in% c("date", "confirm")) ) {
     stop("Must pass a data frame with two columns: date and confirm")
   }
   if(missing(type)) {
-    stop("Must specify the type of epidemic (Influenza, RSV, COVID or Other)")
+    stop("Must specify the type of epidemic (flu_a, flu_b, covid, rsv or other)")
   }
-  if((type == "Other" && isTRUE(is.null(mean_si) & is.null(std_si)))) {
-    stop("Must specify mean and standard deviation of parametric serial interval for type Other")
+  if(isTRUE(type == "other" && isTRUE(is.null(mean_si) & is.null(std_si)))) {
+    stop("Must specify mean and standard deviation of parametric serial interval for type other")
   }
   incid <- data$confirm
   if(is.null(mean_si) && is.null(std_si)) {
-    if (type == "Influenza") {
+    if (type == "flu_a" | type == "flu_b") {
       config <- EpiEstim::make_config(list(mean_si = 3.6,
                                  std_si = 1.6))
-    } else if (type == "RSV") {
+    } else if (type == "rsv") {
       config <- EpiEstim::make_config(list(mean_si = 7.5,
                                  std_si = 2.1))
-    } else if (type == "COVID") {
+    } else if (type == "covid") {
       config <- EpiEstim::make_config(list(mean_si = 2.3,
                                  std_si = 1.4))
     }
@@ -136,7 +140,7 @@ data_proj <- as.data.frame(proj, long = TRUE)
 #'
 #' @param data *data frame* containing two columns: date and confirm (number of cases per day)
 #' @param start_date_str Initial starting time-point. Must match a timepoint in the input dataset
-#' @param time_period *vector* of multiples of 7 (for weekly forecast data) with the number of weeks forecasts are to be generated for. Default is c(0, 7, 14, 21) indicating that last forecasting will be done from a time-point 3 weeks ahead of the start date specified
+#' @param n_days The number of days to run simulations for. Defaults to 14
 #' @param type *character* Specifies type of epidemic. Must be one of "Influenza", "RSV" and "COVID"
 #'
 #'
@@ -147,23 +151,18 @@ data_proj <- as.data.frame(proj, long = TRUE)
 #' @return List storing quantiles of 2 week ahead weekly forecasts from each sliding window
 #' @export
 
-forecast_time_period_epiestim <- function(data, start_date_str,
-                                            time_period=c(0, 7, 14, 21),
+forecast_time_period_epiestim <- function(data, start_date_str, n_days = 14, aggregate_weeks = TRUE, 
                                             type= NULL) {
   sim <- week_date <- NULL
   if(isFALSE(lubridate::ymd(start_date_str) %in% data$date)) {
     stop("Start date not present in dataset. Please check your input")
   }
-  if(isTRUE(any(time_period %% 7 != 0))) {
-    stop("Time period input not weekly. Please check your input")
-  }
-
   time_period_result <- lapply(time_period, function(tp) {
     model_data <- extend_rows_model_data(data = data, min_model_date_str = start_date_str,
                                                     extension_interval = tp)
     print(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
     cur_model <- fit_epiestim_model(model_data, type = type)
-   cur_daily_samples <- extract_daily_samples_epiestim_fit(data = model_data, model_fit = cur_model)
+   cur_daily_samples <- extract_daily_samples_epiestim_fit(data = model_data, model_fit = cur_model, ndays = ndays)
 
     cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
 
