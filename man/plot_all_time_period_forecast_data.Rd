@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_epiestim_model_functions.R
 \name{plot_all_time_period_forecast_data}
 \alias{plot_all_time_period_forecast_data}
-\title{Plot forecasts at each iteration with uncertainity quantile ranges}
+\title{Plot forecasts at each iteration with uncertainty quantile ranges}
 \usage{
 plot_all_time_period_forecast_data(time_period_result)
 }
@@ -13,5 +13,5 @@ plot_all_time_period_forecast_data(time_period_result)
 Multiple plots with forecasts at each sliding window
 }
 \description{
-Plot forecasts at each iteration with uncertainity quantile ranges
+Plot forecasts at each iteration with uncertainty quantile ranges
 }

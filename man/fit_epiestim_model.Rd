@@ -18,9 +18,9 @@ fit_epiestim_model(
 \arguments{
 \item{data}{\emph{data frame} containing two columns: date and confirm (number of cases per day)}
 
-\item{dt}{\emph{Integer} Number of days aggregated (set to 7 by default for weekly aggregate)}
+\item{dt}{\emph{Integer}     length of temporal aggregations of the incidence data. This should be an integer or vector of integers. The default value is 7 time units (1 week).}
 
-\item{type}{\emph{character} Specifies type of epidemic. Must be one of "Influenza", "RSV" and "COVID"}
+\item{type}{\emph{character} Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "covid" or "other"}
 
 \item{mean_si}{\emph{Numeric} User specification of mean of parametric serial interval}
 
@@ -40,5 +40,5 @@ A wrapper function for {\code{\link[EpiEstim]{estimate_R}}} from the \code{EpiEs
 }
 \details{
 \code{fit_epiestim_model} currently supports the following epidemics: Influenza, RSV and COVID-19. The serial intervals for the estimation of R were retrieved from
-\link{Cowling et al., 2011}, \link{Vink et al., 2014} and \link{Madewell et al., 2023} for Influenza, RSV and COVID (BA.5 Omicron variant) respectively
+Cowling et al., 2011, Vink et al., 2014 and Madewell et al., 2023 for Influenza, RSV and COVID (BA.5 Omicron variant) respectively
 }

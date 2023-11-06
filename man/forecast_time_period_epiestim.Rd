@@ -2,13 +2,15 @@
 % Please edit documentation in R/fit_epiestim_model_functions.R
 \name{forecast_time_period_epiestim}
 \alias{forecast_time_period_epiestim}
-\title{Iterate through a time-period as a sliding window to forecast 1-2 weeks ahead with the EpiEstim model fit}
+\title{Iterate through a time-period as a sliding window to produce short-term forecasts with the EpiEstim model fit}
 \usage{
 forecast_time_period_epiestim(
   data,
   start_date_str,
-  time_period = c(0, 7, 14, 21),
-  type = NULL
+  n_days = 7,
+  aggregate_week = FALSE,
+  type = NULL,
+  ...
 )
 }
 \arguments{
@@ -16,13 +18,17 @@ forecast_time_period_epiestim(
 
 \item{start_date_str}{Initial starting time-point. Must match a timepoint in the input dataset}
 
-\item{time_period}{\emph{vector} of multiples of 7 (for weekly forecast data) with the number of weeks forecasts are to be generated for. Default is c(0, 7, 14, 21) indicating that last forecasting will be done from a time-point 3 weeks ahead of the start date specified}
+\item{n_days}{The number of days to run simulations for. Defaults to 7}
+
+\item{aggregate_week}{\emph{logical} argument specifying whether to aggregate forecasts by weekly quantiles. Default is to return daily quantiles}
 
 \item{type}{\emph{character} Specifies type of epidemic. Must be one of "Influenza", "RSV" and "COVID"}
+
+\item{...}{Pass on optional arguments from \code{fit_epiestim_model}}
 }
 \value{
-List storing quantiles of 2 week ahead weekly forecasts from each sliding window
+List storing quantiles of both daily and 2 week ahead weekly forecasts from each sliding window
 }
 \description{
-Function to produce short-term weekly forecasts from objects of class {\code{\link[EpiEstim]{estimate_R}}}
+Function to produce short-term forecasts from objects of class {\code{\link[EpiEstim]{estimate_R}}}
 }

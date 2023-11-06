@@ -4,7 +4,7 @@
 \alias{extend_rows_model_data}
 \title{extract model data with extension during each iteration of loop}
 \usage{
-extend_rows_model_data(data, min_model_date_str, extension_interval = 0)
+extend_rows_model_data(data, min_model_date_str, extension_interval = 1)
 }
 \arguments{
 \item{data}{\emph{data frame} containing two columns: date and confirm (number of cases per day)}

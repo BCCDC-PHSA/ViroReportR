@@ -22,9 +22,8 @@ Imports:
     lubridate,
     magrittr,
     projections,
-    purrr,
     rlang,
     tibble,
-    truncnorm,
+    stats,
     utils
 VignetteBuilder: knitr
