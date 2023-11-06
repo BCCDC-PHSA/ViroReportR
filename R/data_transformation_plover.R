@@ -1,10 +1,23 @@
-
-
-#' get_weekly_plover - calculate the weekly cases from plover data
+#' Obtain the weekly cases from plover data
+#'
+#' @description
+#' `get_weekly_plover()` performs data transformation in the following steps:
+#'
+#' 1. Uses `pivot_longer()` to convert the `flu_a` & `flu_b` columns into `flu_cases`
+#'  and its name into `type`.
+#' 2. Aggregates the sum of `flu_cases` by `epiWeek_date`, `epiWeek_year`, `Epiweek`, `type`.
+#' 3. Uses `pivot_wider()` to convert the `flu_cases` into the `flu_a` & `flu_b` columns.
+#'
+#' The input dataframe `plover_data` must have the following columns:
+#' * `epiWeek_date`: Epiweek Date String (e.g. '2019-01-01')
+#' * `epiWeek_year`: Epiweek Year Number (e.g. 2019)
+#' * `Epiweek`: Epiweek Number (e.g. 1, 2, ..., 53)
+#' * `flu_a`: Confirmed Cases Count (e.g. 1, 2, ...)
+#' * `flu_b`: Confirmed Cases Count (e.g. 1, 2, ...)
 #'
 #' @param plover_data raw plover data before any transformation
 #'
-#' @return weekly_plover_data plover data aggregated by epiweek date, year, week type
+#' @return plover data aggregated by epiweek date, year, week, flu type.
 #' @export
 #'
 #' @importFrom magrittr "%>%"
@@ -37,10 +50,26 @@ get_weekly_plover <- function(plover_data) {
 }
 
 
-#' get_weekly_plover_by_date_type - filter the weekly plover data by date & disease type
+#' Filter the weekly plover data by date & disease type
 #'
-#' @param weekly_plover_data weekly plover data from get_weekly_plover
-#' @param type disease type string (e.g. "flu_a", "flu_b")
+#' @description
+#' `get_weekly_plover_by_date_type()` filter the weekly plover data by a given
+#' disease type and the date range, it performs the following steps:
+#' 1. Filters the weekly plover data by the given epiweek date range.
+#' 2. Selects the epiweek date & flu type columns.
+#' 3. Renames the epiweek date as `date` & the flu type as `confirm`.
+#'
+#' The input dataframe `weekly_plover_data` must be the output of `get_weekly_plover()`.
+#'
+#' The input flu type must be 'flu_a' or 'flu_b'.
+#'
+#' The input start date must be earlier than the input end date.
+#'
+#' @seealso [vriforecasting::get_weekly_plover()] which produces the input dataframe of
+#' this function.
+#'
+#' @param weekly_plover_data weekly plover data from `get_weekly_plover()`
+#' @param type disease type string (e.g. 'flu_a', 'flu_b')
 #' @param start_date start date string (e.g. '2022-01-01')
 #' @param end_date end date string (e.g. '2022-12-31')
 #'

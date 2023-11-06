@@ -1,9 +1,24 @@
-
-#' get_weekly_phrdw - obtain weekly phrdw data group by date & age
+#' Obtain weekly phrdw data group by date & age
+#'
+#' @description
+#' `get_weekly_phrdw()` performs data transformation in the following steps:
+#'
+#' 1. Uses `filter()` to remove those missing `result_lab_name`.
+#' 2. Creates a epiweek date column named `date` & set the `age_years` as numeric.
+#' 3. Aggregates the confirmed cases for each diseases by `date`, `age_years`.
+#'
+#' The input dataframe `phrdw_flu_daily_count` must have the following columns:
+#' * `lis_date_collection`: Date of collection (e.g. '2019-01-01')
+#' * `result_lab_name`: The name of the result lab (e.g. 'BCCDC')
+#' * `age_years`: Age (e.g. 1, 2, ...)
+#' * `sars_cov2`: Confirmed Cases Count (e.g. 1, 2, ...)
+#' * `rsv`: Confirmed Cases Count (e.g. 1, 2, ...)
+#' * `flu_a`: Confirmed Cases Count (e.g. 1, 2, ...)
+#' * `flu_b`: Confirmed Cases Count (e.g. 1, 2, ...)
 #'
 #' @param phrdw_flu_daily_count raw phrdw data
 #'
-#' @return aggregated phrdw data by date & age
+#' @return An aggregated phrdw data by date & age
 #' @export
 #'
 #' @importFrom magrittr "%>%"
@@ -41,7 +56,26 @@ get_weekly_phrdw <- function(phrdw_flu_daily_count) {
   return(agg_phrdw_data_date_type)
 }
 
-#' get_weekly_phrdw_by_type_date_age - obtain weekly phrdw data filtered by disease type, date, age
+#' Filter weekly phrdw data filtered by disease type, date, age
+#'
+#' @description
+#' `get_weekly_phrdw_by_type_date_age()` filter the weekly phrdw data by a given
+#' disease type, date range, and age range, it performs the following steps:
+#' 1. Filters the weekly phrdw data by the given epiweek date range and age range.
+#' 2. Aggregates the confirmed cases count by the epiweek date.
+#' 3. Selects the date & the corresponding disease type column.
+#' 4. Renames the disease type as `confirm`.
+#'
+#' The input dataframe `weekly_phrdw_data` must be the output of `get_weekly_phrdw()`.
+#'
+#' The input disease type must be either 'sars_cov2', 'rsv', 'flu_a', or 'flu_b'.
+#'
+#' The input start date must be earlier than the input end date.
+#'
+#' The input start age must be earlier than the input end age.
+#'
+#' @seealso [vriforecasting::get_weekly_phrdw()] which produces the input dataframe of
+#' this function.
 #'
 #' @param weekly_phrdw_data weekly phrdw data from get_weekly_phrdw(phrdw_flu_daily_count)
 #' @param type disease type (e.g. 'sars_cov2', 'rsv', 'flu_a', 'flu_b')
@@ -50,7 +84,7 @@ get_weekly_phrdw <- function(phrdw_flu_daily_count) {
 #' @param start_age start age integer (default = 0)
 #' @param end_age end age integer (default = 150)
 #'
-#' @return weekly phrdw data filtered by disease type, date, age
+#' @return A weekly phrdw data filtered by disease type, date, age
 #' @export
 #'
 #' @importFrom magrittr "%>%"
