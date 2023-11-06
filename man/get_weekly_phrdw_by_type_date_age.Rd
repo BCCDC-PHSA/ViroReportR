@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_transformation_phrdw.R
 \name{get_weekly_phrdw_by_type_date_age}
 \alias{get_weekly_phrdw_by_type_date_age}
-\title{get_weekly_phrdw_by_type_date_age - obtain weekly phrdw data filtered by disease type, date, age}
+\title{Filter weekly phrdw data filtered by disease type, date, age}
 \usage{
 get_weekly_phrdw_by_type_date_age(
   weekly_phrdw_data,
@@ -27,10 +27,25 @@ get_weekly_phrdw_by_type_date_age(
 \item{end_age}{end age integer (default = 150)}
 }
 \value{
-weekly phrdw data filtered by disease type, date, age
+A weekly phrdw data filtered by disease type, date, age
 }
 \description{
-get_weekly_phrdw_by_type_date_age - obtain weekly phrdw data filtered by disease type, date, age
+\code{get_weekly_phrdw_by_type_date_age()} filter the weekly phrdw data by a given
+disease type, date range, and age range, it performs the following steps:
+\enumerate{
+\item Filters the weekly phrdw data by the given epiweek date range and age range.
+\item Aggregates the confirmed cases count by the epiweek date.
+\item Selects the date & the corresponding disease type column.
+\item Renames the disease type as \code{confirm}.
+}
+
+The input dataframe \code{weekly_phrdw_data} must be the output of \code{get_weekly_phrdw()}.
+
+The input disease type must be either 'sars_cov2', 'rsv', 'flu_a', or 'flu_b'.
+
+The input start date must be earlier than the input end date.
+
+The input start age must be earlier than the input end age.
 }
 \examples{
 phrdw_data <- data.frame(
@@ -51,4 +66,8 @@ get_weekly_phrdw_by_type_date_age(
                              end_date='2023-02-01',
                              start_age=0,
                              end_age=10)
+}
+\seealso{
+\code{\link[=get_weekly_phrdw]{get_weekly_phrdw()}} which produces the input dataframe of
+this function.
 }

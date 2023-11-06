@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_transformation_plover.R
 \name{get_weekly_plover}
 \alias{get_weekly_plover}
-\title{get_weekly_plover - calculate the weekly cases from plover data}
+\title{Obtain the weekly cases from plover data}
 \usage{
 get_weekly_plover(plover_data)
 }
@@ -10,10 +10,25 @@ get_weekly_plover(plover_data)
 \item{plover_data}{raw plover data before any transformation}
 }
 \value{
-weekly_plover_data plover data aggregated by epiweek date, year, week type
+plover data aggregated by epiweek date, year, week, flu type.
 }
 \description{
-get_weekly_plover - calculate the weekly cases from plover data
+\code{get_weekly_plover()} performs data transformation in the following steps:
+\enumerate{
+\item Uses \code{pivot_longer()} to convert the \code{flu_a} & \code{flu_b} columns into \code{flu_cases}
+and its name into \code{type}.
+\item Aggregates the sum of \code{flu_cases} by \code{epiWeek_date}, \code{epiWeek_year}, \code{Epiweek}, \code{type}.
+\item Uses \code{pivot_wider()} to convert the \code{flu_cases} into the \code{flu_a} & \code{flu_b} columns.
+}
+
+The input dataframe \code{plover_data} must have the following columns:
+\itemize{
+\item \code{epiWeek_date}: Epiweek Date String (e.g. '2019-01-01')
+\item \code{epiWeek_year}: Epiweek Year Number (e.g. 2019)
+\item \code{Epiweek}: Epiweek Number (e.g. 1, 2, ..., 53)
+\item \code{flu_a}: Confirmed Cases Count (e.g. 1, 2, ...)
+\item \code{flu_b}: Confirmed Cases Count (e.g. 1, 2, ...)
+}
 }
 \examples{
 plover_data <- data.frame(

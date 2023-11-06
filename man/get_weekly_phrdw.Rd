@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_transformation_phrdw.R
 \name{get_weekly_phrdw}
 \alias{get_weekly_phrdw}
-\title{get_weekly_phrdw - obtain weekly phrdw data group by date & age}
+\title{Obtain weekly phrdw data group by date & age}
 \usage{
 get_weekly_phrdw(phrdw_flu_daily_count)
 }
@@ -10,10 +10,26 @@ get_weekly_phrdw(phrdw_flu_daily_count)
 \item{phrdw_flu_daily_count}{raw phrdw data}
 }
 \value{
-aggregated phrdw data by date & age
+An aggregated phrdw data by date & age
 }
 \description{
-get_weekly_phrdw - obtain weekly phrdw data group by date & age
+\code{get_weekly_phrdw()} performs data transformation in the following steps:
+\enumerate{
+\item Uses \code{filter()} to remove those missing \code{result_lab_name}.
+\item Creates a epiweek date column named \code{date} & set the \code{age_years} as numeric.
+\item Aggregates the confirmed cases for each diseases by \code{date}, \code{age_years}.
+}
+
+The input dataframe \code{phrdw_flu_daily_count} must have the following columns:
+\itemize{
+\item \code{lis_date_collection}: Date of collection (e.g. '2019-01-01')
+\item \code{result_lab_name}: The name of the result lab (e.g. 'BCCDC')
+\item \code{age_years}: Age (e.g. 1, 2, ...)
+\item \code{sars_cov2}: Confirmed Cases Count (e.g. 1, 2, ...)
+\item \code{rsv}: Confirmed Cases Count (e.g. 1, 2, ...)
+\item \code{flu_a}: Confirmed Cases Count (e.g. 1, 2, ...)
+\item \code{flu_b}: Confirmed Cases Count (e.g. 1, 2, ...)
+}
 }
 \examples{
 phrdw_data <- data.frame(

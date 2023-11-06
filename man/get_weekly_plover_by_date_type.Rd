@@ -2,14 +2,14 @@
 % Please edit documentation in R/data_transformation_plover.R
 \name{get_weekly_plover_by_date_type}
 \alias{get_weekly_plover_by_date_type}
-\title{get_weekly_plover_by_date_type - filter the weekly plover data by date & disease type}
+\title{Filter the weekly plover data by date & disease type}
 \usage{
 get_weekly_plover_by_date_type(weekly_plover_data, type, start_date, end_date)
 }
 \arguments{
-\item{weekly_plover_data}{weekly plover data from get_weekly_plover}
+\item{weekly_plover_data}{weekly plover data from \code{get_weekly_plover()}}
 
-\item{type}{disease type string (e.g. "flu_a", "flu_b")}
+\item{type}{disease type string (e.g. 'flu_a', 'flu_b')}
 
 \item{start_date}{start date string (e.g. '2022-01-01')}
 
@@ -19,7 +19,19 @@ get_weekly_plover_by_date_type(weekly_plover_data, type, start_date, end_date)
 filtered weekly_plover_data
 }
 \description{
-get_weekly_plover_by_date_type - filter the weekly plover data by date & disease type
+\code{get_weekly_plover_by_date_type()} filter the weekly plover data by a given
+disease type and the date range, it performs the following steps:
+\enumerate{
+\item Filters the weekly plover data by the given epiweek date range.
+\item Selects the epiweek date & flu type columns.
+\item Renames the epiweek date as \code{date} & the flu type as \code{confirm}.
+}
+
+The input dataframe \code{weekly_plover_data} must be the output of \code{get_weekly_plover()}.
+
+The input flu type must be 'flu_a' or 'flu_b'.
+
+The input start date must be earlier than the input end date.
 }
 \examples{
 plover_data <- data.frame(
@@ -36,4 +48,8 @@ get_weekly_plover_by_date_type(
                              'flu_a',
                              '2019-09-01',
                              '2019-10-13')
+}
+\seealso{
+\code{\link[=get_weekly_plover]{get_weekly_plover()}} which produces the input dataframe of
+this function.
 }
