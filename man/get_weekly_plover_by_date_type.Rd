@@ -35,19 +35,23 @@ The input start date must be earlier than the input end date.
 }
 \examples{
 plover_data <- data.frame(
-epiWeek_date = as.Date(c('2019-09-08','2019-09-29','2019-10-06','2019-10-13')),
-                             epiWeek_year = c(2019, 2019, 2019, 2019),
-                             Epiweek = c(37,40,41,42),
-                             flu_a = c(1,2,3,4),
-                             flu_b = c(3,4,5,6))
+          epiWeek_date = as.Date(c('2022-10-02', '2022-10-09',
+                     '2022-10-16', '2022-10-23', '2022-10-30',
+                     '2022-11-06', '2022-11-13', '2022-11-20',
+                      '2022-11-27', '2022-12-04')),
+          epiWeek_year = c(2022,2022,2022,2022,
+                      2022,2022,2022,2022,2022,2022),
+           Epiweek = c(40,41,42,43,44,45,46,47,48,49),
+           flu_a = c(17,19,32,38,43,45,73,88,94,105),
+           flu_b = c(24,31,39,45,50,52,68,83,89,97))
 
 weekly_plover_data <- get_weekly_plover(plover_data)
 
 get_weekly_plover_by_date_type(
                              weekly_plover_data,
                              'flu_a',
-                             '2019-09-01',
-                             '2019-10-13')
+                             '2022-10-01',
+                             '2022-12-05')
 }
 \seealso{
 \code{\link[=get_weekly_plover]{get_weekly_plover()}} which produces the input dataframe of
