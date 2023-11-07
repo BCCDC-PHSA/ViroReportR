@@ -49,21 +49,29 @@ The input start age must be earlier than the input end age.
 }
 \examples{
 phrdw_data <- data.frame(
-lis_date_collection = as.Date(c('2023-01-08','2023-01-08','2023-01-08','2023-01-09')),
-    result_lab_name = c("lab_a", "lab_b", "lab_a", "lab_b"),
-    age_years = c(0, 1, 2, 3),
-    sars_cov2 = c(1,2,3,4),
-    rsv = c(1,2,3,4),
-    flu_a = c(1,2,3,4),
-    flu_b = c(3,4,5,6))
+ lis_date_collection = as.Date(c('2022-10-02', '2022-10-02',
+                                 '2022-10-09', '2022-10-09',
+                                 '2022-10-16', '2022-10-16',
+                                 '2022-10-23', '2022-10-23',
+                                 '2022-10-30', '2022-10-30')),
+ result_lab_name = c('BC Centre for Disease Control','BC Centre for Disease Control',
+                     'BC Centre for Disease Control','BC Centre for Disease Control',
+                     'BC Centre for Disease Control','BC Centre for Disease Control',
+                     'BC Centre for Disease Control','BC Centre for Disease Control',
+                     'BC Centre for Disease Control','BC Centre for Disease Control'),
+ age_years = c(7,8,7,8,7,8,7,8,7,8),
+ sars_cov2 = c(15,17,30,28,41,43,71,74,80,88),
+ rsv = c(14,16,29,27,40,42,70,73,79,87),
+ flu_a = c(13,15,28,26,39,41,69,72,78,86),
+ flu_b = c(12,14,27,25,38,40,68,71,77,85))
 
 weekly_phrdw_data <- get_weekly_phrdw(phrdw_data)
 
 get_weekly_phrdw_by_type_date_age(
                              weekly_phrdw_data = weekly_phrdw_data,
                              type='rsv',
-                             start_date='2023-01-01',
-                             end_date='2023-02-01',
+                             start_date='2022-10-01',
+                             end_date='2022-11-01',
                              start_age=0,
                              end_age=10)
 }
