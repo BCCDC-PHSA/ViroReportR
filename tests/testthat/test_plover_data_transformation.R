@@ -7,8 +7,8 @@ disease_type <- "flu_a"
 weekly_plover_date_type <- get_weekly_plover_by_date_type(
                                weekly_plover_data = weekly_plover_data,
                                type = disease_type,
-                               start_date = "2022-01-01",
-                               end_date = "2022-02-01")
+                               start_date = "2022-10-01",
+                               end_date = "2022-12-01")
 
 # test data transformation function ---------------------------------------
 
@@ -32,8 +32,8 @@ test_that("invalid disease type handling correct", {
   expect_error(get_weekly_plover_by_date_type(
                   weekly_plover_data = weekly_plover_data,
                   type = wrong_disease_type,
-                  start_date = "2022-01-01",
-                  end_date = "2022-02-01"),
+                  start_date = "2022-10-01",
+                  end_date = "2022-12-01"),
     "invalid disease type, available options: 'flu_a', 'flu_b'")
 })
 
