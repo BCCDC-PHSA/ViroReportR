@@ -31,15 +31,20 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
     stop("Please install latest version of EpiEstim from GitHub:
   install.packages('EpiEstim', repos = c('https://mrc-ide.r-universe.dev', 'https://cloud.r-project.org'))")
   }
-  if(isFALSE(is.data.frame(data)) | isFALSE(colnames(data) %in% c("date", "confirm")) ) {
+  if (!is.data.frame(data) || !all(colnames(data) %in% c("date", "confirm"))) {
     stop("Must pass a data frame with two columns: date and confirm")
   }
-  if(missing(type)) {
+  if(missing(type) || !(type %in% c("flu_a", "flu_b", "covid", "rsv", "other"))) {
     stop("Must specify the type of epidemic (flu_a, flu_b, covid, rsv or other)")
   }
-  if(isTRUE(type == "other" && isTRUE(is.null(mean_si) & is.null(std_si)))) {
+  if (type == "other" && is.null(mean_si) && is.null(std_si)) {
     stop("Must specify mean and standard deviation of parametric serial interval for type other")
   }
+  data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
+  if (data_lag != 7 && dt == 7L) {
+    warning("Your data may not be weekly data. Please check input and consider changing dt argument (dt = 1L for daily data)")
+  }
+
   incid <- data$confirm
   if(is.null(mean_si) && is.null(std_si)) {
     if (type == "flu_a" | type == "flu_b") {
