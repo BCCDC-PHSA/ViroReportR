@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_epiestim_model_functions.R
 \name{create_forecast_df}
 \alias{create_forecast_df}
-\title{Extract data-frame with forecasts for violin plot}
+\title{Extract data-frame with forecasts for validation violin plot}
 \usage{
 create_forecast_df(time_period_result)
 }
@@ -13,5 +13,5 @@ create_forecast_df(time_period_result)
 Data frame with forecasts at all time-points
 }
 \description{
-Extract data-frame with forecasts for violin plot
+Extract data-frame with forecasts for validation violin plot
 }

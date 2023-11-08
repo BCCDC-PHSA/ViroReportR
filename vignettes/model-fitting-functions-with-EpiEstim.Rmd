@@ -1,5 +1,5 @@
 ---
-title: "Model Fitting Functions eith EpiEstim"
+title: "Model fitting and producing short-term forecasts with VRIforecasting"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Model Fitting Functions eith EpiEstim}
@@ -15,3 +15,4 @@ knitr::opts_chunk$set(
 ```
 
 
+VRIforecasting uses the `EpiEstim` package as the backend to estimate the reproduction number. 

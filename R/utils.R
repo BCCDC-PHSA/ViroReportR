@@ -224,8 +224,9 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result){
            ggplot2::geom_ribbon(aes(ymin = p05, ymax = p95), fill = "#08519C", alpha = 0.25) +
            ggplot2::geom_ribbon(aes(ymin = p25, ymax = p75), fill = "#08519C", alpha = 0.25) +
            ggplot2::geom_line(aes(y = p50), color = "#08519C") +
-           ggplot2::geom_point(aes(x = date, y = confirm), data = model_data) +
-           ggplot2::labs(x = "", y = "", fill = "", color = ""))
+           ggplot2::geom_point(aes(x = date, y = confirm), data = model_data) + scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
+           ggplot2::labs(x = "Time", y = paste("Weekly projection of confirmed cases starting from", max(cur_time_period_result$model_data_date), sep = " "),
+                         fill = "", color = ""))
     } else if (aggregate_unit == "daily") {
     data_proj <- tibble::tibble(date = cur_time_period_result$daily_date,
                                   sim = cur_time_period_result$daily_sim,
@@ -238,8 +239,9 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result){
            ggplot2::geom_ribbon(aes(ymin = p05, ymax = p95), fill = "#08519C", alpha = 0.25) +
            ggplot2::geom_ribbon(aes(ymin = p25, ymax = p75), fill = "#08519C", alpha = 0.25) +
            ggplot2::geom_line(aes(y = p50), color = "#08519C") +
-           ggplot2::geom_point(aes(x = date, y = confirm), data = model_data) +
-           ggplot2::labs(x = "", y = "", fill = "", color = ""))
+           ggplot2::geom_point(aes(x = date, y = confirm), data = model_data) +  scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
+           ggplot2::labs(x = "Time", y = paste("Weekly projection of confirmed cases starting from", max(cur_time_period_result$model_data_date), sep = " "),
+                         fill = "", color = ""))
     }
 
 

@@ -12,7 +12,7 @@ pred_samples_with_quantile_helper(tp, aggregate_unit = NULL)
 \item{aggregate_unit}{Time forecasted samples are aggregated by (weekly or daily)}
 }
 \value{
-Dataframe of 1 week and 2 week forecasts at a single time-point
+Dataframe of forecasts at a single time-point (single element from list input)
 }
 \description{
 Helper function to extract dataframe with week ahead forecasts for Violin plot

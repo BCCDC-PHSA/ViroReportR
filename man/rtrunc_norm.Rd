@@ -4,7 +4,7 @@
 \alias{rtrunc_norm}
 \title{Sample from a truncated normal using inverse transform uniform sampling}
 \usage{
-rtrunc_norm(n, mean, sd, lower_lim = 0)
+rtrunc_norm(n, mean = 0, sd = 1, lower_lim = 0)
 }
 \arguments{
 \item{n}{Number of random samples}

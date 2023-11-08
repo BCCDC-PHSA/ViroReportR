@@ -14,7 +14,7 @@ forecast_time_period_epiestim(
 )
 }
 \arguments{
-\item{data}{\emph{data frame} containing two columns: date and confirm (number of cases per day)}
+\item{data}{\emph{data frame} containing two columns: date and confirm (number of cases per week)}
 
 \item{start_date_str}{Initial starting time-point. Must match a timepoint in the input dataset}
 
