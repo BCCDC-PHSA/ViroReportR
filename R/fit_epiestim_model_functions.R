@@ -49,7 +49,7 @@
 fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
                                method = "parametric_si", ...) {
   confirm <- NULL
-  if(packageVersion("EpiEstim") == "2.2.4") {
+  if(packageVersion("EpiEstim") <= "2.2.4") {
     stop("Please install latest version of EpiEstim from GitHub:
   install.packages('EpiEstim', repos = c('https://mrc-ide.r-universe.dev', 'https://cloud.r-project.org'))")
   }
@@ -142,11 +142,13 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #'                              '2022-10-01',
 #'                              '2022-12-05')
 #'
-#'# 2 weeks ahead forecast (daily)
-#' forecast_time_period_epiestim(data = plover_dat_clean, start_date_str = "2022-10-02", n_days = 14, type = "flu_a)
+#'#  Daily forecast
+#' forecast_time_period_epiestim(data = plover_dat_clean,
+#' start_date_str = "2022-10-02", n_days = 14, type = "flu_a")
 #'
-#'  2 week ahead forecast (weekly)
-#' forecast_time_period_epiestim(data = plover_dat_clean, start_date_str = "2022-10-02", n_days = 14, type = "flu_a", aggregate_week = TRUE)
+# weekly aggregated forecast
+#' forecast_time_period_epiestim(data = plover_dat_clean,
+#' start_date_str = "2022-10-02", n_days = 14, type = "flu_a", aggregate_week = TRUE)
 
 forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggregate_week = FALSE,
                                             type= NULL, ...) {
@@ -195,17 +197,19 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
 
    return(row)
   })
+  class(time_period_result) <- c("forecast_time_period_epiestim", class(time_period_result))
   return(time_period_result)
 
 }
 
 #' Plot forecasts at each iteration with uncertainty quantile ranges
 #'
-#' @param time_period_result output from \code{forecast_time_period_epiestim()}
+#' @param time_period_result object of class \code{forecast_time_period_epiestim}
 #'
 #' @return Multiple plots with forecasts at each sliding window
-#' @export
 #'
+#' @export plot.forecast_time_period_epiestim
+#' @export
 #' @examples
 #' plover_data <- data.frame(
 #'           epiWeek_date = as.Date(c('2022-10-02', '2022-10-09',
@@ -226,16 +230,25 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
 #'                              '2022-10-01',
 #'                              '2022-12-05')
 #'
-#'# 2 weeks ahead forecast (daily)
-#' time_period_result <- forecast_time_period_epiestim(data = plover_dat_clean, start_date_str = "2022-10-02", n_days = 14, type = "flu_a)
+#' time_period_result <- forecast_time_period_epiestim(data = plover_dat_clean,
+#' start_date_str = "2022-10-02", n_days = 14, type = "flu_a")
 #'
-#' plot_all_time_period_forecast_data(time_period_result)
+#'
+#' plot(time_period_result)
 
-plot_all_time_period_forecast_data <- function(time_period_result){
-  all_times_plots <- lapply(time_period_result, plot_all_time_period_forecast_data_helper)
+
+##' @export
+plot <- function(time_period_result) {
+  UseMethod("plot")
 }
 
-
+#' @rdname plot
+#' @export plot.forecast_time_period_epiestim
+#' @export
+plot.forecast_time_period_epiestim <- function(time_period_result){
+  all_times_plots <- lapply(time_period_result, plot_all_time_period_forecast_data_helper)
+  return(all_times_plots)
+}
 
 
 #' Extract data-frame with forecasts for validation violin plot
@@ -265,8 +278,8 @@ plot_all_time_period_forecast_data <- function(time_period_result){
 #'                              '2022-10-01',
 #'                              '2022-12-05')
 #'
-#'# 2 weeks ahead forecast (daily)
-#' time_period_result <- forecast_time_period_epiestim(data = plover_dat_clean, start_date_str = "2022-10-02", n_days = 14, type = "flu_a)
+#' time_period_result <- forecast_time_period_epiestim(data = plover_dat_clean,
+#' start_date_str = "2022-10-02", n_days = 14, type = "flu_a")
 #'
 #' create_forecast_df(time_period_result)
 #'

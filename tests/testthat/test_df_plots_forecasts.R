@@ -24,11 +24,11 @@ tp_test_weekly <- forecast_time_period_epiestim(data = weekly_plover_date_type, 
 # Test function output of plot_all_time_period_forecast_data --------------------------------
 
 test_that("Correct number of plots are produced for daily plot", {
-  expect_equal(length(plot_all_time_period_forecast_data(tp_test_daily)), nrow(weekly_plover_date_type) -1)
+  expect_equal(length(plot(tp_test_daily)), nrow(weekly_plover_date_type) -1)
 })
 
 test_that("Correct number of plots are produced for weekly plot", {
-  expect_equal(length(plot_all_time_period_forecast_data(tp_test_weekly)), nrow(weekly_plover_date_type) -1)
+  expect_equal(length(plot(tp_test_weekly)), nrow(weekly_plover_date_type) -1)
 })
 
 # Test function output of create_forecast_df --------------------------------
