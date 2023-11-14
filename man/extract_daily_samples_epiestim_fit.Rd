@@ -25,6 +25,11 @@ extract_daily_samples_epiestim_fit(
 }
 \value{
 Data-frame of daily forecast samples from all simulations
+\describe{
+\item{date}{date}
+\item{incidence}{projected number of daily confirmed cases}
+\item{sim}{simulation run number}
+}
 }
 \description{
 Function to produce short-term daily projections from objects of class {\code{\link[EpiEstim]{estimate_R}}}

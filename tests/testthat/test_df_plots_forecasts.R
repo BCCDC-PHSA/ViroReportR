@@ -21,24 +21,22 @@ tp_test_weekly <- forecast_time_period_epiestim(data = weekly_plover_date_type, 
                                                aggregate_week = TRUE)
 
 
+# Test error handling of plot_all_time_period_forecast_data --------------------------------
+test_that("Error is correctly thrown when time_period specified is out of range", {
+  expect_error(plot(tp_test_daily, time_period = 11),
+        "Time period index out of bounds. Please cross-check the time_period input with the length of your time_period_result object")
+})
+
+
 # Test function output of plot_all_time_period_forecast_data --------------------------------
 
 test_that("Correct number of plots are produced for daily plot", {
   expect_equal(length(plot(tp_test_daily)), nrow(weekly_plover_date_type) -1)
 })
 
+
 test_that("Correct number of plots are produced for weekly plot", {
   expect_equal(length(plot(tp_test_weekly)), nrow(weekly_plover_date_type) -1)
-})
-
-# Test function output of create_forecast_df --------------------------------
-
-test_that("Correct number of quantiles of samples are present in daily df", {
-  expect_equal(nrow(create_forecast_df(tp_test_daily)), n_sims*(nrow(weekly_plover_date_type)-1)*n_days)
-})
-
-test_that("Correct number of quantiles of samples are present in weekly df", {
-  expect_equal(nrow(create_forecast_df(tp_test_weekly)), n_sims*(nrow(weekly_plover_date_type)-1)*n_weeks)
 })
 
 

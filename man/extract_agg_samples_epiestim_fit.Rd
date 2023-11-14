@@ -9,6 +9,14 @@ extract_agg_samples_epiestim_fit(samples)
 \arguments{
 \item{samples}{Daily samples generated from \code{extract_daily_samples_epiestim_fit}}
 }
+\value{
+Data-frame of aggregated weekly forecast samples for each simulation run
+\describe{
+\item{week_date}{last date of week over which daily samples were aggregated}
+\item{daily_sim}{simulation run number}
+\item{weekly_value}{projected number of daily confirmed cases aggregated by week}
+}
+}
 \description{
 Summarise incidence values into weekly aggregate
 }

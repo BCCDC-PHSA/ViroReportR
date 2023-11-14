@@ -11,11 +11,11 @@ create_quantiles(d, ..., variable = NULL)
 
 \item{...}{group_by variables}
 
-\item{variable}{string
-
-@importFrom magrittr "\%>\%"
-@import dplyr
-@importFrom rlang .data}
+\item{variable}{string}
+}
+\value{
+Data frame containing sample quantiles at probabilities 0.05, 0.25, 0.50,
+0.75 and 0.95
 }
 \description{
 summarise a data frame \code{d} by groups along a \code{variable}

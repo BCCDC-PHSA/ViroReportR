@@ -16,8 +16,6 @@
 #' @param method One of "non_parametric_si", "parametric_si", "uncertain_si", "si_from_data" or "si_from_sample" to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page)
 #' @param ... Other optional parameters to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page) to control estimation of reproduction number
 #'
-#' @import EpiEstim
-#' @importFrom magrittr "%>%"
 #'
 #' @return Object of class {\code{\link[EpiEstim]{estimate_R}}} (see \code{EpiEstim} help page)
 #' @export
@@ -49,10 +47,6 @@
 fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
                                method = "parametric_si", ...) {
   confirm <- NULL
-  if(packageVersion("EpiEstim") <= "2.2.4") {
-    stop("Please install latest version of EpiEstim from GitHub:
-  install.packages('EpiEstim', repos = c('https://mrc-ide.r-universe.dev', 'https://cloud.r-project.org'))")
-  }
   if (!is.data.frame(data) || !all(colnames(data) %in% c("date", "confirm"))) {
     stop("Must pass a data frame with two columns: date and confirm")
   }
@@ -115,11 +109,9 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #' @param aggregate_week *logical* argument specifying whether to aggregate forecasts by weekly quantiles. Default is to return daily quantiles
 #' @param ... Pass on optional arguments from \code{fit_epiestim_model}
 #'
-#' @importFrom magrittr "%>%"
-#' @import lubridate
 #'
 #'
-#' @return List storing quantiles of both daily and 2 week ahead weekly forecasts from each sliding window
+#' @return List of class \code{forecast_time_period_epiestim} storing quantiles of both daily and 2 week ahead weekly forecasts from each sliding window
 #' @export
 #'
 #' @examples
@@ -202,13 +194,13 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
 
 }
 
-#' Plot forecasts at each iteration with uncertainty quantile ranges
+#' Method to plot forecasts at each iteration with uncertainty quantile ranges
 #'
 #' @param time_period_result object of class \code{forecast_time_period_epiestim}
-#'
+#' @param time_period optional parameter to show only plot at a specific time-point
+#' @param ... pass on optional parameters to method
 #' @return Multiple plots with forecasts at each sliding window
 #'
-#' @export plot.forecast_time_period_epiestim
 #' @export
 #' @examples
 #' plover_data <- data.frame(
@@ -235,59 +227,19 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
 #'
 #'
 #' plot(time_period_result)
-
-
-##' @export
-plot <- function(time_period_result) {
-  UseMethod("plot")
+plot.forecast_time_period_epiestim <- function(time_period_result, time_period = NULL, ...){
+  if (is.null(time_period)) {
+  times_plots <- lapply(time_period_result, plot_all_time_period_forecast_data_helper)
+  times_plots
+  }else {
+ if (time_period > length(time_period_result)) {
+stop("Time period index out of bounds. Please cross-check the time_period input with the length of your time_period_result object")
+ }
+  times_plots <- lapply(time_period_result, plot_all_time_period_forecast_data_helper)
+  times_plots <- times_plots[[time_period]]
+  }
+  return(times_plots)
 }
 
-#' @rdname plot
-#' @export plot.forecast_time_period_epiestim
-#' @export
-plot.forecast_time_period_epiestim <- function(time_period_result){
-  all_times_plots <- lapply(time_period_result, plot_all_time_period_forecast_data_helper)
-  return(all_times_plots)
-}
 
 
-#' Extract data-frame with forecasts for validation violin plot
-#'
-#' @param time_period_result output from  \code{forecast_time_period_epiestim}
-#'
-#' @return Data frame with forecasts at all time-points
-#' @export
-#'
-#' @examples
-#' plover_data <- data.frame(
-#'           epiWeek_date = as.Date(c('2022-10-02', '2022-10-09',
-#'                      '2022-10-16', '2022-10-23', '2022-10-30',
-#'                      '2022-11-06', '2022-11-13', '2022-11-20',
-#'                       '2022-11-27', '2022-12-04')),
-#'           epiWeek_year = c(2022,2022,2022,2022,
-#'                       2022,2022,2022,2022,2022,2022),
-#'            Epiweek = c(40,41,42,43,44,45,46,47,48,49),
-#'            flu_a = c(17,19,32,38,43,45,73,88,94,105),
-#'            flu_b = c(24,31,39,45,50,52,68,83,89,97))
-#'
-#' weekly_plover_data <- get_weekly_plover(plover_data)
-#'
-#' plover_dat_clean <- get_weekly_plover_by_date_type(
-#'                              weekly_plover_data,
-#'                              'flu_a',
-#'                              '2022-10-01',
-#'                              '2022-12-05')
-#'
-#' time_period_result <- forecast_time_period_epiestim(data = plover_dat_clean,
-#' start_date_str = "2022-10-02", n_days = 14, type = "flu_a")
-#'
-#' create_forecast_df(time_period_result)
-#'
-#'
-create_forecast_df <- function(time_period_result) {
-  results <- lapply(time_period_result, function(i) {
-    pred_samples_with_quantile_helper(tp = i, aggregate_unit =  time_period_result[[1]][["quantile_unit"]])
-  })
-  results <- do.call(rbind.data.frame, results)
-  return(results)
-}

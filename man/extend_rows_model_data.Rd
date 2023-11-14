@@ -14,7 +14,7 @@ extend_rows_model_data(data, min_model_date_str, extension_interval = 1)
 \item{extension_interval}{an integer (# of days)}
 }
 \value{
-model_data with # of days extension specified
+input model_data subset to extension interval period specified
 }
 \description{
 extract model data with extension during each iteration of loop
