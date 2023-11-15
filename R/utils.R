@@ -19,36 +19,40 @@
 #'   \item{sim}{simulation run number}
 #' }
 
-extract_daily_samples_epiestim_fit <- function(data, model_fit, dt = 7L, n_days = 14, n_sim = 1000){
-  if(isFALSE(is.data.frame(data)) | isFALSE(colnames(data) %in% c("date", "confirm")) ) {
+extract_daily_samples_epiestim_fit <- function(data, model_fit, dt = 7L, n_days = 14, n_sim = 1000) {
+  if (isFALSE(is.data.frame(data)) | isFALSE(colnames(data) %in% c("date", "confirm"))) {
     stop("Must pass a data frame with two columns: date and confirm")
   }
   confirm <- NULL
   model_data_linelist <-
-    tibble::tibble(date = seq(min(data$date),
-                              max(data$date) + lubridate::days(dt-1),
-                              by = "1 day"),
-                   confirm = model_fit$I) %>%
+    tibble::tibble(
+      date = seq(min(data$date),
+        max(data$date) + lubridate::days(dt - 1),
+        by = "1 day"
+      ),
+      confirm = model_fit$I
+    ) %>%
     dplyr::group_by(date) %>%
     dplyr::reframe(case_index = seq(1:confirm))
 
   incidence_obj <- incidence::incidence(model_data_linelist$date)
 
-  r_vals <- utils::tail(model_fit$R,n=1)
-  r_dist <- rtrunc_norm(100, mean = r_vals$`Mean(R)`,sd = r_vals$`Std(R)`, lower_lim = 0)
+  r_vals <- utils::tail(model_fit$R, n = 1)
+  r_dist <- rtrunc_norm(100, mean = r_vals$`Mean(R)`, sd = r_vals$`Std(R)`, lower_lim = 0)
 
   # Use the project function
   proj <- projections::project(incidence_obj,
-                               R = r_dist,
-                               si = model_fit$si_distr[-1],
-                               n_sim = n_sim,
-                               n_days = n_days,
-                               R_fix_within = FALSE)
+    R = r_dist,
+    si = model_fit$si_distr[-1],
+    n_sim = n_sim,
+    n_days = n_days,
+    R_fix_within = FALSE
+  )
 
 
   data_proj <- as.data.frame(proj, long = TRUE)
 
-  return (data_proj)
+  return(data_proj)
 }
 
 
@@ -83,15 +87,14 @@ create_quantiles <- function(d, ..., variable = NULL) {
 #'   \item{daily_sim}{simulation run number}
 #'   \item{weekly_value}{projected number of daily confirmed cases aggregated by week}
 #' }
-extract_agg_samples_epiestim_fit <- function(samples){
-
+extract_agg_samples_epiestim_fit <- function(samples) {
   daily_value <- week_date <- daily_sim <- daily_date <- NULL
   samples <- samples %>%
-    dplyr::mutate(week_date = lubridate::floor_date(daily_date,unit ="weeks")) %>%
+    dplyr::mutate(week_date = lubridate::floor_date(daily_date, unit = "weeks")) %>%
     dplyr::group_by(week_date, daily_sim) %>%
     dplyr::summarise(weekly_value = sum(daily_value), .groups = "keep")
 
-  return (samples)
+  return(samples)
 }
 
 
@@ -107,13 +110,13 @@ extract_agg_samples_epiestim_fit <- function(samples){
 
 
 extend_rows_model_data <- function(data, min_model_date_str,
-                                              extension_interval=1){
+                                   extension_interval = 1) {
   min_model_date <- lubridate::ymd(min_model_date_str)
 
-  if (extension_interval > 0){
+  if (extension_interval > 0) {
     max_model_date <- data$date[which(data$date == min_model_date) + extension_interval]
   }
-model_data <- data %>%
+  model_data <- data %>%
     filter(date >= min_model_date, date <= max_model_date)
 
   return(model_data)
@@ -127,14 +130,16 @@ model_data <- data %>%
 #'
 
 
-extract_quantile_epiestim <- function(tp){
+extract_quantile_epiestim <- function(tp) {
   dat_quantiles <-
-    tibble::tibble(quantile_date = tp$quantile_date,
-                p50 = tp$p50,
-                p25 = tp$p25,
-                p75 = tp$p75,
-                p05 = tp$p05,
-                p95 = tp$p95)
+    tibble::tibble(
+      quantile_date = tp$quantile_date,
+      p50 = tp$p50,
+      p25 = tp$p25,
+      p75 = tp$p75,
+      p05 = tp$p05,
+      p95 = tp$p95
+    )
   return(dat_quantiles)
 }
 
@@ -151,13 +156,17 @@ extract_quantile_epiestim <- function(tp){
 
 
 
-extract_sim_samples_epiestim <- function(tp, aggregate_unit = NULL){
+extract_sim_samples_epiestim <- function(tp, aggregate_unit = NULL) {
   if (aggregate_unit == "weekly") {
-  dat_samples <- tibble::tibble(quantile_date = tp$week_date,
-                value = tp$weekly_value)
+    dat_samples <- tibble::tibble(
+      quantile_date = tp$week_date,
+      value = tp$weekly_value
+    )
   } else if (aggregate_unit == "daily") {
-  dat_samples <- tibble::tibble(quantile_date = tp$daily_date,
-                                         value = tp$daily_value)
+    dat_samples <- tibble::tibble(
+      quantile_date = tp$daily_date,
+      value = tp$daily_value
+    )
   }
   return(dat_samples)
 }
@@ -171,47 +180,56 @@ extract_sim_samples_epiestim <- function(tp, aggregate_unit = NULL){
 #'
 #' @return Plot displaying forecast for one time period
 
-plot_all_time_period_forecast_data_helper <- function(cur_time_period_result){
+plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
+  p05 <- p95 <- p25 <- p75 <- p50 <- confirm <- NULL
+  model_data <- tibble::tibble(
+    date = cur_time_period_result$model_data_date,
+    confirm = cur_time_period_result$confirm
+  )
 
-    p05 <- p95 <- p25 <- p75 <- p50 <- confirm <- NULL
-    model_data <- tibble::tibble(date = cur_time_period_result$model_data_date,
-                         confirm = cur_time_period_result$confirm)
-
-    aggregate_unit <- cur_time_period_result$quantile_unit
-    if (aggregate_unit == "weekly") {
-    data_proj <- tibble::tibble(date = cur_time_period_result$week_date,
-                        sim = cur_time_period_result$daily_sim,
-                        incidence = cur_time_period_result$weekly_value)
+  aggregate_unit <- cur_time_period_result$quantile_unit
+  if (aggregate_unit == "weekly") {
+    data_proj <- tibble::tibble(
+      date = cur_time_period_result$week_date,
+      sim = cur_time_period_result$daily_sim,
+      incidence = cur_time_period_result$weekly_value
+    )
     graphics::plot(data_proj %>%
-           dplyr::mutate(incidence = incidence) %>%
-           create_quantiles(date,variable = "incidence") %>%
-           ggplot2::ggplot(ggplot2::aes(x = date)) +
-           ggplot2::theme_bw() +
-           ggplot2::geom_ribbon(ggplot2::aes(ymin = p05, ymax = p95), fill = "#08519C", alpha = 0.25) +
-           ggplot2::geom_ribbon(ggplot2::aes(ymin = p25, ymax = p75), fill = "#08519C", alpha = 0.25) +
-           ggplot2::geom_line(ggplot2::aes(y = p50), color = "#08519C") +
-           ggplot2::geom_point(ggplot2::aes(x = date, y = confirm), data = model_data) + ggplot2::scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
-           ggplot2::labs(x = "Time", y = paste("Weekly projection of confirmed cases\n starting from", max(cur_time_period_result$model_data_date), sep = " "),
-                         fill = "", color = ""))
-    } else if (aggregate_unit == "daily") {
-    data_proj <- tibble::tibble(date = cur_time_period_result$daily_date,
-                                  sim = cur_time_period_result$daily_sim,
-                                  incidence = cur_time_period_result$daily_value)
+      dplyr::mutate(incidence = incidence) %>%
+      create_quantiles(date, variable = "incidence") %>%
+      ggplot2::ggplot(ggplot2::aes(x = date)) +
+      ggplot2::theme_bw() +
+      ggplot2::geom_ribbon(ggplot2::aes(ymin = p05, ymax = p95), fill = "#08519C", alpha = 0.25) +
+      ggplot2::geom_ribbon(ggplot2::aes(ymin = p25, ymax = p75), fill = "#08519C", alpha = 0.25) +
+      ggplot2::geom_line(ggplot2::aes(y = p50), color = "#08519C") +
+      ggplot2::geom_point(ggplot2::aes(x = date, y = confirm), data = model_data) +
+      ggplot2::scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
+      ggplot2::labs(
+        x = "Time", y = paste("Weekly projection of confirmed cases\n starting from", max(cur_time_period_result$model_data_date), sep = " "),
+        fill = "", color = ""
+      ))
+  } else if (aggregate_unit == "daily") {
+    data_proj <- tibble::tibble(
+      date = cur_time_period_result$daily_date,
+      sim = cur_time_period_result$daily_sim,
+      incidence = cur_time_period_result$daily_value
+    )
     graphics::plot(data_proj %>%
-           dplyr::mutate(incidence = 7*incidence) %>%
-           create_quantiles(date,variable = "incidence") %>%
-           ggplot2::ggplot(ggplot2::aes(x = date)) +
-           ggplot2::theme_bw() +
-           ggplot2::geom_ribbon(ggplot2::aes(ymin = p05, ymax = p95), fill = "#08519C", alpha = 0.25) +
-           ggplot2::geom_ribbon(ggplot2::aes(ymin = p25, ymax = p75), fill = "#08519C", alpha = 0.25) +
-           ggplot2::geom_line(ggplot2::aes(y = p50), color = "#08519C") +
-           ggplot2::geom_point(ggplot2::aes(x = date, y = confirm), data = model_data) +  ggplot2::scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
-           ggplot2::labs(x = "Time", y = paste("Weekly projection of confirmed cases\n starting from", max(cur_time_period_result$model_data_date), sep = " "),
-                         fill = "", color = ""))
-    }
-
-
+      dplyr::mutate(incidence = 7 * incidence) %>%
+      create_quantiles(date, variable = "incidence") %>%
+      ggplot2::ggplot(ggplot2::aes(x = date)) +
+      ggplot2::theme_bw() +
+      ggplot2::geom_ribbon(ggplot2::aes(ymin = p05, ymax = p95), fill = "#08519C", alpha = 0.25) +
+      ggplot2::geom_ribbon(ggplot2::aes(ymin = p25, ymax = p75), fill = "#08519C", alpha = 0.25) +
+      ggplot2::geom_line(ggplot2::aes(y = p50), color = "#08519C") +
+      ggplot2::geom_point(ggplot2::aes(x = date, y = confirm), data = model_data) +
+      ggplot2::scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
+      ggplot2::labs(
+        x = "Time", y = paste("Weekly projection of confirmed cases\n starting from", max(cur_time_period_result$model_data_date), sep = " "),
+        fill = "", color = ""
+      ))
   }
+}
 
 
 #' Sample from a truncated normal using inverse transform uniform sampling
