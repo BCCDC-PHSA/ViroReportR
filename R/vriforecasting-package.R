@@ -4,7 +4,6 @@
 #' @importFrom EpiEstim make_config estimate_R
 #' @importFrom magrittr "%>%"
 #' @importFrom dplyr filter pull rename mutate group_by summarise reframe left_join select
-#' @importFrom magrittr "%>%"
 #' @importFrom lubridate ymd
 #' @importFrom incidence incidence
 #' @importFrom projections project
