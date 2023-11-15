@@ -42,3 +42,20 @@
 #'
 #' @docType data
 "phrdw_data"
+
+
+#' Daily Generic Confirmed Cases Data
+#'
+#' A dataset containing a generic naming for the date & confirmed cases column
+#' The variables are as follows:
+#'
+#' @format
+#' \describe{
+#'   \item{date_of_report}{the date of the reported cases (e.g. as.Date('2022-01-01'))}
+#'   \item{flu_a}{number of confirmed flu A cases}
+#'   \item{flu_b}{number of confirmed flu B cases}
+#' }
+#' @name generic_data
+#'
+#' @docType data
+"generic_data"
