@@ -1,18 +1,18 @@
 #' @keywords internal
 "_PACKAGE"
 ## usethis namespace: start
-#' @importFrom EpiEstim make_config estimate_R
-#' @importFrom magrittr "%>%"
 #' @importFrom dplyr filter pull rename mutate group_by summarise reframe left_join select
+#' @importFrom EpiEstim make_config estimate_R
+#' @importFrom ggplot2 ggplot theme_bw geom_ribbon geom_line geom_point labs scale_x_date
 #' @importFrom lubridate ymd
-#' @importFrom incidence incidence
+#' @importFrom magrittr "%>%"
 #' @importFrom projections project
-#' @importFrom utils tail
+#' @importFrom incidence incidence
 #' @importFrom rlang .data
 #' @importFrom tibble tibble
-#' @importFrom ggplot2 ggplot theme_bw geom_ribbon geom_line geom_point labs scale_x_date
+#' @importFrom utils tail
 #' @importFrom stats pnorm qnorm runif
-#' @importFrom tibble tibble
 #' @importFrom graphics plot
+#' @importFrom tidyr pivot_longer
 ## usethis namespace: end
 NULL
