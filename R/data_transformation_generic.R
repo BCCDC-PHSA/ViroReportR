@@ -36,8 +36,7 @@
 #' )
 #'
 #' weekly_data <- get_weekly_data(generic_data, "date_of_report", "flu_a")
-get_weekly_data <- function(generic_data, date_column, number_column){
-
+get_weekly_data <- function(generic_data, date_column, number_column) {
   # Unquote the quosures
   date_column <- dplyr::quo_name(dplyr::enquo(date_column))
   number_column <- dplyr::quo_name(dplyr::enquo(number_column))
@@ -54,12 +53,12 @@ get_weekly_data <- function(generic_data, date_column, number_column){
 
   weekly_data <- generic_data %>%
     dplyr::mutate(
-      date = lubridate::floor_date(!!dplyr::sym(date_column), unit = "week")) %>%
+      date = lubridate::floor_date(!!dplyr::sym(date_column), unit = "week")
+    ) %>%
     dplyr::mutate(!!date_column := date) %>%
     dplyr::select(!!date_column, !!number_column)
 
   return(weekly_data)
-
 }
 
 
@@ -106,11 +105,12 @@ get_weekly_data <- function(generic_data, date_column, number_column){
 #'
 #' weekly_data <- get_weekly_data(generic_data, "date_of_report", "flu_a")
 #'
-#' weekly_aggregated_data <- get_weekly_aggregated_data(weekly_data,
-#' "date_of_report", "flu_a", "2022-10-16", "2023-12-31"
+#' weekly_aggregated_data <- get_weekly_aggregated_data(
+#'   weekly_data,
+#'   "date_of_report", "flu_a", "2022-10-16", "2023-12-31"
 #' )
 get_weekly_aggregated_data <- function(weekly_data, date_column, number_column,
-                                       start_date=NULL, end_date=NULL) {
+                                       start_date = NULL, end_date = NULL) {
   confirm <- NULL
   # Unquote the quosures
   date_column <- dplyr::quo_name(dplyr::enquo(date_column))
@@ -160,5 +160,3 @@ get_weekly_aggregated_data <- function(weekly_data, date_column, number_column,
 
   return(weekly_aggregated_data)
 }
-
-

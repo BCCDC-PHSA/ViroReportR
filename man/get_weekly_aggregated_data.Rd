@@ -61,7 +61,8 @@ generic_data <- data.frame(
 
 weekly_data <- get_weekly_data(generic_data, "date_of_report", "flu_a")
 
-weekly_aggregated_data <- get_weekly_aggregated_data(weekly_data,
-"date_of_report", "flu_a", "2022-10-16", "2023-12-31"
+weekly_aggregated_data <- get_weekly_aggregated_data(
+  weekly_data,
+  "date_of_report", "flu_a", "2022-10-16", "2023-12-31"
 )
 }
