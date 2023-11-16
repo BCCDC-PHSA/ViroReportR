@@ -4,10 +4,10 @@
 \alias{plot.forecast_time_period_epiestim}
 \title{Method to plot forecasts at each iteration with uncertainty quantile ranges}
 \usage{
-\method{plot}{forecast_time_period_epiestim}(time_period_result, time_period = NULL, ...)
+\method{plot}{forecast_time_period_epiestim}(x, time_period = NULL, ...)
 }
 \arguments{
-\item{time_period_result}{object of class \code{forecast_time_period_epiestim}}
+\item{x}{object of class \code{forecast_time_period_epiestim}}
 
 \item{time_period}{optional parameter to show only plot at a specific time-point}
 
@@ -21,26 +21,34 @@ Method to plot forecasts at each iteration with uncertainty quantile ranges
 }
 \examples{
 plover_data <- data.frame(
-          epiWeek_date = as.Date(c('2022-10-02', '2022-10-09',
-                     '2022-10-16', '2022-10-23', '2022-10-30',
-                     '2022-11-06', '2022-11-13', '2022-11-20',
-                      '2022-11-27', '2022-12-04')),
-          epiWeek_year = c(2022,2022,2022,2022,
-                      2022,2022,2022,2022,2022,2022),
-           Epiweek = c(40,41,42,43,44,45,46,47,48,49),
-           flu_a = c(17,19,32,38,43,45,73,88,94,105),
-           flu_b = c(24,31,39,45,50,52,68,83,89,97))
+  epiWeek_date = as.Date(c(
+    "2022-10-02", "2022-10-09",
+    "2022-10-16", "2022-10-23", "2022-10-30",
+    "2022-11-06", "2022-11-13", "2022-11-20",
+    "2022-11-27", "2022-12-04"
+  )),
+  epiWeek_year = c(
+    2022, 2022, 2022, 2022,
+    2022, 2022, 2022, 2022, 2022, 2022
+  ),
+  Epiweek = c(40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
+  flu_a = c(17, 19, 32, 38, 43, 45, 73, 88, 94, 105),
+  flu_b = c(24, 31, 39, 45, 50, 52, 68, 83, 89, 97)
+)
 
 weekly_plover_data <- get_weekly_plover(plover_data)
 
 plover_dat_clean <- get_weekly_plover_by_date_type(
-                             weekly_plover_data,
-                             'flu_a',
-                             '2022-10-01',
-                             '2022-12-05')
+  weekly_plover_data,
+  "flu_a",
+  "2022-10-01",
+  "2022-12-05"
+)
 
-time_period_result <- forecast_time_period_epiestim(data = plover_dat_clean,
-start_date_str = "2022-10-02", n_days = 14, type = "flu_a")
+time_period_result <- forecast_time_period_epiestim(
+  data = plover_dat_clean,
+  start_date_str = "2022-10-02", n_days = 14, type = "flu_a"
+)
 
 
 plot(time_period_result)

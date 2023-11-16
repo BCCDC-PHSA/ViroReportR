@@ -222,7 +222,7 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
 
 #' Method to plot forecasts at each iteration with uncertainty quantile ranges
 #'
-#' @param time_period_result object of class \code{forecast_time_period_epiestim}
+#' @param x object of class \code{forecast_time_period_epiestim}
 #' @param time_period optional parameter to show only plot at a specific time-point
 #' @param ... pass on optional parameters to method
 #' @return Multiple plots with forecasts at each sliding window
@@ -261,16 +261,15 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
 #'
 #'
 #' plot(time_period_result)
-plot.forecast_time_period_epiestim <- function(time_period_result, time_period = NULL, ...) {
+plot.forecast_time_period_epiestim <- function(x, time_period = NULL, ...) {
   if (is.null(time_period)) {
-    times_plots <- lapply(time_period_result, plot_all_time_period_forecast_data_helper)
+    times_plots <- lapply(x, plot_all_time_period_forecast_data_helper)
     times_plots
   } else {
-    if (time_period > length(time_period_result)) {
+    if (time_period > length(x)) {
       stop("Time period index out of bounds. Please cross-check the time_period input with the length of your time_period_result object")
     }
-    times_plots <- lapply(time_period_result, plot_all_time_period_forecast_data_helper)
-    times_plots <- times_plots[[time_period]]
+    one_time_plot <- plot_all_time_period_forecast_data_helper(x[[time_period]])
+    one_time_plot
   }
-  return(times_plots)
 }

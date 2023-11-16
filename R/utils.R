@@ -194,7 +194,7 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
       sim = cur_time_period_result$daily_sim,
       incidence = cur_time_period_result$weekly_value
     )
-    graphics::plot(data_proj %>%
+    p <- data_proj %>%
       dplyr::mutate(incidence = incidence) %>%
       create_quantiles(date, variable = "incidence") %>%
       ggplot2::ggplot(ggplot2::aes(x = date)) +
@@ -207,14 +207,14 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
       ggplot2::labs(
         x = "Time", y = paste("Weekly projection of confirmed cases\n starting from", max(cur_time_period_result$model_data_date), sep = " "),
         fill = "", color = ""
-      ))
+      )
   } else if (aggregate_unit == "daily") {
     data_proj <- tibble::tibble(
       date = cur_time_period_result$daily_date,
       sim = cur_time_period_result$daily_sim,
       incidence = cur_time_period_result$daily_value
     )
-    graphics::plot(data_proj %>%
+    p <- data_proj %>%
       dplyr::mutate(incidence = 7 * incidence) %>%
       create_quantiles(date, variable = "incidence") %>%
       ggplot2::ggplot(ggplot2::aes(x = date)) +
@@ -227,8 +227,9 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
       ggplot2::labs(
         x = "Time", y = paste("Weekly projection of confirmed cases\n starting from", max(cur_time_period_result$model_data_date), sep = " "),
         fill = "", color = ""
-      ))
+      )
   }
+  return(p)
 }
 
 
