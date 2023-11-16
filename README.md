@@ -11,15 +11,24 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 status](https://www.r-pkg.org/badges/version/vriforecasting)](https://CRAN.R-project.org/package=vriforecasting)
 <!-- badges: end -->
 
-The goal of vriforecasting is to …
+The goal of `vriforecasting` is to …
 
 ## Installation
 
-You can install the development version of vriforecasting from
-[GitHub](https://github.com/) with:
+`vriforecasting` depends on the latest version of the `EpiEstim` package
+(2.4). Thus, this version must be installed from GitHub prior to
+installing the `vriforecasting` package using:
 
 ``` r
 # install.packages("devtools")
+install.packages('EpiEstim', repos = c('https://mrc-ide.r-universe.dev', 'https://cloud.r-project.org'))
+```
+
+You can then install the development version of `vriforecasting` from
+[GitHub](https://github.com/) with:
+
+``` r
+
 devtools::install_github("sempwn/vriforecasting")
 ```
 
