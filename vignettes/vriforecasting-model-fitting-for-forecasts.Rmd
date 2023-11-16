@@ -1,0 +1,85 @@
+---
+title: "Model fitting and producing short-term forecasts using weekly data with vriforecasting"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Model Fitting and producing short-term forecasts using weekly data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r}
+library(vriforecasting)
+```
+
+## Overview 
+
+This vignette provides a short demonstration of the model fitting functions in `vriforecasting` which extend the functionality and wrap the `estimate_R` function from the `EpiEstim` package to produce short-term forecasts. The `
+
+## Loading in data
+
+For this short demonstration, we will use the PLOVER weekly data for Influenza A, which is provided with the `vriforecasting` package. We then use the `get_weekly_plover` and `get_weekly_plover_by_date_type` functions to transform the PLOVER data into a dataset with two columns: `date` and `confirm` in accordance to format accepted by the model fitting functions. 
+
+```{r }
+weekly_plover_data <- get_weekly_plover(plover_data)
+
+disease_type <- "flu_a"
+weekly_plover_date_type <- get_weekly_plover_by_date_type(
+  weekly_plover_data = weekly_plover_data,
+  type = disease_type,
+  start_date = "2022-10-01",
+  end_date = "2022-12-01")
+```
+
+## Model fitting
+
+The model to estimate the reproduction number using `EpiEstim` can be fit using the `fit_epiestim_model` function as follows: 
+
+```{r}
+mod_fit <- fit_epiestim_model(data = weekly_plover_date_type, type = "flu_a")
+
+head(mod_fit)
+```
+
+The function supports forecasting for SARS-CoV2, RSV and Influenza A and B primarily but also provides functionality to forecast other respiratory diseases. The type of viral respiratory disease to be forecasted can be specified by the `type` argument, which takes in the inputs `rsv`, `covid`, `flu_a` and `flu_b` respectively. Any other respiratory disease can be specified by setting `type = other`. If `type = other` is set, a user-specified `mean_si` and `std_si` must be passed to the function as well. 
+
+
+## Fitting and forecasting over sliding windows 
+
+The primary function used to fit and produce the short-term forecasts is the `forecast_time_period_epiestim` function which wraps the `fit_epiestim_model` function. This function can be used to produce both daily and weekly forecasts using weekly sliding windows. We first demonstrate how it can be used to produce daily forecasts for 14 days ahead. This is controlled by the `ndays = 14` parameter.
+
+The `start_date_str` argument should be used to specify from which date in the dataset the forecasting should begin from. The function automatically checks to see if the incidence count on the specified start date is high enough to reliably estimate the reproduction number. If this is not the case, the function throws a warning which suggests an alternate start date. 
+
+The function provides progress updates as it is running about the current time period the model is being fit for. 
+
+```{r message = FALSE}
+time_period_result_daily <- forecast_time_period_epiestim(data = 
+weekly_plover_date_type, start_date_str = "2022-10-02", n_days = 15, type = "flu_a")
+```
+
+The forecasts can then be plotted at all the sliding windows used using the `plot` function which uses the output of `forecast_time_period_epiestim`. The function takes in an object of of class `forecast_time_period_epiestim`
+
+```{r, dpi = 300}
+plot(time_period_result_daily)
+```
+
+We can also produce forecasts aggregated by week by setting `aggregate_week = TRUE`. For the functionality, `n_days` must be a multiple of 7. Thus, specifying `n_days = 14` when `aggregate_week = TRUE` produces 14/7 i.e. 2-week ahead forecasts. 
+
+```{r }
+time_period_result_weekly <- forecast_time_period_epiestim(data = weekly_plover_date_type, 
+start_date_str = "2022-10-02", n_days = 14, type = "flu_a",  aggregate_week = TRUE)
+```
+
+
+Optionally, one can also choose to plot the forecast for a single time period by specifying the time period using the `time_period` argument:
+
+```{r}
+plot(time_period_result_weekly, time_period = 1)
+```
+
