@@ -127,7 +127,8 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #'
 #'
 #'
-#' @return List of class \code{forecast_time_period_epiestim} storing quantiles of both daily and 2 week ahead weekly forecasts from each sliding window
+#' @return List of class \code{forecast_time_period_epiestim}
+#' storing quantiles of both daily and 2 week ahead weekly forecasts from each sliding window
 #' @export
 #'
 #' @examples
@@ -216,9 +217,10 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
 
     return(row)
   })
-  class(time_period_result) <- c("forecast_time_period_epiestim", class(time_period_result))
+    class(time_period_result) <- c("validation_epiestim", class(time_period_result))
   return(time_period_result)
 }
+
 
 #' Method to plot forecasts at each iteration with uncertainty quantile ranges
 #'
@@ -273,3 +275,5 @@ plot.forecast_time_period_epiestim <- function(x, time_period = NULL, ...) {
     one_time_plot
   }
 }
+
+

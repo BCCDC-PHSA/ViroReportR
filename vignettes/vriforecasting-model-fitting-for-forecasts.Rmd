@@ -83,3 +83,9 @@ Optionally, one can also choose to plot the forecast for a single time period by
 plot(time_period_result_weekly, time_period = 1)
 ```
 
+Finally, we can plot a validation violin plot using the `validate` function. Currently, this plot supports only weekly forecasted data. We can plot 1 week ahead forecasts for example by setting the `pred_horizon` argument: 
+
+```{r}
+validate(time_period_result_weekly, pred_horizon_str = "1 week ahead")
+```
+
