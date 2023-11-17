@@ -271,22 +271,21 @@ pred_samples_with_quantile_helper <- function(tp, aggregate_unit = NULL) {
   value <- quantile_date <- daily_value <- NULL
   cur_samples_with_quantile <- extract_quantile_epiestim(tp)
   seq_time_length <- seq_len(nrow(cur_samples_with_quantile))
-  if(aggregate_unit == "weekly") {
+  if (aggregate_unit == "weekly") {
     cur_samples_with_quantile$pred_horizon <- paste(seq_time_length, "week ahead")
-    cur_samples_with_week_date <- extract_sim_samples_epiestim(tp, aggregate_unit = eval(parse(text="aggregate_unit")))
-    cur_samples_with_quantile <-  cur_samples_with_quantile %>%
+    cur_samples_with_week_date <- extract_sim_samples_epiestim(tp, aggregate_unit = eval(parse(text = "aggregate_unit")))
+    cur_samples_with_quantile <- cur_samples_with_quantile %>%
       dplyr::left_join(cur_samples_with_week_date, by = "quantile_date") %>%
       dplyr::rename(sim_draws = value, weekly_date = quantile_date)
   } else if (aggregate_unit == "daily") {
     cur_samples_with_quantile$pred_horizon <- paste(seq_time_length, "days ahead")
-    cur_samples_with_daily_date <- extract_sim_samples_epiestim(tp, aggregate_unit = eval(parse(text="aggregate_unit")))
-    cur_samples_with_quantile <-  cur_samples_with_quantile %>%
+    cur_samples_with_daily_date <- extract_sim_samples_epiestim(tp, aggregate_unit = eval(parse(text = "aggregate_unit")))
+    cur_samples_with_quantile <- cur_samples_with_quantile %>%
       dplyr::left_join(cur_samples_with_daily_date, by = "quantile_date") %>%
       dplyr::rename(sim_draws = daily_value, daily_date = quantile_date)
   }
 
   return(cur_samples_with_quantile)
-
 }
 
 
@@ -309,9 +308,8 @@ pred_samples_with_quantile_helper <- function(tp, aggregate_unit = NULL) {
 
 create_forecast_df <- function(time_period_result) {
   results <- lapply(time_period_result, function(i) {
-    pred_samples_with_quantile_helper(tp = i, aggregate_unit =  time_period_result[[1]][["quantile_unit"]])
+    pred_samples_with_quantile_helper(tp = i, aggregate_unit = time_period_result[[1]][["quantile_unit"]])
   })
   results <- do.call(rbind.data.frame, results)
   return(results)
 }
-

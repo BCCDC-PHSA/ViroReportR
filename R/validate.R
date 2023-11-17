@@ -37,14 +37,13 @@
 #' )
 #' validate(time_period_result, pred_horizon_str = "1 week ahead")
 #'
-
-validate <- function(time_period_result, pred_horizon_str = NULL){
-  confirm <-  p50 <- point_type <- pred_horizon <- sim_draws <- weekly_date <- NULL
-  aggregate_unit <-  time_period_result[[1]][["quantile_unit"]]
+validate <- function(time_period_result, pred_horizon_str = NULL) {
+  confirm <- p50 <- point_type <- pred_horizon <- sim_draws <- weekly_date <- NULL
+  aggregate_unit <- time_period_result[[1]][["quantile_unit"]]
   if (is.null(pred_horizon_str)) {
     stop("Must specify prediction time horizon for validation plot")
   }
-  if(aggregate_unit == "daily") {
+  if (aggregate_unit == "daily") {
     stop("Only weekly aggregated data suitable for validation plot. Please re-run forecast_time_period_epiestim with weekly_aggregate = TRUE")
   }
   forecast_dat <- create_forecast_df(time_period_result)
@@ -55,16 +54,19 @@ validate <- function(time_period_result, pred_horizon_str = NULL){
     dplyr::filter(pred_horizon == pred_horizon_str)
   point_data <- forecast_dat %>% dplyr::select(date = weekly_date, confirm = p50)
   point_data$point_type <- rep("Median Prediction", nrow(point_data))
-  model_data <- data.frame(date = time_period_result[[length(time_period_result)]]$model_data_date,
-                           confirm = time_period_result[[length(time_period_result)]]$confirm)
+  model_data <- data.frame(
+    date = time_period_result[[length(time_period_result)]]$model_data_date,
+    confirm = time_period_result[[length(time_period_result)]]$confirm
+  )
   model_data$point_type <- rep("Confirmed Case", nrow(model_data))
   point_data <- rbind(point_data, model_data)
-  p <- ggplot2::ggplot(forecast_dat, ggplot2::aes(x= factor(weekly_date), y= sim_draws)) +
+  p <- ggplot2::ggplot(forecast_dat, ggplot2::aes(x = factor(weekly_date), y = sim_draws)) +
     ggplot2::geom_violin(scale = "count", colour = "gray", fill = "blue", alpha = 0.1) +
     ggplot2::ggtitle(paste0("Violin plot of ", pred_horizon_str, " prediction")) +
-     ggplot2::geom_point(ggplot2::aes(x = factor(date), y = confirm, colour = point_type), data = point_data) +
-    ggplot2::theme_bw() + ggplot2::labs(x = "Time", y = paste0(pred_horizon_str, " projection of confirmed cases", fill = "", colour = "")) +
-    ggplot2::theme(legend.title= ggplot2::element_blank(), legend.position = "top") +
+    ggplot2::geom_point(ggplot2::aes(x = factor(date), y = confirm, colour = point_type), data = point_data) +
+    ggplot2::theme_bw() +
+    ggplot2::labs(x = "Time", y = paste0(pred_horizon_str, " projection of confirmed cases", fill = "", colour = "")) +
+    ggplot2::theme(legend.title = ggplot2::element_blank(), legend.position = "top") +
     ggplot2::scale_colour_manual(values = c("#2C728EFF", "#471164FF"))
   return(p)
 }
