@@ -51,14 +51,19 @@ validate <- function(time_period_result, pred_horizon_str = NULL){
     stop("Prediction horizon not found in time_period_result, please check input")
   }
   forecast_dat <- forecast_dat %>%
-    filter(pred_horizon == pred_horizon_str)
+    dplyr::filter(pred_horizon == pred_horizon_str)
+  point_data <- forecast_dat %>% dplyr::select(date = weekly_date, confirm = p50)
+  point_data$point_type <- rep("Median Prediction", nrow(point_data))
   model_data <- data.frame(date = time_period_result[[length(time_period_result)]]$model_data_date,
                            confirm = time_period_result[[length(time_period_result)]]$confirm)
-  p <- ggplot(forecast_dat, aes(x= factor(weekly_date), y= sim_draws)) +
-    geom_violin(scale = "count", colour = "gray", fill = "blue", alpha = 0.1) +
-   labs(x = "Time", y = paste0(pred_horizon_str, " prediction")) +
-   ggtitle(paste0("Violin plot of ", pred_horizon_str, " prediction")) +
-    scale_fill_discrete(name = "Pred Horizon") + ggplot2::geom_point(ggplot2::aes(x = factor(date), y = confirm), data = model_data) +
-    theme_bw() + ggplot2::geom_point(ggplot2::aes(x = factor(weekly_date), y = p50), data = forecast_dat, colour = "blue") + theme_bw()
+  model_data$point_type <- rep("Confirmed Case", nrow(model_data))
+  point_data <- rbind(point_data, model_data)
+  p <- ggplot2::ggplot(forecast_dat, ggplot2::aes(x= factor(weekly_date), y= sim_draws)) +
+    ggplot2::geom_violin(scale = "count", colour = "gray", fill = "blue", alpha = 0.1) +
+    ggplot2::ggtitle(paste0("Violin plot of ", pred_horizon_str, " prediction")) +
+     ggplot2::geom_point(ggplot2::aes(x = factor(date), y = confirm, colour = point_type), data = point_data) +
+    ggplot2::theme_bw() + ggplot2::labs(x = "Time", y = paste0(pred_horizon_str, " projection of confirmed cases", fill = "", colour = "")) +
+    ggplot2::theme(legend.title= ggplot2::element_blank(), legend.position = "top") +
+    ggplot2::scale_colour_manual(values = c("#2C728EFF", "#471164FF"))
   return(p)
 }

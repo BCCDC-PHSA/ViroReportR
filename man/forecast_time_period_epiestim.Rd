@@ -27,7 +27,8 @@ forecast_time_period_epiestim(
 \item{...}{Pass on optional arguments from \code{fit_epiestim_model}}
 }
 \value{
-List of class \code{forecast_time_period_epiestim} storing quantiles of both daily and 2 week ahead weekly forecasts from each sliding window
+List of class \code{forecast_time_period_epiestim}
+storing quantiles of both daily and 2 week ahead weekly forecasts from each sliding window
 }
 \description{
 Function to produce short-term forecasts from objects of class {\code{\link[EpiEstim]{estimate_R}}}

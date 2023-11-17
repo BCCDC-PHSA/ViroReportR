@@ -217,7 +217,7 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
 
     return(row)
   })
-    class(time_period_result) <- c("validation_epiestim", class(time_period_result))
+    class(time_period_result) <- c("forecast_time_period_epiestim", class(time_period_result))
   return(time_period_result)
 }
 
