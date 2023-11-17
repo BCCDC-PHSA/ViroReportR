@@ -35,10 +35,11 @@
 #'   data = plover_dat_clean,
 #'   start_date_str = "2022-10-02", n_days = 14, type = "flu_a"
 #' )
-#' validate(time_period_result)
+#' validate(time_period_result, pred_horizon_str = "1 week ahead")
 #'
 
 validate <- function(time_period_result, pred_horizon_str = NULL){
+  confirm <-  p50 <- point_type <- pred_horizon <- sim_draws <- weekly_date <- NULL
   aggregate_unit <-  time_period_result[[1]][["quantile_unit"]]
   if (is.null(pred_horizon_str)) {
     stop("Must specify prediction time horizon for validation plot")
