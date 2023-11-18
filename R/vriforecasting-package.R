@@ -1,9 +1,9 @@
 #' @keywords internal
 "_PACKAGE"
 ## usethis namespace: start
-#' @importFrom dplyr filter pull rename mutate group_by summarise reframe left_join select
+#' @importFrom dplyr filter pull rename mutate group_by summarise reframe left_join select slice case_when n
 #' @importFrom EpiEstim make_config estimate_R
-#' @importFrom ggplot2 ggplot theme_bw geom_ribbon geom_line geom_point labs scale_x_date
+#' @importFrom ggplot2 ggplot theme_bw geom_ribbon geom_line geom_point labs scale_x_date element_blank theme element_text ggtitle aes
 #' @importFrom lubridate ymd
 #' @importFrom magrittr "%>%"
 #' @importFrom projections project

@@ -83,9 +83,19 @@ Optionally, one can also choose to plot the forecast for a single time period by
 plot(time_period_result_weekly, time_period = 1)
 ```
 
-Finally, we can plot a validation violin plot using the `validate` function. Currently, this plot supports only weekly forecasted data. We can plot 1 week ahead forecasts for example by setting the `pred_horizon` argument: 
+Finally, we can plot a validation violin plot using the `plotValidation` function. Currently, this plot supports only weekly forecasted data. We can plot 1 week ahead forecasts for example by setting the `pred_horizon` argument. The function can produce either a `violin` or `ribbon` plot, which can be controlled by the `pred_plot` argument: 
 
 ```{r , dpi = 300, fig.align = "center", fig.height = 5, fig.width = 5, out.width= '80%'}
-validate(time_period_result_weekly, pred_horizon_str = "1 week ahead")
+plotValidation(time_period_result_weekly, pred_horizon_str = "1 week ahead", pred_plot = "violin")
+```
+
+```{r , dpi = 300, fig.align = "center", fig.height = 5, fig.width = 5, out.width= '80%'}
+plotValidation(time_period_result_weekly, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
+```
+
+The object of class `forecast_time_period_epiestim` produced by the `forecast_time_period_epiestim` function also has a customized `summary` function. This function checks to see if the weekly data inputted fall into the ranges of the prediction quantiles and issues a warning if this is not the case. This can be a useful check to assess the forecasts produced and the model fit along with the validation plot. It takes in the same arguments as the `plotValidation` function above:
+
+```{r}
+summary(time_period_result_weekly, pred_horizon_str = "1 week ahead")
 ```
 

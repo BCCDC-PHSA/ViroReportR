@@ -222,11 +222,11 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
 }
 
 
-#' Method to plot forecasts at each iteration with uncertainty quantile ranges
+#' Plot forecasts at each iteration with uncertainty quantile ranges
 #'
 #' @param x object of class \code{forecast_time_period_epiestim}
 #' @param time_period optional parameter to show only plot at a specific time-point
-#' @param ... pass on optional parameters to method
+#' @param ... pass optional parameters to plot method
 #' @return Multiple plots with forecasts at each sliding window
 #'
 #' @export

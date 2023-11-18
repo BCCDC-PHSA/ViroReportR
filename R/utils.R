@@ -204,8 +204,9 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
       ggplot2::geom_line(ggplot2::aes(y = p50), color = "#08519C") +
       ggplot2::geom_point(ggplot2::aes(x = date, y = confirm), data = model_data) +
       ggplot2::scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
+      ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
       ggplot2::labs(
-        x = "Time", y = paste("Weekly projection of confirmed cases\n starting from", max(cur_time_period_result$model_data_date), sep = " "),
+        x = "Time", y = paste("Weekly projection of confirmed \ncases starting from", max(cur_time_period_result$model_data_date), sep = " "),
         fill = "", color = ""
       )
   } else if (aggregate_unit == "daily") {
@@ -224,8 +225,9 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
       ggplot2::geom_line(ggplot2::aes(y = p50), color = "#08519C") +
       ggplot2::geom_point(ggplot2::aes(x = date, y = confirm), data = model_data) +
       ggplot2::scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
+      ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
       ggplot2::labs(
-        x = "Time", y = paste("Weekly projection of confirmed cases\n starting from", max(cur_time_period_result$model_data_date), sep = " "),
+        x = "Time", y = paste("Weekly projection of confirmed \ncases starting from", max(cur_time_period_result$model_data_date), sep = " "),
         fill = "", color = ""
       )
   }
@@ -312,4 +314,41 @@ create_forecast_df <- function(time_period_result) {
   })
   results <- do.call(rbind.data.frame, results)
   return(results)
+}
+
+
+#' Extract combined dataframe with forecast quantiles and weekly case data for summary function
+#' @param forecast_dat output from  \code{create_forecast_df}
+#' @param data *data frame* containing two columns: date and confirm (number of cases per week)
+#' @param pred_horizon_str *string* prediction horizon time period to plot
+#' @return combined dataframe with forecast quantiles and weekly case data for summary function
+#' #' \describe{
+#'   \item{date}{daily date or weekly date over which samples were aggregated}
+#'   \item{p50}{median quantile value}
+#'   \item{p25}{quantile value of probability 0.25}
+#'   \item{p75}{quantile value of probability 0.75}
+#'   \item{p05}{quantile value of probability 0.05}
+#'   \item{p95}{quantile value of probability 0.95}
+#'   \item{pred_horizon}{Prediction time horizon (time period ahead for which prediction was made)}
+#'   \item{sim_draws}{prediction values from simulated draws}
+#'   \item{min_sim}{minimum value of simulated predictions for week}
+#'   \item{max_sim}{maximum value of simulated predictions for week}
+#'   \item{confirm}{confirmed weekly cases}
+#' }
+#'
+combine_df_pred_case <- function(forecast_dat, data, pred_horizon_str = NULL) {
+  weekly_date <- sim_draws <- NULL
+  data <- data %>% dplyr::slice(-c(1, 2))
+  future_preds <- as.numeric(substr(pred_horizon_str, 0, 1))
+  forecast_dat_min_max <- forecast_dat %>%
+    dplyr::group_by(weekly_date) %>%
+    summarise(min_sim = min(sim_draws), max_sim = max(sim_draws))
+  forecast_dat <- forecast_dat %>%
+    dplyr::group_by(weekly_date) %>%
+    dplyr::slice(1)
+  forecast_dat <- forecast_dat %>%
+    dplyr::left_join(forecast_dat_min_max, by = "weekly_date")
+  index_future_pred <- c(rev(seq_len(nrow(forecast_dat)))[1:future_preds])
+  forecast_dat <- forecast_dat[-index_future_pred, ]
+  return(forecast_dat)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_epiestim_model_functions.R
 \name{plot.forecast_time_period_epiestim}
 \alias{plot.forecast_time_period_epiestim}
-\title{Method to plot forecasts at each iteration with uncertainty quantile ranges}
+\title{Plot forecasts at each iteration with uncertainty quantile ranges}
 \usage{
 \method{plot}{forecast_time_period_epiestim}(x, time_period = NULL, ...)
 }
@@ -11,13 +11,13 @@
 
 \item{time_period}{optional parameter to show only plot at a specific time-point}
 
-\item{...}{pass on optional parameters to method}
+\item{...}{pass optional parameters to plot method}
 }
 \value{
 Multiple plots with forecasts at each sliding window
 }
 \description{
-Method to plot forecasts at each iteration with uncertainty quantile ranges
+Plot forecasts at each iteration with uncertainty quantile ranges
 }
 \examples{
 plover_data <- data.frame(

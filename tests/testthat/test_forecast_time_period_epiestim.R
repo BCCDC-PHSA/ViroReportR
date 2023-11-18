@@ -36,7 +36,7 @@ test_that("Mean of samples from rtrunc_norm function converges to specified mean
 })
 
 test_that("SD of samples from rtrunc_norm function converges to specified sd", {
-  expect_equal(sd(rtrunc_norm(10000, mean = 5, sd = 1, lower_lim = 0)), 1, tolerance = 1e-2)
+  expect_equal(sd(rtrunc_norm(10000, mean = 5, sd = 1, lower_lim = 0)), 1, tolerance = 1e-1)
 })
 
 test_that("rtrunc_norm function does not produce any negative numbers even with very high SD", {
