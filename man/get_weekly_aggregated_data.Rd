@@ -5,7 +5,7 @@
 \title{Extract Aggregated Weekly Generic Data}
 \usage{
 get_weekly_aggregated_data(
-  weekly_data,
+  generic_data,
   date_column,
   number_column,
   start_date = NULL,
@@ -13,7 +13,7 @@ get_weekly_aggregated_data(
 )
 }
 \arguments{
-\item{weekly_data}{the weekly generic data from \code{get_weekly_data()}}
+\item{generic_data}{the weekly generic data from \code{get_weekly_data()}}
 
 \item{date_column}{date column name str}
 
@@ -35,14 +35,15 @@ aggregated weekly data of the generic confirmed cases data (filtered by date if 
 \item Filter the data by given start and end date
 }
 
-The input dataframe \code{weekly_data} must have the following columns:
+The input dataframe \code{generic_data} must have the following columns:
 \itemize{
-\item \verb{<date name>}: date column (e.g. as.Date('2022-01-01'))
-\item \verb{<cases count name>}: Confirmed Cases Count (e.g. 1, 2, ...)
+\item \verb{<date name>}: date column (e.g. as.Date('2022-01-01')).
+\item \verb{<cases count name>}: Confirmed Cases Count (e.g. 1, 2, ...).
+}
+
 Note that these columns can be defined in a generic name, and inputted as
 the other two function parameters for data transformation (\code{date_column},
 \code{number_column})
-}
 
 Assume the date column is the start of the epiweek.
 }
@@ -59,10 +60,9 @@ generic_data <- data.frame(
   flu_b = c(6, 13, 31, 45, 50, 52, 68, 83, 45, 49)
 )
 
-weekly_data <- get_weekly_data(generic_data, "date_of_report", "flu_a")
 
 weekly_aggregated_data <- get_weekly_aggregated_data(
-  weekly_data,
+  generic_data,
   "date_of_report", "flu_a", "2022-10-16", "2023-12-31"
 )
 }

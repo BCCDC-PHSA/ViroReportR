@@ -3,12 +3,11 @@
 \docType{data}
 \name{generic_data}
 \alias{generic_data}
-\title{Daily Generic Confirmed Cases Data}
+\title{Generic Data with Date & Number of Cases Column}
 \format{
 \describe{
-\item{date_of_report}{the date of the reported cases (e.g. as.Date('2022-01-01'))}
-\item{flu_a}{number of confirmed flu A cases}
-\item{flu_b}{number of confirmed flu B cases}
+\item{\if{html}{\out{<date column>}}}{the date of the reported cases (e.g. as.Date('2022-01-01'))}
+\item{\if{html}{\out{<confirmed cases column>}}}{number of confirmed cases}
 }
 }
 \usage{
@@ -16,6 +15,14 @@ generic_data
 }
 \description{
 A dataset containing a generic naming for the date & confirmed cases column
-The variables are as follows:
+}
+\details{
+The purpose of this generic data is to demonstrate the flexibility of a user-defined data
+with generic date & confirmed cases column name. These generic column names will be used
+as the input parameters in the generic data transformation function.
+
+Assume the generic data will have 1 column for the date and 1 column for the confirmed cases column.
+
+A sample variables are as follows:
 }
 \keyword{datasets}
