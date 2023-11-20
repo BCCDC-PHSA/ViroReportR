@@ -1,14 +1,18 @@
 #' Extract Weekly Data from a Generic Dataframe
 #'
 #' @description
+#' This is an internal function used in `get_weekly_aggregated_data()` to obtain the weekly data
+#' and further extract its weekly aggregated cases count.
+#'
 #' `get_weekly_data()` performs data transformation in the following steps:
 #'
 #' 1. Create the week date column using `floor_date()`.
 #' 2. Select only the week date and confirmed cases column.
 #'
 #' The input dataframe `generic_data` must have the following columns:
-#' * `<date name>`: date column (e.g. as.Date('2022-01-01'))
-#' * `<cases count name>`: Confirmed Cases Count (e.g. 1, 2, ...)
+#' * `<date name>`: date column (e.g. as.Date('2022-01-01')).
+#' * `<cases count name>`: Confirmed Cases Count (e.g. 1, 2, ...).
+#'
 #' Note that these columns can be defined in a generic name, and inputted as
 #' the other two function parameters for data transformation (`date_column`,
 #' `number_column`)
@@ -19,8 +23,9 @@
 #'
 #' @importFrom data.table :=
 #'
+#' @keywords internal
+#'
 #' @return weekly data of the generic confirmed cases data
-#' @export
 #'
 #' @examples
 #'
@@ -36,6 +41,7 @@
 #' )
 #'
 #' weekly_data <- get_weekly_data(generic_data, "date_of_report", "flu_a")
+#' @noRd
 get_weekly_data <- function(generic_data, date_column, number_column) {
   # Unquote the quosures
   date_column <- dplyr::quo_name(dplyr::enquo(date_column))
@@ -72,16 +78,17 @@ get_weekly_data <- function(generic_data, date_column, number_column) {
 #' 3. Select only the week date and confirmed cases column.
 #' 4. Filter the data by given start and end date
 #'
-#' The input dataframe `weekly_data` must have the following columns:
-#' * `<date name>`: date column (e.g. as.Date('2022-01-01'))
-#' * `<cases count name>`: Confirmed Cases Count (e.g. 1, 2, ...)
+#' The input dataframe `generic_data` must have the following columns:
+#' * `<date name>`: date column (e.g. as.Date('2022-01-01')).
+#' * `<cases count name>`: Confirmed Cases Count (e.g. 1, 2, ...).
+#'
 #' Note that these columns can be defined in a generic name, and inputted as
 #' the other two function parameters for data transformation (`date_column`,
 #' `number_column`)
 #'
 #' Assume the date column is the start of the epiweek.
 #'
-#' @param weekly_data the weekly generic data from `get_weekly_data()`
+#' @param generic_data the weekly generic data from `get_weekly_data()`
 #' @param date_column date column name str
 #' @param number_column cases count column name str
 #' @param start_date start date string (e.g. '2022-01-01')(optional, default is NULL)
@@ -103,15 +110,17 @@ get_weekly_data <- function(generic_data, date_column, number_column) {
 #'   flu_b = c(6, 13, 31, 45, 50, 52, 68, 83, 45, 49)
 #' )
 #'
-#' weekly_data <- get_weekly_data(generic_data, "date_of_report", "flu_a")
 #'
 #' weekly_aggregated_data <- get_weekly_aggregated_data(
-#'   weekly_data,
+#'   generic_data,
 #'   "date_of_report", "flu_a", "2022-10-16", "2023-12-31"
 #' )
-get_weekly_aggregated_data <- function(weekly_data, date_column, number_column,
+get_weekly_aggregated_data <- function(generic_data, date_column, number_column,
                                        start_date = NULL, end_date = NULL) {
   confirm <- NULL
+
+  weekly_data <- get_weekly_data(generic_data, "date_of_report", "flu_a")
+
   # Unquote the quosures
   date_column <- dplyr::quo_name(dplyr::enquo(date_column))
   number_column <- dplyr::quo_name(dplyr::enquo(number_column))
@@ -134,6 +143,15 @@ get_weekly_aggregated_data <- function(weekly_data, date_column, number_column,
 
   if (!is.null(start_date) & !is.null(end_date)) {
     stopifnot("start date is later than the end date" = (start_date < end_date))
+
+    if (start_date != lubridate::floor_date(as.Date(start_date), unit = "week")){
+      warning("The input `start_date` doesn't coincide with start of a week, the aggregated data might include partial number of dates in the start week")
+    }
+
+    if (end_date != lubridate::floor_date(as.Date(end_date), unit = "week")){
+      warning("The input `end_date` doesn't coincide with start of a week, the aggregated data might include partial number of dates in the end week")
+    }
+
     filtered_weekly_aggregated_data <- weekly_aggregated_data %>%
       dplyr::filter(
         date >= start_date,
@@ -143,6 +161,10 @@ get_weekly_aggregated_data <- function(weekly_data, date_column, number_column,
   }
 
   if (!is.null(start_date)) {
+    if (start_date != lubridate::floor_date(as.Date(start_date), unit = "week")){
+      warning("The input `start_date` doesn't coincide with start of a week, the aggregated data might include partial number of dates in the start week")
+    }
+
     filtered_weekly_aggregated_data <- weekly_aggregated_data %>%
       dplyr::filter(
         date >= start_date
@@ -151,6 +173,10 @@ get_weekly_aggregated_data <- function(weekly_data, date_column, number_column,
   }
 
   if (!is.null(end_date)) {
+    if (end_date != lubridate::floor_date(as.Date(end_date), unit = "week")){
+      warning("The input `end_date` doesn't coincide with start of a week, the aggregated data might include partial number of dates in the end week")
+    }
+
     filtered_weekly_aggregated_data <- weekly_aggregated_data %>%
       dplyr::filter(
         date <= end_date
