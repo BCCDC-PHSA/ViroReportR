@@ -21,32 +21,8 @@
 #' @export
 #'
 #' @examples
-#' plover_data <- data.frame(
-#'   epiWeek_date = as.Date(c(
-#'     "2022-10-02", "2022-10-09",
-#'     "2022-10-16", "2022-10-23", "2022-10-30",
-#'     "2022-11-06", "2022-11-13", "2022-11-20",
-#'     "2022-11-27", "2022-12-04"
-#'   )),
-#'   epiWeek_year = c(
-#'     2022, 2022, 2022, 2022,
-#'     2022, 2022, 2022, 2022, 2022, 2022
-#'   ),
-#'   Epiweek = c(40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
-#'   flu_a = c(17, 19, 32, 38, 43, 45, 73, 88, 94, 105),
-#'   flu_b = c(24, 31, 39, 45, 50, 52, 68, 83, 89, 97)
-#' )
+#' fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a")
 #'
-#' weekly_plover_data <- get_weekly_plover(plover_data)
-#'
-#' plover_dat_clean <- get_weekly_plover_by_date_type(
-#'   weekly_plover_data,
-#'   "flu_a",
-#'   "2022-10-01",
-#'   "2022-12-05"
-#' )
-#'
-#' fit_epiestim_model(data = plover_dat_clean, type = "flu_a")
 fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
                                method = "parametric_si", ...) {
   confirm <- NULL
@@ -128,44 +104,20 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #'
 #'
 #' @return List of class \code{forecast_time_period_epiestim}
-#' storing quantiles of both daily and 2 week ahead weekly forecasts from each sliding window
+#' storing quantiles of both daily and weekly forecasts from each sliding window
 #' @export
 #'
 #' @examples
-#' plover_data <- data.frame(
-#'   epiWeek_date = as.Date(c(
-#'     "2022-10-02", "2022-10-09",
-#'     "2022-10-16", "2022-10-23", "2022-10-30",
-#'     "2022-11-06", "2022-11-13", "2022-11-20",
-#'     "2022-11-27", "2022-12-04"
-#'   )),
-#'   epiWeek_year = c(
-#'     2022, 2022, 2022, 2022,
-#'     2022, 2022, 2022, 2022, 2022, 2022
-#'   ),
-#'   Epiweek = c(40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
-#'   flu_a = c(17, 19, 32, 38, 43, 45, 73, 88, 94, 105),
-#'   flu_b = c(24, 31, 39, 45, 50, 52, 68, 83, 89, 97)
-#' )
-#'
-#' weekly_plover_data <- get_weekly_plover(plover_data)
-#'
-#' plover_dat_clean <- get_weekly_plover_by_date_type(
-#'   weekly_plover_data,
-#'   "flu_a",
-#'   "2022-10-01",
-#'   "2022-12-05"
-#' )
 #'
 #' #  Daily forecast
 #' forecast_time_period_epiestim(
-#'   data = plover_dat_clean,
+#'   data = weekly_transformed_plover_data,
 #'   start_date_str = "2022-10-02", n_days = 14, type = "flu_a"
 #' )
 #'
 # weekly aggregated forecast
 #' forecast_time_period_epiestim(
-#'   data = plover_dat_clean,
+#'   data = weekly_transformed_plover_data,
 #'   start_date_str = "2022-10-02", n_days = 14, type = "flu_a", aggregate_week = TRUE
 #' )
 forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggregate_week = FALSE,
@@ -231,38 +183,7 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
 #'
 #' @export
 #' @examples
-#' plover_data <- data.frame(
-#'   epiWeek_date = as.Date(c(
-#'     "2022-10-02", "2022-10-09",
-#'     "2022-10-16", "2022-10-23", "2022-10-30",
-#'     "2022-11-06", "2022-11-13", "2022-11-20",
-#'     "2022-11-27", "2022-12-04"
-#'   )),
-#'   epiWeek_year = c(
-#'     2022, 2022, 2022, 2022,
-#'     2022, 2022, 2022, 2022, 2022, 2022
-#'   ),
-#'   Epiweek = c(40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
-#'   flu_a = c(17, 19, 32, 38, 43, 45, 73, 88, 94, 105),
-#'   flu_b = c(24, 31, 39, 45, 50, 52, 68, 83, 89, 97)
-#' )
-#'
-#' weekly_plover_data <- get_weekly_plover(plover_data)
-#'
-#' plover_dat_clean <- get_weekly_plover_by_date_type(
-#'   weekly_plover_data,
-#'   "flu_a",
-#'   "2022-10-01",
-#'   "2022-12-05"
-#' )
-#'
-#' time_period_result <- forecast_time_period_epiestim(
-#'   data = plover_dat_clean,
-#'   start_date_str = "2022-10-02", n_days = 14, type = "flu_a"
-#' )
-#'
-#'
-#' plot(time_period_result)
+#' plot(time_period_result_daily)
 plot.forecast_time_period_epiestim <- function(x, time_period = NULL, ...) {
   if (is.null(time_period)) {
     times_plots <- lapply(x, plot_all_time_period_forecast_data_helper)

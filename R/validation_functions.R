@@ -7,36 +7,7 @@
 #'
 #' @export
 #' @examples
-#' plover_data <- data.frame(
-#'   epiWeek_date = as.Date(c(
-#'     "2022-10-02", "2022-10-09",
-#'     "2022-10-16", "2022-10-23", "2022-10-30",
-#'     "2022-11-06", "2022-11-13", "2022-11-20",
-#'     "2022-11-27", "2022-12-04"
-#'   )),
-#'   epiWeek_year = c(
-#'     2022, 2022, 2022, 2022,
-#'     2022, 2022, 2022, 2022, 2022, 2022
-#'   ),
-#'   Epiweek = c(40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
-#'   flu_a = c(17, 19, 32, 38, 43, 45, 73, 88, 94, 105),
-#'   flu_b = c(24, 31, 39, 45, 50, 52, 68, 83, 89, 97)
-#' )
-#'
-#' weekly_plover_data <- get_weekly_plover(plover_data)
-#'
-#' plover_dat_clean <- get_weekly_plover_by_date_type(
-#'   weekly_plover_data,
-#'   "flu_a",
-#'   "2022-10-01",
-#'   "2022-12-05"
-#' )
-#'
-#' time_period_result <- forecast_time_period_epiestim(
-#'   data = plover_dat_clean,
-#'   start_date_str = "2022-10-02", n_days = 14, type = "flu_a", aggregate_week = TRUE,
-#' )
-#' plotValidation(time_period_result, pred_horizon_str = "1 week ahead")
+#' plotValidation(weekly_time_period_result, pred_horizon_str = "1 week ahead")
 plotValidation <- function(time_period_result, pred_horizon_str = NULL, pred_plot = "violin") {
   p05 <- p95 <- p25 <- p75 <- NULL
   confirm <- p50 <- point_type <- pred_horizon <- sim_draws <- weekly_date <- NULL
@@ -118,36 +89,7 @@ plotValidation <- function(time_period_result, pred_horizon_str = NULL, pred_plo
 #' @export
 
 #' @examples
-#' plover_data <- data.frame(
-#'   epiWeek_date = as.Date(c(
-#'     "2022-10-02", "2022-10-09",
-#'     "2022-10-16", "2022-10-23", "2022-10-30",
-#'     "2022-11-06", "2022-11-13", "2022-11-20",
-#'     "2022-11-27", "2022-12-04"
-#'   )),
-#'   epiWeek_year = c(
-#'     2022, 2022, 2022, 2022,
-#'     2022, 2022, 2022, 2022, 2022, 2022
-#'   ),
-#'   Epiweek = c(40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
-#'   flu_a = c(17, 19, 32, 38, 43, 45, 73, 88, 94, 105),
-#'   flu_b = c(24, 31, 39, 45, 50, 52, 68, 83, 89, 97)
-#' )
-#'
-#' weekly_plover_data <- get_weekly_plover(plover_data)
-#'
-#' plover_dat_clean <- get_weekly_plover_by_date_type(
-#'   weekly_plover_data,
-#'   "flu_a",
-#'   "2022-10-01",
-#'   "2022-12-05"
-#' )
-#'
-#' time_period_result <- forecast_time_period_epiestim(
-#'   data = plover_dat_clean,
-#'   start_date_str = "2022-10-02", n_days = 14, type = "flu_a", aggregate_week = TRUE,
-#' )
-#' summary(time_period_result, pred_horizon_str = "1 week ahead")
+#' summary(weekly_time_period_result, pred_horizon_str = "1 week ahead")
 
 summary.forecast_time_period_epiestim <- function(object, pred_horizon_str = NULL, ...) {
   pred_horizon <- weekly_date <- data_quantile <- NULL

@@ -43,3 +43,49 @@
 #' @docType data
 "phrdw_data"
 
+
+
+#' Time period result: weekly forecasts of PLOVER flu data in sliding windows as the output of \code{forecast_time_period_epiestim}
+#'
+#' @format List of class \code{forecast_time_period_epiestim}
+#' storing quantiles of both daily and weekly forecasts from each sliding window
+#' }
+#' @name weekly_time_period_result
+#'
+#' @source data produced by script \code{time_period_result.R}
+#'
+#' @docType data
+"weekly_time_period_result"
+
+
+
+#' Time period result: daily forecasts of PLOVER flu data in sliding windows as the output of \code{forecast_time_period_epiestim}
+#'
+#' @format List of class \code{forecast_time_period_epiestim}
+#' storing quantiles of 14 day ahead daily forecasts from each sliding window
+#' }
+#' @name daily_time_period_result
+#'
+#' @source data produced by script \code{time_period_result.R}
+#'
+#' @docType data
+"daily_time_period_result"
+
+
+#' Weekly aggregated and transformed Flu Cases from Plover
+#'
+#' A dataset containing the flu cases in BC Canada aggregated by week after running package PLOVER transformation functions
+#' The variables are as follows:
+#'
+#' @format Data frame with
+#' \describe{
+#'   \item{date}{Weekly date over which samples were aggregated}
+#'   \item{confirm}{confirmed weekly cases}
+#' }
+#' @name weekly_transformed_plover_data
+#'
+#' @source  data produced by script \code{weekly_transformed_plover_data.R}
+#'
+#' @docType data
+"weekly_transformed_plover_data"
+
