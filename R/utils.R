@@ -74,7 +74,9 @@ create_quantiles <- function(d, ..., variable = NULL) {
       p25 = stats::quantile(.data[[variable]], 0.25),
       p75 = stats::quantile(.data[[variable]], 0.75),
       p05 = stats::quantile(.data[[variable]], 0.05),
-      p95 = stats::quantile(.data[[variable]], 0.95)
+      p95 = stats::quantile(.data[[variable]], 0.95),
+      min_sim = min(.data[[variable]]),
+      max_sim = max(.data[[variable]])
     )
 }
 
@@ -88,11 +90,11 @@ create_quantiles <- function(d, ..., variable = NULL) {
 #'   \item{weekly_value}{projected number of daily confirmed cases aggregated by week}
 #' }
 extract_agg_samples_epiestim_fit <- function(samples) {
-  daily_value <- week_date <- daily_sim <- daily_date <- NULL
+  daily_incidence <- week_date <- sim <- daily_date <- NULL
   samples <- samples %>%
     dplyr::mutate(week_date = lubridate::floor_date(daily_date, unit = "weeks")) %>%
-    dplyr::group_by(week_date, daily_sim) %>%
-    dplyr::summarise(weekly_value = sum(daily_value), .groups = "keep")
+    dplyr::group_by(week_date, sim) %>%
+    dplyr::summarise(weekly_incidence = sum(daily_incidence), .groups = "keep")
 
   return(samples)
 }
@@ -138,7 +140,9 @@ extract_quantile_epiestim <- function(tp) {
       p25 = tp$p25,
       p75 = tp$p75,
       p05 = tp$p05,
-      p95 = tp$p95
+      p95 = tp$p95,
+      min_sim = tp$min_sim,
+      max_sim = tp$max_sim
     )
   return(dat_quantiles)
 }
@@ -160,12 +164,12 @@ extract_sim_samples_epiestim <- function(tp, aggregate_unit = NULL) {
   if (aggregate_unit == "weekly") {
     dat_samples <- tibble::tibble(
       quantile_date = tp$week_date,
-      value = tp$weekly_value
+      value = tp$weekly_incidence
     )
   } else if (aggregate_unit == "daily") {
     dat_samples <- tibble::tibble(
       quantile_date = tp$daily_date,
-      value = tp$daily_value
+      value = tp$daily_incidence
     )
   }
   return(dat_samples)
@@ -181,7 +185,7 @@ extract_sim_samples_epiestim <- function(tp, aggregate_unit = NULL) {
 #' @return Plot displaying forecast for one time period
 
 plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
-  p05 <- p95 <- p25 <- p75 <- p50 <- confirm <- NULL
+  p05 <- p95 <- p25 <- p75 <- p50 <- confirm <- incidence <-  NULL
   model_data <- tibble::tibble(
     date = cur_time_period_result$model_data_date,
     confirm = cur_time_period_result$confirm
@@ -191,8 +195,8 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
   if (aggregate_unit == "weekly") {
     data_proj <- tibble::tibble(
       date = cur_time_period_result$week_date,
-      sim = cur_time_period_result$daily_sim,
-      incidence = cur_time_period_result$weekly_value
+      sim = cur_time_period_result$sim,
+      incidence = cur_time_period_result$weekly_incidence
     )
     p <- data_proj %>%
       dplyr::mutate(incidence = incidence) %>%
@@ -212,8 +216,8 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
   } else if (aggregate_unit == "daily") {
     data_proj <- tibble::tibble(
       date = cur_time_period_result$daily_date,
-      sim = cur_time_period_result$daily_sim,
-      incidence = cur_time_period_result$daily_value
+      sim = cur_time_period_result$sim,
+      incidence = cur_time_period_result$daily_incidence
     )
     p <- data_proj %>%
       dplyr::mutate(incidence = 7 * incidence) %>%
@@ -340,15 +344,11 @@ combine_df_pred_case <- function(forecast_dat, data, pred_horizon_str = NULL) {
   weekly_date <- sim_draws <- NULL
   data <- data %>% dplyr::slice(-c(1, 2))
   future_preds <- as.numeric(substr(pred_horizon_str, 0, 1))
-  forecast_dat_min_max <- forecast_dat %>%
-    dplyr::group_by(weekly_date) %>%
-    summarise(min_sim = min(sim_draws), max_sim = max(sim_draws))
   forecast_dat <- forecast_dat %>%
     dplyr::group_by(weekly_date) %>%
     dplyr::slice(1)
-  forecast_dat <- forecast_dat %>%
-    dplyr::left_join(forecast_dat_min_max, by = "weekly_date")
   index_future_pred <- c(rev(seq_len(nrow(forecast_dat)))[1:future_preds])
   forecast_dat <- forecast_dat[-index_future_pred, ]
   return(forecast_dat)
 }
+

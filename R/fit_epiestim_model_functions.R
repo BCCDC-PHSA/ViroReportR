@@ -190,7 +190,7 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
     cur_model <- fit_epiestim_model(model_data, type = type, ...)
     cur_daily_samples <- extract_daily_samples_epiestim_fit(data = model_data, model_fit = cur_model, n_days = n_days)
     cur_daily_samples <- cur_daily_samples %>%
-      rename(daily_date = date, daily_sim = sim, daily_value = incidence)
+      rename(daily_date = date, sim = sim, daily_incidence = incidence)
 
     model_data <- model_data %>%
       dplyr::rename(model_data_date = date)
@@ -202,14 +202,14 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
       cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
       message("Note: Weekly quantiles were calculated across simulated epicurves")
       cur_samples_agg_quantiles <- cur_samples %>%
-        create_quantiles(week_date, variable = "weekly_value") %>%
+        create_quantiles(week_date, variable = "weekly_incidence") %>%
         dplyr::rename(quantile_date = week_date)
       quantile_unit <- "weekly"
       row <- c(cur_model, tp, model_data, cur_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
     } else {
       message("Note: Daily quantiles were calculated across simulated epicurves")
       cur_samples_agg_quantiles <- cur_daily_samples %>%
-        create_quantiles(daily_date, variable = "daily_value") %>%
+        create_quantiles(daily_date, variable = "daily_incidence") %>%
         dplyr::rename(quantile_date = daily_date)
       quantile_unit <- "daily"
       row <- c(cur_model, tp, model_data, cur_daily_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)

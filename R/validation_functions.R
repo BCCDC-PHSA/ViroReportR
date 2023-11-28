@@ -44,8 +44,11 @@ plotValidation <- function(time_period_result, pred_horizon_str = NULL, pred_plo
   if (is.null(pred_horizon_str)) {
     stop("Must specify prediction time horizon for validation plot")
   }
+  if (class(time_period_result)[1] != "forecast_time_period_epiestim") {
+    stop("time_period_result input must be object of class forecast_time_period_epiestim")
+  }
   if (aggregate_unit == "daily") {
-    stop("Only weekly aggregated data suitable for validation plot. Please re-run forecast_time_period_epiestim with weekly_aggregate = TRUE")
+   stop("Only weekly aggregated data suitable for validation plot. Please re-run forecast_time_period_epiestim with weekly_aggregate = TRUE")
   }
   forecast_dat <- create_forecast_df(time_period_result)
   if (!(pred_horizon_str %in% forecast_dat$pred_horizon)) {
@@ -165,7 +168,8 @@ summary.forecast_time_period_epiestim <- function(object, pred_horizon_str = NUL
     date = object[[length(object)]]$model_data_date,
     confirm = object[[length(object)]]$confirm
   )
-  forecast_cases_dat <- combine_df_pred_case(forecast_dat, model_data, pred_horizon_str = eval(parse(text = "pred_horizon_str")))
+  forecast_cases_dat <- combine_df_pred_case(forecast_dat, model_data,
+                          pred_horizon_str = eval(parse(text = "pred_horizon_str")))
   forecast_cases_dat <- forecast_cases_dat %>%
     dplyr::left_join(model_data, by = c("weekly_date" = "date")) %>%
     dplyr::group_by(weekly_date) %>%

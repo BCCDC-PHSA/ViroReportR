@@ -87,6 +87,7 @@ Finally, we can plot a validation violin plot using the `plotValidation` functio
 
 ```{r , dpi = 300, fig.align = "center", fig.height = 5, fig.width = 5, out.width= '80%'}
 plotValidation(time_period_result_weekly, pred_horizon_str = "1 week ahead", pred_plot = "violin")
+
 ```
 
 ```{r , dpi = 300, fig.align = "center", fig.height = 5, fig.width = 5, out.width= '80%'}
