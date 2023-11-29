@@ -28,45 +28,21 @@ forecast_time_period_epiestim(
 }
 \value{
 List of class \code{forecast_time_period_epiestim}
-storing quantiles of both daily and 2 week ahead weekly forecasts from each sliding window
+storing quantiles of both daily and weekly forecasts from each sliding window
 }
 \description{
 Function to produce short-term forecasts from objects of class {\code{\link[EpiEstim]{estimate_R}}}
 }
 \examples{
-plover_data <- data.frame(
-  epiWeek_date = as.Date(c(
-    "2022-10-02", "2022-10-09",
-    "2022-10-16", "2022-10-23", "2022-10-30",
-    "2022-11-06", "2022-11-13", "2022-11-20",
-    "2022-11-27", "2022-12-04"
-  )),
-  epiWeek_year = c(
-    2022, 2022, 2022, 2022,
-    2022, 2022, 2022, 2022, 2022, 2022
-  ),
-  Epiweek = c(40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
-  flu_a = c(17, 19, 32, 38, 43, 45, 73, 88, 94, 105),
-  flu_b = c(24, 31, 39, 45, 50, 52, 68, 83, 89, 97)
-)
-
-weekly_plover_data <- get_weekly_plover(plover_data)
-
-plover_dat_clean <- get_weekly_plover_by_date_type(
-  weekly_plover_data,
-  "flu_a",
-  "2022-10-01",
-  "2022-12-05"
-)
 
 #  Daily forecast
 forecast_time_period_epiestim(
-  data = plover_dat_clean,
+  data = weekly_transformed_plover_data,
   start_date_str = "2022-10-02", n_days = 14, type = "flu_a"
 )
 
 forecast_time_period_epiestim(
-  data = plover_dat_clean,
+  data = weekly_transformed_plover_data,
   start_date_str = "2022-10-02", n_days = 14, type = "flu_a", aggregate_week = TRUE
 )
 }

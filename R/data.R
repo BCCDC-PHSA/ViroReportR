@@ -49,7 +49,6 @@
 #'
 #' @format List of class \code{forecast_time_period_epiestim}
 #' storing quantiles of both daily and weekly forecasts from each sliding window
-#' }
 #' @name weekly_time_period_result
 #'
 #' @source data produced by script \code{time_period_result.R}
@@ -63,7 +62,6 @@
 #'
 #' @format List of class \code{forecast_time_period_epiestim}
 #' storing quantiles of 14 day ahead daily forecasts from each sliding window
-#' }
 #' @name daily_time_period_result
 #'
 #' @source data produced by script \code{time_period_result.R}

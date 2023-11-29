@@ -183,7 +183,7 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
 #'
 #' @export
 #' @examples
-#' plot(time_period_result_daily)
+#' plot(daily_time_period_result)
 plot.forecast_time_period_epiestim <- function(x, time_period = NULL, ...) {
   if (is.null(time_period)) {
     times_plots <- lapply(x, plot_all_time_period_forecast_data_helper)

@@ -43,30 +43,6 @@ A wrapper function for {\code{\link[EpiEstim]{estimate_R}}} from the \code{EpiEs
 Cowling et al., 2011, Vink et al., 2014 and Madewell et al., 2023 for Influenza, RSV and COVID (BA.5 Omicron variant) respectively
 }
 \examples{
-plover_data <- data.frame(
-  epiWeek_date = as.Date(c(
-    "2022-10-02", "2022-10-09",
-    "2022-10-16", "2022-10-23", "2022-10-30",
-    "2022-11-06", "2022-11-13", "2022-11-20",
-    "2022-11-27", "2022-12-04"
-  )),
-  epiWeek_year = c(
-    2022, 2022, 2022, 2022,
-    2022, 2022, 2022, 2022, 2022, 2022
-  ),
-  Epiweek = c(40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
-  flu_a = c(17, 19, 32, 38, 43, 45, 73, 88, 94, 105),
-  flu_b = c(24, 31, 39, 45, 50, 52, 68, 83, 89, 97)
-)
+fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a")
 
-weekly_plover_data <- get_weekly_plover(plover_data)
-
-plover_dat_clean <- get_weekly_plover_by_date_type(
-  weekly_plover_data,
-  "flu_a",
-  "2022-10-01",
-  "2022-12-05"
-)
-
-fit_epiestim_model(data = plover_dat_clean, type = "flu_a")
 }

@@ -38,7 +38,6 @@ plotValidation <- function(time_period_result, pred_horizon_str = NULL, pred_plo
   if (pred_plot == "violin") {
     p <- ggplot2::ggplot(forecast_dat, ggplot2::aes(x = factor(weekly_date), y = sim_draws)) +
       ggplot2::geom_violin(scale = "count", colour = "gray", fill = "blue", alpha = 0.1, draw_quantiles = 0.5) +
-      ggplot2::geom_line(ggplot2::aes(y = p50), color = "#08519C") +
       ggplot2::ggtitle(paste0("Violin plot of ", pred_horizon_str, " prediction")) +
       ggplot2::geom_point(ggplot2::aes(x = factor(date), y = confirm, colour = point_type), data = model_data) +
       ggplot2::theme_bw() +
@@ -93,12 +92,15 @@ plotValidation <- function(time_period_result, pred_horizon_str = NULL, pred_plo
 
 summary.forecast_time_period_epiestim <- function(object, pred_horizon_str = NULL, ...) {
   pred_horizon <- weekly_date <- data_quantile <- NULL
+  if (class(object)[1] != "forecast_time_period_epiestim") {
+    stop("input must be object of class forecast_time_period_epiestim")
+  }
   aggregate_unit <- object[[1]][["quantile_unit"]]
   if (is.null(pred_horizon_str)) {
-    stop("Must specify prediction time horizon for validation plot")
+    stop("Must specify prediction time horizon for validation summary")
   }
   if (aggregate_unit == "daily") {
-    stop("Only weekly aggregated data suitable for validation plot. Please re-run forecast_time_period_epiestim with weekly_aggregate = TRUE")
+    stop("Only weekly aggregated data suitable for validation summary. Please re-run forecast_time_period_epiestim with weekly_aggregate = TRUE")
   }
   forecast_dat <- create_forecast_df(object)
   forecast_dat <- forecast_dat %>%
@@ -116,14 +118,14 @@ summary.forecast_time_period_epiestim <- function(object, pred_horizon_str = NUL
     dplyr::left_join(model_data, by = c("weekly_date" = "date")) %>%
     dplyr::group_by(weekly_date) %>%
     dplyr::mutate(data_quantile = dplyr::case_when(
-      min_sim > confirm | confirm > max_sim ~ "Outside prediction quantiles",
       min_sim < confirm & confirm < p25 ~ "Q1",
       p25 < confirm & confirm < p50 ~ "Q2",
       p50 < confirm & confirm < p75 ~ "Q3",
       p75 < confirm & confirm < max_sim ~ "Q4",
+      min_sim > confirm | confirm > max_sim ~ "Outside prediction quantiles"
     )) %>%
     dplyr::select(weekly_date, data_quantile)
-  if (any(forecast_cases_dat$data_quantile == "Outside prediction quantiles")) {
+  if ((any(forecast_cases_dat$data_quantile %in% "Outside prediction quantiles"))) {
     warning("Prediction quantiles do not cover some data-points. Some forecasts may not be reliable")
   }
   forecast_cases_dat_summ <- forecast_cases_dat %>%
