@@ -86,4 +86,3 @@
 #'
 #' @docType data
 "weekly_transformed_plover_data"
-

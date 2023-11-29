@@ -9,7 +9,7 @@
 #'
 #' @param data *data frame* containing two columns: date and confirm (number of cases per week)
 #' @param dt *Integer* 	length of temporal aggregations of the incidence data. This should be an integer or vector of integers. The default value is 7 time units (1 week).
-#' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "covid" or "other"
+#' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"
 #' @param mean_si *Numeric* User specification of mean of parametric serial interval
 #' @param std_si *Numeric* User specification of standard deviation of parametric serial interval
 #' @param recon_opt One of "naive" or "match" to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page)
@@ -29,7 +29,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
   if (!is.data.frame(data) || !all(colnames(data) %in% c("date", "confirm"))) {
     stop("Must pass a data frame with two columns: date and confirm")
   }
-  if (missing(type) || !(type %in% c("flu_a", "flu_b", "covid", "rsv", "other"))) {
+  if (missing(type) || !(type %in% c("flu_a", "flu_b", "sars_cov2", "rsv", "other"))) {
     stop("Must specify the type of epidemic (flu_a, flu_b, covid, rsv or other)")
   }
   if (type == "other" && is.null(mean_si) && is.null(std_si)) {

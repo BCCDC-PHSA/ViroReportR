@@ -20,7 +20,7 @@ library(vriforecasting)
 
 ## Overview 
 
-This vignette provides a short demonstration of the model fitting functions in `vriforecasting` which extend the functionality and wrap the `estimate_R` function from the `EpiEstim` package to produce short-term forecasts. The `
+This vignette provides a short demonstration of the model fitting functions in `vriforecasting` which extend the functionality and wrap the `estimate_R` function from the `EpiEstim` package to produce short-term forecasts. 
 
 ## Loading in data
 
