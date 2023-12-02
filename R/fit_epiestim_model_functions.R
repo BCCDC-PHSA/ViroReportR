@@ -4,7 +4,7 @@
 #'
 #'
 #' @details \code{fit_epiestim_model} currently supports the following epidemics: Influenza, RSV and COVID-19. The serial intervals for the estimation of R were retrieved from
-#' Cowling et al., 2011, Vink et al., 2014 and Madewell et al., 2023 for Influenza, RSV and COVID (BA.5 Omicron variant) respectively
+#' Cowling et al., 2011, Vink et al., 2014 and Madewell et al., 2023 for Influenza A, Influenza B, RSV and COVID (BA.5 Omicron variant) respectively
 #'
 #'
 #' @param data *data frame* containing two columns: date and confirm (number of cases per week)
@@ -42,15 +42,26 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 
   incid <- data$confirm
   if (is.null(mean_si) && is.null(std_si)) {
-    if (type == "flu_a" | type == "flu_b") {
+    if (type == "flu_a") {
       config <- EpiEstim::make_config(list(
-        mean_si = 3.6,
-        std_si = 1.6
+        mean_si = 3.1,
+        std_si = 1.6,
+        mean_prior = 2,
+        std_prior =1
       ))
+    else if (type == "flu_b") {
+        config <- EpiEstim::make_config(list(
+          mean_si = 3.7,
+          std_si = 2.1,
+          mean_prior = 2,
+          std_prior =1
+        ))
     } else if (type == "rsv") {
       config <- EpiEstim::make_config(list(
         mean_si = 7.5,
-        std_si = 2.1
+        std_si = 2.1,
+        mean_prior = 2,
+        std_prior =1
       ))
     } else if (type == "covid") {
       config <- EpiEstim::make_config(list(
