@@ -73,8 +73,8 @@ create_quantiles <- function(d, ..., variable = NULL) {
       p50 = stats::quantile(.data[[variable]], 0.5),
       p25 = stats::quantile(.data[[variable]], 0.25),
       p75 = stats::quantile(.data[[variable]], 0.75),
-      p05 = stats::quantile(.data[[variable]], 0.05),
-      p95 = stats::quantile(.data[[variable]], 0.95),
+      p025 = stats::quantile(.data[[variable]], 0.025),
+      p975 = stats::quantile(.data[[variable]], 0.975),
       min_sim = min(.data[[variable]]),
       max_sim = max(.data[[variable]])
     )
@@ -139,8 +139,8 @@ extract_quantile_epiestim <- function(tp) {
       p50 = tp$p50,
       p25 = tp$p25,
       p75 = tp$p75,
-      p05 = tp$p05,
-      p95 = tp$p95,
+      p025 = tp$p025,
+      p975 = tp$p975,
       min_sim = tp$min_sim,
       max_sim = tp$max_sim
     )
@@ -185,7 +185,7 @@ extract_sim_samples_epiestim <- function(tp, aggregate_unit = NULL) {
 #' @return Plot displaying forecast for one time period
 
 plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
-  p05 <- p95 <- p25 <- p75 <- p50 <- confirm <- incidence <-  NULL
+  p025 <- p975 <- p25 <- p75 <- p50 <- confirm <- incidence <-  NULL
   model_data <- tibble::tibble(
     date = cur_time_period_result$model_data_date,
     confirm = cur_time_period_result$confirm
@@ -203,7 +203,7 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
       create_quantiles(date, variable = "incidence") %>%
       ggplot2::ggplot(ggplot2::aes(x = date)) +
       ggplot2::theme_bw() +
-      ggplot2::geom_ribbon(ggplot2::aes(ymin = p05, ymax = p95), fill = "#08519C", alpha = 0.25) +
+      ggplot2::geom_ribbon(ggplot2::aes(ymin = p025, ymax = p975), fill = "#08519C", alpha = 0.25) +
       ggplot2::geom_ribbon(ggplot2::aes(ymin = p25, ymax = p75), fill = "#08519C", alpha = 0.25) +
       ggplot2::geom_line(ggplot2::aes(y = p50), color = "#08519C") +
       ggplot2::geom_point(ggplot2::aes(x = date, y = confirm), data = model_data) +
@@ -224,7 +224,7 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
       create_quantiles(date, variable = "incidence") %>%
       ggplot2::ggplot(ggplot2::aes(x = date)) +
       ggplot2::theme_bw() +
-      ggplot2::geom_ribbon(ggplot2::aes(ymin = p05, ymax = p95), fill = "#08519C", alpha = 0.25) +
+      ggplot2::geom_ribbon(ggplot2::aes(ymin = p025, ymax = p975), fill = "#08519C", alpha = 0.25) +
       ggplot2::geom_ribbon(ggplot2::aes(ymin = p25, ymax = p75), fill = "#08519C", alpha = 0.25) +
       ggplot2::geom_line(ggplot2::aes(y = p50), color = "#08519C") +
       ggplot2::geom_point(ggplot2::aes(x = date, y = confirm), data = model_data) +
@@ -267,8 +267,8 @@ rtrunc_norm <- function(n, mean = 0, sd = 1, lower_lim = 0) {
 #'   \item{p50}{median quantile value}
 #'   \item{p25}{quantile value of probability 0.25}
 #'   \item{p75}{quantile value of probability 0.75}
-#'   \item{p05}{quantile value of probability 0.05}
-#'   \item{p95}{quantile value of probability 0.95}
+#'   \item{p025}{quantile value of probability 0.05}
+#'   \item{p975}{quantile value of probability 0.95}
 #'   \item{pred_horizon}{Prediction time horizon (time period ahead for which prediction was made)}
 #'   \item{value}{prediction values from simulated draws}
 #' }
@@ -305,8 +305,8 @@ pred_samples_with_quantile_helper <- function(tp, aggregate_unit = NULL) {
 #'   \item{p50}{median quantile value}
 #'   \item{p25}{quantile value of probability 0.25}
 #'   \item{p75}{quantile value of probability 0.75}
-#'   \item{p05}{quantile value of probability 0.05}
-#'   \item{p95}{quantile value of probability 0.95}
+#'   \item{p025}{quantile value of probability 0.05}
+#'   \item{p975}{quantile value of probability 0.95}
 #'   \item{pred_horizon}{Prediction time horizon (time period ahead for which prediction was made)}
 #'   \item{value}{prediction values from simulated draws}
 #' }
@@ -331,8 +331,8 @@ create_forecast_df <- function(time_period_result) {
 #'   \item{p50}{median quantile value}
 #'   \item{p25}{quantile value of probability 0.25}
 #'   \item{p75}{quantile value of probability 0.75}
-#'   \item{p05}{quantile value of probability 0.05}
-#'   \item{p95}{quantile value of probability 0.95}
+#'   \item{p025}{quantile value of probability 0.025}
+#'   \item{p975}{quantile value of probability 0.975}
 #'   \item{pred_horizon}{Prediction time horizon (time period ahead for which prediction was made)}
 #'   \item{sim_draws}{prediction values from simulated draws}
 #'   \item{min_sim}{minimum value of simulated predictions for week}
@@ -352,5 +352,15 @@ combine_df_pred_case <- function(forecast_dat, data, pred_horizon_str = NULL) {
   return(forecast_dat)
 }
 
-
-
+#' Extract squared error between predicted and confirmed case values weighted by number of time-points used to make prediction
+#' @param confirm confirmed weekly cases
+#' @param p50 prediction median quantile value
+#' @param pred_horizon_str *string* prediction horizon time period to plot
+#' @return *numeric* Weighted squared error at each data time-point
+time_weighted_diff <- function(confirm, p50, pred_horizon_str = NULL) {
+  future_preds <- as.numeric(substr(pred_horizon_str, 0, 1))
+  squared_diff <- (confirm-p50)^2
+  date_weights <- seq(from = future_preds + 1, to = length(confirm)+future_preds)
+  weighted_squared_diff <- date_weights*squared_diff
+  return(weighted_squared_diff)
+}

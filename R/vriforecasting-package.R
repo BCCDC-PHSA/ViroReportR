@@ -14,5 +14,6 @@
 #' @importFrom stats pnorm qnorm runif
 #' @importFrom graphics plot
 #' @importFrom tidyr pivot_longer
+#' @importFrom glue glue
 ## usethis namespace: end
 NULL

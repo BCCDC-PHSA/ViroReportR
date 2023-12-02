@@ -16,8 +16,8 @@ Data frame with forecasts at all time-points
 \item{p50}{median quantile value}
 \item{p25}{quantile value of probability 0.25}
 \item{p75}{quantile value of probability 0.75}
-\item{p05}{quantile value of probability 0.05}
-\item{p95}{quantile value of probability 0.95}
+\item{p025}{quantile value of probability 0.05}
+\item{p975}{quantile value of probability 0.95}
 \item{pred_horizon}{Prediction time horizon (time period ahead for which prediction was made)}
 \item{value}{prediction values from simulated draws}
 }

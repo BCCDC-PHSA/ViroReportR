@@ -26,7 +26,7 @@ A list containing two dataframes: \code{individual_quantiles} and \code{quantile
 }
 \description{
 Outputs a summary indicating the prediction quantile in which the confirmed weekly case from the data falls.
-The function warns when a confirmed case data-point is not within the predicted quantiles.
+The function warns when a confirmed case data-point is not within the predicted 95\% confidence interval
 }
 \examples{
 summary(weekly_time_period_result, pred_horizon_str = "1 week ahead")
