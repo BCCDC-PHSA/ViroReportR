@@ -58,6 +58,9 @@ get_daily_phrdw <- function(phrdw_flu_daily_count) {
 
   agg_phrdw_data_date_type <- phrdw_flu_daily_count %>%
     dplyr::filter(result_lab_name != "*Missing") %>%
+    dplyr::mutate(
+      age_years = as.numeric(age_years)
+    ) %>%
     dplyr::group_by(lis_date_collection, age_years) %>%
     dplyr::summarize(
       sars_cov2 = sum(sars_cov2),
