@@ -10,7 +10,7 @@ get_weekly_phrdw(phrdw_flu_daily_count)
 \item{phrdw_flu_daily_count}{raw phrdw data}
 }
 \value{
-An aggregated phrdw data by date & age
+An aggregated weekly phrdw data by date & age
 }
 \description{
 \code{get_weekly_phrdw()} performs data transformation in the following steps:
