@@ -4,7 +4,8 @@ disease_type <- "rsv"
 daily_phrdw_data <- get_daily_phrdw(phrdw_data)
 
 daily_phrdw_type_date_age <- get_phrdw_by_type_date_age(
-  weekly_phrdw_data = daily_phrdw_data,
+  phrdw_data = phrdw_data,
+  time_period = "daily",
   type = disease_type,
   start_date = "2022-10-01",
   end_date = "2022-11-01",
@@ -14,10 +15,9 @@ daily_phrdw_type_date_age <- get_phrdw_by_type_date_age(
 
 weekly_phrdw_data <- get_weekly_phrdw(phrdw_data)
 
-
-
 weekly_phrdw_type_date_age <- get_phrdw_by_type_date_age(
-  weekly_phrdw_data = weekly_phrdw_data,
+  phrdw_data = phrdw_data,
+  time_period = "weekly",
   type = disease_type,
   start_date = "2022-10-01",
   end_date = "2022-11-01",
@@ -48,7 +48,8 @@ test_that("invalid disease type handling correct", {
 
   expect_error(
     get_phrdw_by_type_date_age(
-      weekly_phrdw_data = weekly_phrdw_data,
+      phrdw_data = phrdw_data,
+      time_period = "weekly",
       type = wrong_disease_type,
       start_date = "2022-10-01",
       end_date = "2022-11-01",
@@ -65,7 +66,8 @@ test_that("invalid start date handling correct", {
 
   expect_error(
     get_phrdw_by_type_date_age(
-      weekly_phrdw_data = weekly_phrdw_data,
+      phrdw_data = phrdw_data,
+      time_period = "weekly",
       type = disease_type,
       start_date = wrong_start_date,
       end_date = "2023-02-01",
@@ -82,7 +84,8 @@ test_that("invalid start age handling correct", {
 
   expect_error(
     get_phrdw_by_type_date_age(
-      weekly_phrdw_data = weekly_phrdw_data,
+      phrdw_data = phrdw_data,
+      time_period = "weekly",
       type = disease_type,
       start_date = "2023-01-01",
       end_date = "2023-02-01",
@@ -99,7 +102,8 @@ test_that("invalid start age data type handling correct", {
 
   expect_error(
     get_phrdw_by_type_date_age(
-      weekly_phrdw_data = weekly_phrdw_data,
+      phrdw_data = phrdw_data,
+      time_period = "weekly",
       type = disease_type,
       start_date = "2023-01-01",
       end_date = "2023-02-01",
