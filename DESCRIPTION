@@ -23,6 +23,7 @@ Imports:
     lubridate,
     magrittr,
     projections,
+    purrr,
     rlang,
     tibble,
     stats,
