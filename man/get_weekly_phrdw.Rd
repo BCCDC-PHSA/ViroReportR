@@ -54,5 +54,4 @@ phrdw_data <- data.frame(
   flu_b = c(12, 14, 27, 25, 38, 40, 68, 71, 77, 85)
 )
 
-get_weekly_phrdw(phrdw_data)
 }

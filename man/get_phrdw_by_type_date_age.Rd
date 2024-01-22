@@ -2,10 +2,11 @@
 % Please edit documentation in R/data_transformation_phrdw.R
 \name{get_phrdw_by_type_date_age}
 \alias{get_phrdw_by_type_date_age}
-\title{Filter weekly phrdw data filtered by disease type, date, age}
+\title{Filter phrdw data filtered by time period, disease type, date, age}
 \usage{
 get_phrdw_by_type_date_age(
-  weekly_phrdw_data,
+  phrdw_data,
+  time_period = "daily",
   type,
   start_date,
   end_date,
@@ -14,7 +15,9 @@ get_phrdw_by_type_date_age(
 )
 }
 \arguments{
-\item{weekly_phrdw_data}{weekly phrdw data from get_weekly_phrdw(phrdw_flu_daily_count)}
+\item{phrdw_data}{raw phrdw data}
+
+\item{time_period}{time period string (e.g. 'daily', 'weekly')}
 
 \item{type}{disease type (e.g. 'sars_cov2', 'rsv', 'flu_a', 'flu_b')}
 
@@ -27,19 +30,29 @@ get_phrdw_by_type_date_age(
 \item{end_age}{end age integer (default = 150)}
 }
 \value{
-A weekly phrdw data filtered by disease type, date, age
+phrdw data filtered by time period, disease type, date, age
 }
 \description{
-\code{get_phrdw_by_type_date_age()} filter the weekly phrdw data by a given
-disease type, date range, and age range, it performs the following steps:
+\code{get_phrdw_by_type_date_age()} filter the phrdw data by a given
+time_period, disease type, date range, and age range, it performs the following steps:
 \enumerate{
-\item Filters the weekly phrdw data by the given epiweek date range and age range.
+\item Extracts the phrdw data by daily or weekly
+\item Filters the phrdw data by the given epiweek date range and age range.
 \item Aggregates the confirmed cases count by the epiweek date.
 \item Selects the date & the corresponding disease type column.
 \item Renames the disease type as \code{confirm}.
 }
 
-The input dataframe \code{weekly_phrdw_data} must be the output of \code{get_weekly_phrdw()}.
+The input dataframe \code{phrdw_data} must have the following columns:
+\itemize{
+\item \code{lis_date_collection}: Date of collection (e.g. '2019-01-01')
+\item \code{result_lab_name}: The name of the result lab (e.g. 'BCCDC')
+\item \code{age_years}: Age (e.g. 1, 2, ...)
+\item \code{sars_cov2}: Confirmed Cases Count (e.g. 1, 2, ...)
+\item \code{rsv}: Confirmed Cases Count (e.g. 1, 2, ...)
+\item \code{flu_a}: Confirmed Cases Count (e.g. 1, 2, ...)
+\item \code{flu_b}: Confirmed Cases Count (e.g. 1, 2, ...)
+}
 
 The input disease type must be either 'sars_cov2', 'rsv', 'flu_a', or 'flu_b'.
 
@@ -70,18 +83,14 @@ phrdw_data <- data.frame(
   flu_b = c(12, 14, 27, 25, 38, 40, 68, 71, 77, 85)
 )
 
-weekly_phrdw_data <- get_weekly_phrdw(phrdw_data)
 
 get_phrdw_by_type_date_age(
-  weekly_phrdw_data = weekly_phrdw_data,
+  phrdw_data = phrdw_data,
+  time_period = "weekly",
   type = "rsv",
   start_date = "2022-10-01",
   end_date = "2022-11-01",
   start_age = 0,
   end_age = 10
 )
-}
-\seealso{
-\code{\link[=get_weekly_phrdw]{get_weekly_phrdw()}} which produces the input dataframe of
-this function.
 }
