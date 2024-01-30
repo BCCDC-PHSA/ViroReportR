@@ -2,8 +2,16 @@ Package: vriforecasting
 Title: Miscellenous tools for generating forecasts from VRI data
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+    c(person(given = "Mike",
+           family = "Irvine",
+           role = c("aut", "cre"),
+           email = "mike.irvine@bccdc.ca"),
+    person(given = "Caesar",
+           family = "Wong",
+           role = "aut"),
+    person(given = "Nirupama",
+           family = "Tamvada",
+           role = "aut"))
 Description: BCCDC R package for forecasting viral respiratory infection cases and outcomes.
 License: MIT + file LICENSE
 Suggests: 

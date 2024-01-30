@@ -24,7 +24,7 @@
 #' fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a")
 #'
 fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
-                               method = "parametric_si", ...) {
+                               method = "parametric_si", mean_prior = 2, std_prior = 1, ...) {
   confirm <- NULL
   if (!is.data.frame(data) || !all(colnames(data) %in% c("date", "confirm"))) {
     stop("Must pass a data frame with two columns: date and confirm")
@@ -46,33 +46,35 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
       config <- EpiEstim::make_config(list(
         mean_si = 3.1,
         std_si = 1.6,
-        mean_prior = 2,
-        std_prior =1
+        mean_prior = mean_prior,
+        std_prior = std_prior
       ))
-    else if (type == "flu_b") {
+    } else if (type == "flu_b") {
         config <- EpiEstim::make_config(list(
           mean_si = 3.7,
           std_si = 2.1,
-          mean_prior = 2,
-          std_prior =1
+          mean_prior = mean_prior,
+          std_prior = std_prior
         ))
     } else if (type == "rsv") {
       config <- EpiEstim::make_config(list(
         mean_si = 7.5,
         std_si = 2.1,
-        mean_prior = 2,
-        std_prior =1
+        mean_prior = mean_prior,
+        std_prior = std_prior
       ))
-    } else if (type == "covid") {
+    } else if (type == "sars_cov2") {
       config <- EpiEstim::make_config(list(
-        mean_si = 2.3,
-        std_si = 1.4
+        mean_si = mean_prior,
+        std_si = std_prior
       ))
     }
   } else {
     config <- EpiEstim::make_config(list(
       mean_si = mean_si,
-      std_si = std_si
+      std_si = std_si,
+      mean_prior = mean_prior,
+      std_prior = std_prior
     ))
   }
   a_prior <- (config$mean_prior / config$std_prior)^2

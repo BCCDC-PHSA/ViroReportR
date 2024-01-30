@@ -11,13 +11,15 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 status](https://www.r-pkg.org/badges/version/vriforecasting)](https://CRAN.R-project.org/package=vriforecasting)
 <!-- badges: end -->
 
-The goal of `vriforecasting` is to …
+The goal of `vriforecasting` is to provide a toolbox to conveniently
+generate short-term forecasts (with accompanied diagnostics) for viral
+respiratory diseases.
 
 ## Installation
 
 `vriforecasting` depends on the latest version of the `EpiEstim` package
-(2.4). Thus, this version must be installed from GitHub prior to
-installing the `vriforecasting` package using:
+(2.4). Thus, this version of the package must be installed from GitHub
+prior to installing the `vriforecasting` package using:
 
 ``` r
 # install.packages("devtools")
@@ -32,38 +34,116 @@ You can then install the development version of `vriforecasting` from
 devtools::install_github("sempwn/vriforecasting")
 ```
 
-## Example
+## Quick Start
 
-This is a basic example which shows you how to solve a common problem:
+`vriforecasting` can be used to generate short-term forecasts with
+accompanied diagnostics in a few lines of code. We go through an example
+here where the `EpiEstim` backend is used to generate forecasts of
+Influenza-A.
 
 ``` r
 library(vriforecasting)
-## basic example code
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+We will use the PLOVER weekly data for Influenza A, which is included
+with the `vriforecasting` package. We then use the `get_weekly_plover`
+and `get_weekly_plover_by_date_type` functions to transform the PLOVER
+data into a dataset with two columns: `date` and `confirm` in accordance
+to format accepted by the model fitting functions.
 
 ``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
+weekly_plover_data <- get_weekly_plover(plover_data)
+
+disease_type <- "flu_a"
+weekly_plover_date_type <- get_weekly_plover_by_date_type(
+  weekly_plover_data = weekly_plover_data,
+  type = disease_type,
+  start_date = "2022-10-01",
+  end_date = "2022-12-01")
+
+head(weekly_plover_date_type)
+#> # A tibble: 6 × 2
+#>   date       confirm
+#>   <date>       <dbl>
+#> 1 2022-10-02      17
+#> 2 2022-10-09      19
+#> 3 2022-10-16      32
+#> 4 2022-10-23      38
+#> 5 2022-10-30      43
+#> 6 2022-11-06      45
 ```
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
+## Model fitting and forecasting over sliding windows
 
-You can also embed plots, for example:
+The `forecast_time_period_epiestim` can be used to produce both daily
+and weekly forecasts using weekly sliding windows using `EpiEstim`.
 
-<img src="man/figures/README-pressure-1.png" width="100%" />
+We can produce forecasts aggregated by week by setting
+`aggregate_week = TRUE`. For the functionality, `n_days` must be a
+multiple of 7. Thus, specifying `n_days = 14` when
+`aggregate_week = TRUE` produces 14/7 i.e. 2-week ahead forecasts.
 
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+``` r
+time_period_result_weekly <- forecast_time_period_epiestim(data = weekly_plover_date_type, 
+start_date_str = "2022-10-02", n_days = 14, type = "flu_a",  aggregate_week = TRUE)
+#> [1] "Current time period: 1 (2022-10-09)"
+#> [1] "Current time period: 2 (2022-10-16)"
+#> [1] "Current time period: 3 (2022-10-23)"
+#> [1] "Current time period: 4 (2022-10-30)"
+#> [1] "Current time period: 5 (2022-11-06)"
+#> [1] "Current time period: 6 (2022-11-13)"
+#> [1] "Current time period: 7 (2022-11-20)"
+#> [1] "Current time period: 8 (2022-11-27)"
+```
+
+Finally, we can plot a validation plot using the `plotValidation`
+function. We can plot 2 week ahead forecasts for example by setting the
+`pred_horizon` argument.
+
+``` r
+plotValidation(time_period_result_weekly, pred_horizon_str = "2 week ahead", pred_plot = "ribbon")
+```
+
+<img src="man/figures/README-unnamed-chunk-4-1.png" width="80%" style="display: block; margin: auto;" />
+
+The object of class `forecast_time_period_epiestim` produced by the
+`forecast_time_period_epiestim` function also has a customized `summary`
+function. This function checks to see if the weekly data inputted fall
+into the ranges of the prediction quantiles and issues a warning if this
+is not the case. This can be a useful check to assess the forecasts
+produced and the model fit along with the validation plot. It takes in
+the same arguments as the `plotValidation` function above:
+
+``` r
+summary(time_period_result_weekly, pred_horizon_str = "2 week ahead")
+#> Warning in summary.forecast_time_period_epiestim(time_period_result_weekly, :
+#> Prediction percentile intervals do not cover some data-points in validation
+#> fits. Some forecasts may not be reliable
+#> $individual_quantiles
+#> # A tibble: 6 × 7
+#> # Groups:   weekly_date [6]
+#>   weekly_date coverage                   weighted_diff confirm median.prediction
+#>   <date>      <chr>                              <dbl>   <dbl>             <dbl>
+#> 1 2022-10-23  50 and 95 percentile inte…           675      38                23
+#> 2 2022-10-30  only 95 percentile interv…         15987      43               116
+#> 3 2022-11-06  50 and 95 percentile inte…            75      45                50
+#> 4 2022-11-13  50 and 95 percentile inte…           867      73                56
+#> 5 2022-11-20  only 95 percentile interv…          4800      88                48
+#> 6 2022-11-27  Outside 95 percentile int…         61347      94               237
+#> # ℹ 2 more variables: `50 percentile interval` <glue>,
+#> #   `95 percentile interval` <glue>
+#> 
+#> $quantile_summary
+#> # A tibble: 3 × 2
+#>   coverage                       count
+#>   <chr>                          <int>
+#> 1 50 and 95 percentile interval      3
+#> 2 Outside 95 percentile interval     1
+#> 3 only 95 percentile interval        2
+#> 
+#> $time_weighted_mspe
+#> [1] 118.1461
+```
 
 ## Work flow
 
