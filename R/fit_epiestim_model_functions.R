@@ -69,8 +69,8 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
       config <- EpiEstim::make_config(list(
         mean_si = 2.75,
         std_si = 2.53,
-        mean_prior = mean_prior,
-        std_prior = std_prior
+        mean_prior = 2,
+        std_prior = 1
       ))
     }
   } else {
