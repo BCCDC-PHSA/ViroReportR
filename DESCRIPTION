@@ -28,7 +28,8 @@ Imports:
     tibble,
     stats,
     utils,
-    tidyr
+    tidyr,
+    glue
 VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)

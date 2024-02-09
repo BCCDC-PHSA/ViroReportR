@@ -73,8 +73,10 @@ create_quantiles <- function(d, ..., variable = NULL) {
       p50 = stats::quantile(.data[[variable]], 0.5),
       p25 = stats::quantile(.data[[variable]], 0.25),
       p75 = stats::quantile(.data[[variable]], 0.75),
-      p05 = stats::quantile(.data[[variable]], 0.05),
-      p95 = stats::quantile(.data[[variable]], 0.95)
+      p025 = stats::quantile(.data[[variable]], 0.025),
+      p975 = stats::quantile(.data[[variable]], 0.975),
+      min_sim = min(.data[[variable]]),
+      max_sim = max(.data[[variable]])
     )
 }
 
@@ -88,11 +90,11 @@ create_quantiles <- function(d, ..., variable = NULL) {
 #'   \item{weekly_value}{projected number of daily confirmed cases aggregated by week}
 #' }
 extract_agg_samples_epiestim_fit <- function(samples) {
-  daily_value <- week_date <- daily_sim <- daily_date <- NULL
+  daily_incidence <- week_date <- sim <- daily_date <- NULL
   samples <- samples %>%
     dplyr::mutate(week_date = lubridate::floor_date(daily_date, unit = "weeks")) %>%
-    dplyr::group_by(week_date, daily_sim) %>%
-    dplyr::summarise(weekly_value = sum(daily_value), .groups = "keep")
+    dplyr::group_by(week_date, sim) %>%
+    dplyr::summarise(weekly_incidence = sum(daily_incidence), .groups = "keep")
 
   return(samples)
 }
@@ -137,8 +139,10 @@ extract_quantile_epiestim <- function(tp) {
       p50 = tp$p50,
       p25 = tp$p25,
       p75 = tp$p75,
-      p05 = tp$p05,
-      p95 = tp$p95
+      p025 = tp$p025,
+      p975 = tp$p975,
+      min_sim = tp$min_sim,
+      max_sim = tp$max_sim
     )
   return(dat_quantiles)
 }
@@ -160,12 +164,12 @@ extract_sim_samples_epiestim <- function(tp, aggregate_unit = NULL) {
   if (aggregate_unit == "weekly") {
     dat_samples <- tibble::tibble(
       quantile_date = tp$week_date,
-      value = tp$weekly_value
+      value = tp$weekly_incidence
     )
   } else if (aggregate_unit == "daily") {
     dat_samples <- tibble::tibble(
       quantile_date = tp$daily_date,
-      value = tp$daily_value
+      value = tp$daily_incidence
     )
   }
   return(dat_samples)
@@ -181,7 +185,7 @@ extract_sim_samples_epiestim <- function(tp, aggregate_unit = NULL) {
 #' @return Plot displaying forecast for one time period
 
 plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
-  p05 <- p95 <- p25 <- p75 <- p50 <- confirm <- NULL
+  p025 <- p975 <- p25 <- p75 <- p50 <- confirm <- incidence <-  NULL
   model_data <- tibble::tibble(
     date = cur_time_period_result$model_data_date,
     confirm = cur_time_period_result$confirm
@@ -191,41 +195,43 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
   if (aggregate_unit == "weekly") {
     data_proj <- tibble::tibble(
       date = cur_time_period_result$week_date,
-      sim = cur_time_period_result$daily_sim,
-      incidence = cur_time_period_result$weekly_value
+      sim = cur_time_period_result$sim,
+      incidence = cur_time_period_result$weekly_incidence
     )
     p <- data_proj %>%
       dplyr::mutate(incidence = incidence) %>%
       create_quantiles(date, variable = "incidence") %>%
       ggplot2::ggplot(ggplot2::aes(x = date)) +
       ggplot2::theme_bw() +
-      ggplot2::geom_ribbon(ggplot2::aes(ymin = p05, ymax = p95), fill = "#08519C", alpha = 0.25) +
+      ggplot2::geom_ribbon(ggplot2::aes(ymin = p025, ymax = p975), fill = "#08519C", alpha = 0.25) +
       ggplot2::geom_ribbon(ggplot2::aes(ymin = p25, ymax = p75), fill = "#08519C", alpha = 0.25) +
       ggplot2::geom_line(ggplot2::aes(y = p50), color = "#08519C") +
       ggplot2::geom_point(ggplot2::aes(x = date, y = confirm), data = model_data) +
       ggplot2::scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
+      ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
       ggplot2::labs(
-        x = "Time", y = paste("Weekly projection of confirmed cases\n starting from", max(cur_time_period_result$model_data_date), sep = " "),
+        x = "Time", y = paste("Weekly projection of confirmed \ncases starting from", max(cur_time_period_result$model_data_date), sep = " "),
         fill = "", color = ""
       )
   } else if (aggregate_unit == "daily") {
     data_proj <- tibble::tibble(
       date = cur_time_period_result$daily_date,
-      sim = cur_time_period_result$daily_sim,
-      incidence = cur_time_period_result$daily_value
+      sim = cur_time_period_result$sim,
+      incidence = cur_time_period_result$daily_incidence
     )
     p <- data_proj %>%
       dplyr::mutate(incidence = 7 * incidence) %>%
       create_quantiles(date, variable = "incidence") %>%
       ggplot2::ggplot(ggplot2::aes(x = date)) +
       ggplot2::theme_bw() +
-      ggplot2::geom_ribbon(ggplot2::aes(ymin = p05, ymax = p95), fill = "#08519C", alpha = 0.25) +
+      ggplot2::geom_ribbon(ggplot2::aes(ymin = p025, ymax = p975), fill = "#08519C", alpha = 0.25) +
       ggplot2::geom_ribbon(ggplot2::aes(ymin = p25, ymax = p75), fill = "#08519C", alpha = 0.25) +
       ggplot2::geom_line(ggplot2::aes(y = p50), color = "#08519C") +
       ggplot2::geom_point(ggplot2::aes(x = date, y = confirm), data = model_data) +
       ggplot2::scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
+      ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
       ggplot2::labs(
-        x = "Time", y = paste("Weekly projection of confirmed cases\n starting from", max(cur_time_period_result$model_data_date), sep = " "),
+        x = "Time", y = paste("Weekly projection of confirmed \ncases starting from", max(cur_time_period_result$model_data_date), sep = " "),
         fill = "", color = ""
       )
   }
@@ -246,4 +252,115 @@ rtrunc_norm <- function(n, mean = 0, sd = 1, lower_lim = 0) {
   lower_lim <- stats::pnorm(lower_lim, mean = mean, sd = sd)
   samples <- stats::qnorm(stats::runif(n, lower_lim, 1), mean = mean, sd = sd)
   return(samples)
+}
+
+
+#' Helper function to extract dataframe with week ahead forecasts for Violin plot
+#'
+#' @param tp element from list output generated by \code{forecast_time_period_epiestim}
+#' @param aggregate_unit  Time forecasted samples are aggregated by (weekly or daily)
+#'
+#'
+#' @return Dataframe of forecasts at a single time-point (single element from list input)
+#' \describe{
+#'   \item{date}{daily date or weekly date over which samples were aggregated}
+#'   \item{p50}{median quantile value}
+#'   \item{p25}{quantile value of probability 0.25}
+#'   \item{p75}{quantile value of probability 0.75}
+#'   \item{p025}{quantile value of probability 0.05}
+#'   \item{p975}{quantile value of probability 0.95}
+#'   \item{pred_horizon}{Prediction time horizon (time period ahead for which prediction was made)}
+#'   \item{value}{prediction values from simulated draws}
+#' }
+#'
+pred_samples_with_quantile_helper <- function(tp, aggregate_unit = NULL) {
+  value <- quantile_date <- daily_value <- NULL
+  cur_samples_with_quantile <- extract_quantile_epiestim(tp)
+  seq_time_length <- seq_len(nrow(cur_samples_with_quantile))
+  if (aggregate_unit == "weekly") {
+    cur_samples_with_quantile$pred_horizon <- paste(seq_time_length, "week ahead")
+    cur_samples_with_week_date <- extract_sim_samples_epiestim(tp, aggregate_unit = eval(parse(text = "aggregate_unit")))
+    cur_samples_with_quantile <- cur_samples_with_quantile %>%
+      dplyr::left_join(cur_samples_with_week_date, by = "quantile_date") %>%
+      dplyr::rename(sim_draws = value, weekly_date = quantile_date)
+  } else if (aggregate_unit == "daily") {
+    cur_samples_with_quantile$pred_horizon <- paste(seq_time_length, "days ahead")
+    cur_samples_with_daily_date <- extract_sim_samples_epiestim(tp, aggregate_unit = eval(parse(text = "aggregate_unit")))
+    cur_samples_with_quantile <- cur_samples_with_quantile %>%
+      dplyr::left_join(cur_samples_with_daily_date, by = "quantile_date") %>%
+      dplyr::rename(sim_draws = daily_value, daily_date = quantile_date)
+  }
+
+  return(cur_samples_with_quantile)
+}
+
+
+#' Extract data-frame with forecasts for validation violin plot
+#'
+#' @param time_period_result output from  \code{forecast_time_period_epiestim}
+#'
+#' @return Data frame with forecasts at all time-points
+#' #' \describe{
+#'   \item{date}{daily date or weekly date over which samples were aggregated}
+#'   \item{p50}{median quantile value}
+#'   \item{p25}{quantile value of probability 0.25}
+#'   \item{p75}{quantile value of probability 0.75}
+#'   \item{p025}{quantile value of probability 0.05}
+#'   \item{p975}{quantile value of probability 0.95}
+#'   \item{pred_horizon}{Prediction time horizon (time period ahead for which prediction was made)}
+#'   \item{value}{prediction values from simulated draws}
+#' }
+#'
+
+create_forecast_df <- function(time_period_result) {
+  results <- lapply(time_period_result, function(i) {
+    pred_samples_with_quantile_helper(tp = i, aggregate_unit = time_period_result[[1]][["quantile_unit"]])
+  })
+  results <- do.call(rbind.data.frame, results)
+  return(results)
+}
+
+
+#' Extract combined dataframe with forecast quantiles and weekly case data for summary function
+#' @param forecast_dat output from  \code{create_forecast_df}
+#' @param data *data frame* containing two columns: date and confirm (number of cases per week)
+#' @param pred_horizon_str *string* prediction horizon time period to plot
+#' @return combined dataframe with forecast quantiles and weekly case data for summary function
+#' #' \describe{
+#'   \item{date}{daily date or weekly date over which samples were aggregated}
+#'   \item{p50}{median quantile value}
+#'   \item{p25}{quantile value of probability 0.25}
+#'   \item{p75}{quantile value of probability 0.75}
+#'   \item{p025}{quantile value of probability 0.025}
+#'   \item{p975}{quantile value of probability 0.975}
+#'   \item{pred_horizon}{Prediction time horizon (time period ahead for which prediction was made)}
+#'   \item{sim_draws}{prediction values from simulated draws}
+#'   \item{min_sim}{minimum value of simulated predictions for week}
+#'   \item{max_sim}{maximum value of simulated predictions for week}
+#'   \item{confirm}{confirmed weekly cases}
+#' }
+#'
+combine_df_pred_case <- function(forecast_dat, data, pred_horizon_str = NULL) {
+  weekly_date <- sim_draws <- NULL
+  data <- data %>% dplyr::slice(-c(1, 2))
+  future_preds <- as.numeric(substr(pred_horizon_str, 0, 1))
+  forecast_dat <- forecast_dat %>%
+    dplyr::group_by(weekly_date) %>%
+    dplyr::slice(1)
+  index_future_pred <- c(rev(seq_len(nrow(forecast_dat)))[1:future_preds])
+  forecast_dat <- forecast_dat[-index_future_pred, ]
+  return(forecast_dat)
+}
+
+#' Extract squared error between predicted and confirmed case values weighted by number of time-points used to make prediction
+#' @param confirm confirmed weekly cases
+#' @param p50 prediction median quantile value
+#' @param pred_horizon_str *string* prediction horizon time period to plot
+#' @return *numeric* Weighted squared error at each data time-point
+time_weighted_diff <- function(confirm, p50, pred_horizon_str = NULL) {
+  future_preds <- as.numeric(substr(pred_horizon_str, 0, 1))
+  squared_diff <- (confirm-p50)^2
+  date_weights <- seq(from = future_preds + 1, to = length(confirm)+future_preds)
+  weighted_squared_diff <- date_weights*squared_diff
+  return(weighted_squared_diff)
 }
