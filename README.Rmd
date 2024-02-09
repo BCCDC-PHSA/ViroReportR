@@ -20,11 +20,11 @@ knitr::opts_chunk$set(
 [![CRAN status](https://www.r-pkg.org/badges/version/vriforecasting)](https://CRAN.R-project.org/package=vriforecasting)
 <!-- badges: end -->
 
-The goal of `vriforecasting` is to ...
+The goal of `vriforecasting` is to provide a toolbox to conveniently generate short-term forecasts (with accompanied diagnostics) for viral respiratory diseases.
 
 ## Installation
 
-`vriforecasting` depends on the latest version of the `EpiEstim` package (2.4). Thus, this version must be installed from GitHub prior to installing the `vriforecasting` package using: 
+`vriforecasting` depends on the latest version of the `EpiEstim` package (2.4). Thus, this version of the package must be installed from GitHub prior to installing the `vriforecasting` package using: 
 
 ``` r
 # install.packages("devtools")
@@ -39,30 +39,51 @@ You can then install the development version of `vriforecasting` from [GitHub](h
 devtools::install_github("sempwn/vriforecasting")
 ```
 
-## Example
+## Quick Start
 
-This is a basic example which shows you how to solve a common problem:
+`vriforecasting` can be used to generate short-term forecasts with accompanied diagnostics in a few lines of code. We go through an example here where the `EpiEstim` backend is used to generate forecasts of Influenza-A.
 
 ```{r example}
 library(vriforecasting)
-## basic example code
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+We will use the PLOVER weekly data for Influenza A, which is included with the `vriforecasting` package. We then use the `get_weekly_plover` and `get_weekly_plover_by_date_type` functions to transform the PLOVER data into a dataset with two columns: `date` and `confirm` in accordance to format accepted by the model fitting functions. 
 
-```{r cars}
-summary(cars)
+```{r }
+weekly_plover_data <- get_weekly_plover(plover_data)
+
+disease_type <- "flu_a"
+weekly_plover_date_type <- get_weekly_plover_by_date_type(
+  weekly_plover_data = weekly_plover_data,
+  type = disease_type,
+  start_date = "2022-10-01",
+  end_date = "2022-12-01")
+
+head(weekly_plover_date_type)
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
+## Model fitting and forecasting over sliding windows 
 
-You can also embed plots, for example:
+The `forecast_time_period_epiestim` can be used to produce both daily and weekly forecasts using weekly sliding windows using `EpiEstim`.
 
-```{r pressure, echo = FALSE}
-plot(pressure)
+We can produce forecasts aggregated by week by setting `aggregate_week = TRUE`. For the functionality, `n_days` must be a multiple of 7. Thus, specifying `n_days = 14` when `aggregate_week = TRUE` produces 14/7 i.e. 2-week ahead forecasts. 
+
+```{r message = FALSE}
+time_period_result_weekly <- forecast_time_period_epiestim(data = weekly_plover_date_type, 
+start_date_str = "2022-10-02", n_days = 14, type = "flu_a",  aggregate_week = TRUE)
 ```
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
+Finally, we can plot a validation plot using the `plotValidation` function. We can plot 2 week ahead forecasts for example by setting the `pred_horizon` argument. 
+
+```{r , dpi = 300, fig.align = "center", fig.height = 5, fig.width = 5, out.width= '80%'}
+plotValidation(time_period_result_weekly, pred_horizon_str = "2 week ahead", pred_plot = "ribbon")
+```
+
+The object of class `forecast_time_period_epiestim` produced by the `forecast_time_period_epiestim` function also has a customized `summary` function. This function checks to see if the weekly data inputted fall into the ranges of the prediction quantiles and issues a warning if this is not the case. This can be a useful check to assess the forecasts produced and the model fit along with the validation plot. It takes in the same arguments as the `plotValidation` function above:
+
+```{r}
+summary(time_period_result_weekly, pred_horizon_str = "2 week ahead")
+```
 
 ## Work flow
 

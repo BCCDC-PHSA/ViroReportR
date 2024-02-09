@@ -26,7 +26,8 @@
 #' fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a")
 #'
 fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
-                               method = "parametric_si", mean_prior = NULL, std_prior = NULL, ...) {
+                      method = "parametric_si", mean_prior = NULL, std_prior = NULL, ...) {
+
   confirm <- NULL
   if (!is.data.frame(data) || !all(colnames(data) %in% c("date", "confirm"))) {
     stop("Must pass a data frame with two columns: date and confirm")
@@ -57,6 +58,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
           std_si = 2.1,
           mean_prior = 1,
           std_prior = 0.5
+
         ))
     } else if (type == "rsv") {
       config <- EpiEstim::make_config(list(
@@ -72,7 +74,6 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
         mean_prior = 2,
         std_prior = 1
       ))
-    }
   } else {
     config <- EpiEstim::make_config(list(
       mean_si = mean_si,
