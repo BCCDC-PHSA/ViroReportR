@@ -75,7 +75,7 @@ We can also produce forecasts aggregated by week by setting `aggregate_week = TR
 
 ```{r message = FALSE}
 time_period_result_weekly <- forecast_time_period_epiestim(data = weekly_plover_date_type, 
-start_date_str = "2022-10-02", n_days = 14, type = "flu_a",  aggregate_week = TRUE)
+start_date_str = "2022-10-02", n_days = 14, type = "flu_a",  aggregate_week = TRUE, mean_prior = 1, std_prior = 0.5)
 ```
 
 
@@ -98,6 +98,6 @@ plotValidation(time_period_result_weekly, pred_horizon_str = "1 week ahead", pre
 The object of class `forecast_time_period_epiestim` produced by the `forecast_time_period_epiestim` function also has a customized `summary` function. This function checks to see if the weekly data inputted fall into the ranges of the prediction quantiles and issues a warning if this is not the case. This can be a useful check to assess the forecasts produced and the model fit along with the validation plot. It takes in the same arguments as the `plotValidation` function above:
 
 ```{r}
-summary(time_period_result_weekly, pred_horizon_str = "2 week ahead")
+summary(time_period_result_weekly, pred_horizon_str = "1 week ahead")
 ```
 

@@ -44,7 +44,6 @@
 "phrdw_data"
 
 
-
 #' Time period result: weekly forecasts of PLOVER flu data in sliding windows as the output of \code{forecast_time_period_epiestim}
 #'
 #' @format List of class \code{forecast_time_period_epiestim}
@@ -86,3 +85,26 @@
 #'
 #' @docType data
 "weekly_transformed_plover_data"
+
+#' Generic Data with Date & Number of Cases Column
+#'
+#' A dataset containing a generic naming for the date & confirmed cases column
+#'
+#' The purpose of this generic data is to demonstrate the flexibility of a user-defined data
+#' with generic date & confirmed cases column name. These generic column names will be used
+#' as the input parameters in the generic data transformation function.
+#'
+#' Assume the generic data will have 1 column for the date and 1 column for the confirmed cases column.
+#'
+#' A sample variables are as follows:
+#'
+#' @format
+#' \describe{
+#'   \item{<date column>}{the date of the reported cases (e.g. as.Date('2022-01-01'))}
+#'   \item{<confirmed cases column>}{number of confirmed cases}
+#' }
+#' @name generic_data
+#'
+#' @docType data
+"generic_data"
+

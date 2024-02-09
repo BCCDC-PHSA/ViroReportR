@@ -1,19 +1,21 @@
-#' fit_epiestim_model - Function to estimate the reproduction number of an epidemic from weekly data
+#' fit_epiestim_model - Function to estimate the reproduction number of an epidemic 
 #'
 #' @description A wrapper function for {\code{\link[EpiEstim]{estimate_R}}} from the \code{EpiEstim} library to estimate the reproduction number of epidemics to support short-term forecasts
 #'
 #'
-#' @details \code{fit_epiestim_model} currently supports the following epidemics: Influenza, RSV and COVID-19. The serial intervals for the estimation of R were retrieved from
+#' @details \code{fit_epiestim_model} currently supports the following epidemics: Influenza, RSV and COVID-19. The default serial intervals for the estimation of R were retrieved from
 #' Cowling et al., 2011, Vink et al., 2014 and Madewell et al., 2023 for Influenza A, Influenza B, RSV and COVID (BA.5 Omicron variant) respectively
 #'
 #'
-#' @param data *data frame* containing two columns: date and confirm (number of cases per week)
+#' @param data *data frame* containing two columns: date and confirm (number of cases)
 #' @param dt *Integer* 	length of temporal aggregations of the incidence data. This should be an integer or vector of integers. The default value is 7 time units (1 week).
 #' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"
 #' @param mean_si *Numeric* User specification of mean of parametric serial interval
 #' @param std_si *Numeric* User specification of standard deviation of parametric serial interval
 #' @param recon_opt One of "naive" or "match" to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page)
 #' @param method One of "non_parametric_si", "parametric_si", "uncertain_si", "si_from_data" or "si_from_sample" to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page)
+#' @param mean_prior *Numeric* positive number giving the mean of the common prior distribution for all reproduction numbers
+#' @param std_prior *Numeric* positive number giving the standard deviation of the common prior distribution for all reproduction numbers
 #' @param ... Other optional parameters to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page) to control estimation of reproduction number
 #'
 #'
@@ -24,7 +26,8 @@
 #' fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a")
 #'
 fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
-                               method = "parametric_si", mean_prior = 2, std_prior = 1, ...) {
+                      method = "parametric_si", mean_prior = NULL, std_prior = NULL, ...) {
+
   confirm <- NULL
   if (!is.data.frame(data) || !all(colnames(data) %in% c("date", "confirm"))) {
     stop("Must pass a data frame with two columns: date and confirm")
@@ -46,29 +49,31 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
       config <- EpiEstim::make_config(list(
         mean_si = 3.1,
         std_si = 1.6,
-        mean_prior = mean_prior,
-        std_prior = std_prior
+        mean_prior = 1,
+        std_prior = 0.5
       ))
     } else if (type == "flu_b") {
         config <- EpiEstim::make_config(list(
           mean_si = 3.7,
           std_si = 2.1,
-          mean_prior = mean_prior,
-          std_prior = std_prior
+          mean_prior = 1,
+          std_prior = 0.5
+
         ))
     } else if (type == "rsv") {
       config <- EpiEstim::make_config(list(
         mean_si = 7.5,
         std_si = 2.1,
-        mean_prior = mean_prior,
-        std_prior = std_prior
+        mean_prior = 1,
+        std_prior = 0.5
       ))
     } else if (type == "sars_cov2") {
       config <- EpiEstim::make_config(list(
-        mean_si = mean_prior,
-        std_si = std_prior
+        mean_si = 2.75,
+        std_si = 2.53,
+        mean_prior = 2,
+        std_prior = 1
       ))
-    }
   } else {
     config <- EpiEstim::make_config(list(
       mean_si = mean_si,
