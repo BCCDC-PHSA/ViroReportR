@@ -25,26 +25,32 @@
 #'
 #' @examples
 #' plover_data <- data.frame(
-#'           epiWeek_date = as.Date(c('2022-10-02', '2022-10-09',
-#'                      '2022-10-16', '2022-10-23', '2022-10-30',
-#'                      '2022-11-06', '2022-11-13', '2022-11-20',
-#'                       '2022-11-27', '2022-12-04')),
-#'           epiWeek_year = c(2022,2022,2022,2022,
-#'                       2022,2022,2022,2022,2022,2022),
-#'            Epiweek = c(40,41,42,43,44,45,46,47,48,49),
-#'            flu_a = c(17,19,32,38,43,45,73,88,94,105),
-#'            flu_b = c(24,31,39,45,50,52,68,83,89,97))
+#'   epiWeek_date = as.Date(c(
+#'     "2022-10-02", "2022-10-09",
+#'     "2022-10-16", "2022-10-23", "2022-10-30",
+#'     "2022-11-06", "2022-11-13", "2022-11-20",
+#'     "2022-11-27", "2022-12-04"
+#'   )),
+#'   epiWeek_year = c(
+#'     2022, 2022, 2022, 2022,
+#'     2022, 2022, 2022, 2022, 2022, 2022
+#'   ),
+#'   Epiweek = c(40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
+#'   flu_a = c(17, 19, 32, 38, 43, 45, 73, 88, 94, 105),
+#'   flu_b = c(24, 31, 39, 45, 50, 52, 68, 83, 89, 97)
+#' )
 #'
 #' get_weekly_plover(plover_data)
 get_weekly_plover <- function(plover_data) {
-
-  stopifnot(c("epiWeek_date","epiWeek_year","Epiweek","flu_a","flu_b") %in% colnames(plover_data))
+  stopifnot(c("epiWeek_date", "epiWeek_year", "Epiweek", "flu_a", "flu_b") %in% colnames(plover_data))
 
   epiWeek_date <- epiWeek_year <- Epiweek <- type <- flu_cases <- NULL
 
   agg_plover_data_date_type <- plover_data %>%
-    tidyr::pivot_longer(cols = c("flu_a","flu_b"),
-                        names_to = "type", values_to = "flu_cases") %>%
+    tidyr::pivot_longer(
+      cols = c("flu_a", "flu_b"),
+      names_to = "type", values_to = "flu_cases"
+    ) %>%
     dplyr::group_by(epiWeek_date, epiWeek_year, Epiweek, type) %>%
     dplyr::summarise(flu_cases = sum(flu_cases)) %>%
     dplyr::ungroup() %>%
@@ -86,37 +92,45 @@ get_weekly_plover <- function(plover_data) {
 #'
 #' @examples
 #' plover_data <- data.frame(
-#'           epiWeek_date = as.Date(c('2022-10-02', '2022-10-09',
-#'                      '2022-10-16', '2022-10-23', '2022-10-30',
-#'                      '2022-11-06', '2022-11-13', '2022-11-20',
-#'                       '2022-11-27', '2022-12-04')),
-#'           epiWeek_year = c(2022,2022,2022,2022,
-#'                       2022,2022,2022,2022,2022,2022),
-#'            Epiweek = c(40,41,42,43,44,45,46,47,48,49),
-#'            flu_a = c(17,19,32,38,43,45,73,88,94,105),
-#'            flu_b = c(24,31,39,45,50,52,68,83,89,97))
+#'   epiWeek_date = as.Date(c(
+#'     "2022-10-02", "2022-10-09",
+#'     "2022-10-16", "2022-10-23", "2022-10-30",
+#'     "2022-11-06", "2022-11-13", "2022-11-20",
+#'     "2022-11-27", "2022-12-04"
+#'   )),
+#'   epiWeek_year = c(
+#'     2022, 2022, 2022, 2022,
+#'     2022, 2022, 2022, 2022, 2022, 2022
+#'   ),
+#'   Epiweek = c(40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
+#'   flu_a = c(17, 19, 32, 38, 43, 45, 73, 88, 94, 105),
+#'   flu_b = c(24, 31, 39, 45, 50, 52, 68, 83, 89, 97)
+#' )
 #'
 #' weekly_plover_data <- get_weekly_plover(plover_data)
 #'
 #' get_weekly_plover_by_date_type(
-#'                              weekly_plover_data,
-#'                              'flu_a',
-#'                              '2022-10-01',
-#'                              '2022-12-05')
-get_weekly_plover_by_date_type <- function(weekly_plover_data, type, start_date, end_date){
-
-  stopifnot("invalid disease type, available options: 'flu_a', 'flu_b'" =
-              type %in% c('flu_a', 'flu_b'))
+#'   weekly_plover_data,
+#'   "flu_a",
+#'   "2022-10-01",
+#'   "2022-12-05"
+#' )
+get_weekly_plover_by_date_type <- function(weekly_plover_data, type, start_date, end_date) {
+  stopifnot(
+    "invalid disease type, available options: 'flu_a', 'flu_b'" =
+      type %in% c("flu_a", "flu_b")
+  )
   stopifnot("start date is later than the end date" = (start_date < end_date))
 
   epiWeek_date <- NULL
 
-  filtered_weekly_plover_data <- weekly_plover_data  %>%
-    dplyr::filter(epiWeek_date >= start_date,
-                  epiWeek_date <= end_date) %>%
+  filtered_weekly_plover_data <- weekly_plover_data %>%
+    dplyr::filter(
+      epiWeek_date >= start_date,
+      epiWeek_date <= end_date
+    ) %>%
     dplyr::select(epiWeek_date, dplyr::all_of(type)) %>%
     dplyr::rename("date" = "epiWeek_date", "confirm" = type)
 
   return(filtered_weekly_plover_data)
-
 }
