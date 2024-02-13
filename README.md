@@ -11,6 +11,8 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 status](https://www.r-pkg.org/badges/version/vriforecasting)](https://CRAN.R-project.org/package=vriforecasting)
 <!-- badges: end -->
 
+<img src="inst/vri_forecasting_hexSticker.png" width="40%" />
+
 The goal of `vriforecasting` is to provide a toolbox to conveniently
 generate short-term forecasts (with accompanied diagnostics) for viral
 respiratory diseases.
@@ -43,6 +45,11 @@ Influenza-A.
 
 ``` r
 library(vriforecasting)
+#> ================================================
+#> Welcome to vriforecasting! 
+#> Please run `build_site(lazy = TRUE)` in your console 
+#> to access documentation on the package website 
+#> ================================================
 ```
 
 We will use the PLOVER weekly data for Influenza A, which is included
@@ -104,7 +111,7 @@ function. We can plot 2 week ahead forecasts for example by setting the
 plotValidation(time_period_result_weekly, pred_horizon_str = "2 week ahead", pred_plot = "ribbon")
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-1.png" width="80%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="80%" style="display: block; margin: auto;" />
 
 The object of class `forecast_time_period_epiestim` produced by the
 `forecast_time_period_epiestim` function also has a customized `summary`
@@ -124,12 +131,12 @@ summary(time_period_result_weekly, pred_horizon_str = "2 week ahead")
 #> # Groups:   weekly_date [6]
 #>   weekly_date coverage                   weighted_diff confirm median.prediction
 #>   <date>      <chr>                              <dbl>   <dbl>             <dbl>
-#> 1 2022-10-23  50 and 95 percentile inte…           675      38                23
-#> 2 2022-10-30  only 95 percentile interv…         15987      43               116
-#> 3 2022-11-06  50 and 95 percentile inte…            75      45                50
-#> 4 2022-11-13  50 and 95 percentile inte…           867      73                56
-#> 5 2022-11-20  only 95 percentile interv…          4800      88                48
-#> 6 2022-11-27  Outside 95 percentile int…         61347      94               237
+#> 1 2022-10-23  only 95 percentile interv…          588       38              24  
+#> 2 2022-10-30  only 95 percentile interv…        16651.      43             118. 
+#> 3 2022-11-06  50 and 95 percentile inte…            3       45              44  
+#> 4 2022-11-13  50 and 95 percentile inte…          147       73              66  
+#> 5 2022-11-20  only 95 percentile interv…         5167.      88              46.5
+#> 6 2022-11-27  Outside 95 percentile int…        70227       94             247  
 #> # ℹ 2 more variables: `50 percentile interval` <glue>,
 #> #   `95 percentile interval` <glue>
 #> 
@@ -137,12 +144,12 @@ summary(time_period_result_weekly, pred_horizon_str = "2 week ahead")
 #> # A tibble: 3 × 2
 #>   coverage                       count
 #>   <chr>                          <int>
-#> 1 50 and 95 percentile interval      3
+#> 1 50 and 95 percentile interval      2
 #> 2 Outside 95 percentile interval     1
-#> 3 only 95 percentile interval        2
+#> 3 only 95 percentile interval        3
 #> 
 #> $time_weighted_mspe
-#> [1] 118.1461
+#> [1] 124.3533
 ```
 
 ## Work flow

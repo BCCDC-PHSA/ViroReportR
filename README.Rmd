@@ -20,6 +20,10 @@ knitr::opts_chunk$set(
 [![CRAN status](https://www.r-pkg.org/badges/version/vriforecasting)](https://CRAN.R-project.org/package=vriforecasting)
 <!-- badges: end -->
 
+```{r, out.width = "40%", echo = FALSE}
+knitr::include_graphics(path = "inst/vri_forecasting_hexSticker.png")
+```
+
 The goal of `vriforecasting` is to provide a toolbox to conveniently generate short-term forecasts (with accompanied diagnostics) for viral respiratory diseases.
 
 ## Installation
