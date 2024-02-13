@@ -139,3 +139,5 @@ summary.forecast_time_period_epiestim <- function(object, pred_horizon_str = NUL
     quantile_summary = forecast_cases_dat_summ, time_weighted_mspe = time_weighted_mspe
   ))
 }
+
+

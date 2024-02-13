@@ -1,0 +1,438 @@
+---
+title: "Summary report of Short-term forecasts for viral respiratory diseases by vriforecasting"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Summary report of Short-term forecasts for viral respiratory diseases by vriforecasting}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Description: 
+
+Forecast report for each RVI (Flu-A, Flu-B, RSV, and SARS-CoV2) for all population (PLOVER) and pediatric only population (PHRDW).
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# setup -------------------------------------------------------------------
+library(dplyr)
+library(vriforecasting)
+library(ggplot2)
+library(here)
+```
+
+# Load PHRDW and PLOVER data
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# load plover data
+raw_plover_data <- readRDS("O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/plover_weekly_resp.rds")
+
+weekly_plover_data <- get_weekly_plover(raw_plover_data)
+
+# load phrdw data
+load("O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/phrdw_flu_daily_count_vpp_only.rData")
+# named `phrdw_flu_daily_count`
+raw_phrdw_data <- phrdw_flu_daily_count
+
+weekly_phrdw_data <- get_weekly_phrdw(raw_phrdw_data)
+```
+
+```{r}
+head(weekly_plover_data)
+head(weekly_phrdw_data)
+```
+
+
+
+# Overall Trends {.tabset}
+
+## PLOVER {.tabset .tabset-fade}
+
+### Flu A {.tabset .tabset-fade}
+
+```{r echo=FALSE}
+plover_data_clean <- get_weekly_plover_by_date_type(
+   weekly_plover_data,
+   "flu_a",
+   "2019-01-01",
+   "2023-12-31"
+ )
+
+ggplot(plover_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+### Flu B {.tabset .tabset-fade}
+
+```{r echo=FALSE}
+plover_data_clean <- get_weekly_plover_by_date_type(
+   weekly_plover_data,
+   "flu_b",
+   "2019-01-01",
+   "2023-12-31"
+ )
+
+ggplot(plover_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+
+## PHRDW {.tabset .tabset-fade}
+
+### Flu A {.tabset .tabset-fade}
+
+```{r echo=FALSE}
+phrdw_data_clean <- get_weekly_phrdw_by_type_date_age(
+   weekly_phrdw_data,
+   "flu_a",
+   "2021-01-01",
+   "2023-12-31"
+ )
+
+ggplot(phrdw_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+### Flu B {.tabset .tabset-fade}
+
+```{r echo=FALSE}
+phrdw_data_clean <- get_weekly_phrdw_by_type_date_age(
+   weekly_phrdw_data,
+   "flu_b",
+   "2021-01-01",
+   "2023-12-31"
+ )
+
+ggplot(phrdw_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+### RSV {.tabset .tabset-fade}
+
+```{r echo=FALSE}
+phrdw_data_clean <- get_weekly_phrdw_by_type_date_age(
+   weekly_phrdw_data,
+   "rsv",
+   "2021-01-01",
+   "2023-12-31"
+ )
+
+ggplot(phrdw_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+# Model Forecast {.tabset}
+
+## PLOVER {.tabset .tabset-fade}
+
+### Previous Season {.tabset .tabset-fade}
+
+#### Flu A {.tabset .tabset-fade}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+plover_data_clean <- get_weekly_plover_by_date_type(
+   weekly_plover_data,
+   "flu_a",
+   "2022-09-04",
+   "2023-02-15"
+ )
+
+ggplot(plover_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# fit a single epiestim model
+# epiestim_estimates_flu_a <- fit_epiestim_model(data = plover_dat_clean, type = "flu_a")
+
+# fit more than 1 epiestim model with moving sliding window
+# time_period_result_flu_a <- forecast_time_period_epiestim(
+#    data = plover_data_clean,
+#    start_date_str = "2022-09-04",
+#    n_days = 14,
+#    type = "flu_a",
+#    aggregate_week = TRUE
+#  )
+# time_period_result_flu_a %>% saveRDS(file=here("model_result","time_period_result_plover_flu_a_2022.rds"))
+```
+
+```{r echo=FALSE}
+time_period_result_flu_a <- readRDS(file=here("model_result","time_period_result_plover_flu_a_2022.rds"))
+plot(time_period_result_flu_a)
+```
+
+#### Flu B {.tabset .tabset-fade}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plover_data_clean <- get_weekly_plover_by_date_type(
+   weekly_plover_data,
+   "flu_b",
+   "2022-09-04",
+   "2023-02-15"
+ )
+
+ggplot(plover_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+# fit more than 1 epiestim model with moving sliding window
+# time_period_result_flu_b <- forecast_time_period_epiestim(
+#    data = plover_data_clean,
+#    start_date_str = "2022-09-04", n_days = 14, type = "flu_b", aggregate_week = TRUE
+#  )
+# time_period_result_flu_b %>% saveRDS(file=here("model_result","time_period_result_plover_flu_b_2022.rds"))
+```
+
+```{r echo=FALSE}
+time_period_result_flu_b <- readRDS(file=here("model_result","time_period_result_plover_flu_b_2022.rds"))
+plot(time_period_result_flu_b)
+```
+
+
+### Current Season {.tabset .tabset-fade}
+
+#### Flu A {.tabset .tabset-fade}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+plover_data_clean <- get_weekly_plover_by_date_type(
+   weekly_plover_data,
+   "flu_a",
+   "2023-09-03",
+   "2024-12-31"
+ )
+
+ggplot(plover_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# time_period_result_flu_a <- forecast_time_period_epiestim(
+#    data = plover_data_clean,
+#    start_date_str = "2023-09-03",
+#    n_days = 14,
+#    type = "flu_a",
+#    aggregate_week = TRUE
+#  )
+# time_period_result_flu_a %>% saveRDS(file=here("model_result","time_period_result_plover_flu_a_2023.rds"))
+```
+
+```{r echo=FALSE}
+time_period_result_flu_a <- readRDS(file=here("model_result","time_period_result_plover_flu_a_2023.rds"))
+plot(time_period_result_flu_a)
+```
+
+#### Flu B {.tabset .tabset-fade}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plover_data_clean <- get_weekly_plover_by_date_type(
+   weekly_plover_data,
+   "flu_b",
+   "2023-09-03",
+   "2024-12-31"
+ )
+
+ggplot(plover_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+# fit more than 1 epiestim model with moving sliding window
+# time_period_result_flu_b <- forecast_time_period_epiestim(
+#    data = plover_data_clean,
+#    start_date_str = "2023-09-03", n_days = 14, type = "flu_b", aggregate_week = TRUE
+#  )
+# time_period_result_flu_b %>% saveRDS(file=here("model_result","time_period_result_plover_flu_b_2023.rds"))
+```
+
+```{r echo=FALSE}
+time_period_result_flu_b <- readRDS(file=here("model_result","time_period_result_plover_flu_b_2023.rds"))
+plot(time_period_result_flu_b)
+```
+
+## PHRDW {.tabset .tabset-fade}
+
+### Previous Season {.tabset .tabset-fade}
+
+#### Flu A {.tabset .tabset-fade}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+phrdw_data_clean <- get_weekly_phrdw_by_type_date_age(
+   weekly_phrdw_data,
+   "flu_a",
+   "2022-09-18",
+   "2023-02-05",
+   0,
+   18
+ )
+
+ggplot(phrdw_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+# time_period_result_phrdw_flu_a <- forecast_time_period_epiestim(
+#    data = phrdw_data_clean,
+#    start_date_str = "2022-09-18", n_days = 14, type = "flu_a", aggregate_week = TRUE
+#  )
+# time_period_result_phrdw_flu_a %>% saveRDS(file=here("model_result","time_period_result_phrdw_flu_a_2022.rds"))
+```
+
+```{r echo=FALSE}
+time_period_result_phrdw_flu_a <- readRDS(file=here("model_result","time_period_result_phrdw_flu_a_2022.rds"))
+plot(time_period_result_phrdw_flu_a)
+```
+
+#### Flu B {.tabset .tabset-fade}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+phrdw_data_clean <- get_weekly_phrdw_by_type_date_age(
+   weekly_phrdw_data,
+   "flu_b",
+   "2022-09-18",
+   "2023-02-05",
+   0,
+   18
+ )
+
+ggplot(phrdw_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+# time_period_result_phrdw_flu_b <- forecast_time_period_epiestim(
+#    data = phrdw_data_clean,
+#    start_date_str = "2022-09-18", n_days = 14, type = "flu_b", aggregate_week = TRUE
+#  )
+# time_period_result_phrdw_flu_b %>% saveRDS(file=here("model_result","time_period_result_phrdw_flu_b_2022.rds"))
+```
+
+```{r echo=FALSE}
+time_period_result_phrdw_flu_b <- readRDS(file=here("model_result","time_period_result_phrdw_flu_b_2022.rds"))
+plot(time_period_result_phrdw_flu_b)
+```
+
+#### RSV {.tabset .tabset-fade}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+phrdw_data_clean <- get_weekly_phrdw_by_type_date_age(
+   weekly_phrdw_data,
+   "rsv",
+   "2022-09-18",
+   "2023-04-05",
+   0,
+   18
+ )
+
+ggplot(phrdw_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+# time_period_result_phrdw_rsv <- forecast_time_period_epiestim(
+#    data = phrdw_data_clean,
+#    start_date_str = "2022-09-18", n_days = 14, type = "rsv", aggregate_week = TRUE
+#  )
+# time_period_result_phrdw_rsv %>% saveRDS(file=here("model_result","time_period_result_phrdw_rsv_2022.rds"))
+```
+
+```{r echo=FALSE}
+time_period_result_phrdw_rsv <- readRDS(file=here("model_result","time_period_result_phrdw_rsv_2022.rds"))
+plot(time_period_result_phrdw_rsv)
+```
+
+### Current Season {.tabset .tabset-fade}
+
+#### Flu A {.tabset .tabset-fade}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+phrdw_data_clean <- get_weekly_phrdw_by_type_date_age(
+   weekly_phrdw_data,
+   "flu_a",
+   "2023-09-03",
+   "2024-12-31",
+   0,
+   18
+ )
+
+ggplot(phrdw_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+# time_period_result_phrdw_flu_a <- forecast_time_period_epiestim(
+#    data = phrdw_data_clean,
+#    start_date_str = "2023-09-03", n_days = 14, type = "flu_a", aggregate_week = TRUE
+#  )
+# time_period_result_phrdw_flu_a %>% saveRDS(file=here("model_result","time_period_result_phrdw_flu_a_2023.rds"))
+```
+
+```{r echo=FALSE}
+time_period_result_phrdw_flu_a <- readRDS(file=here("model_result","time_period_result_phrdw_flu_a_2023.rds"))
+plot(time_period_result_phrdw_flu_a)
+```
+
+#### Flu B {.tabset .tabset-fade}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+phrdw_data_clean <- get_weekly_phrdw_by_type_date_age(
+   weekly_phrdw_data,
+   "flu_b",
+   "2023-09-03",
+   "2024-12-31",
+   0,
+   18
+ )
+
+ggplot(phrdw_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+# time_period_result_phrdw_flu_b <- forecast_time_period_epiestim(
+#    data = phrdw_data_clean,
+#    start_date_str = "2023-09-03", n_days = 14, type = "flu_b", aggregate_week = TRUE
+#  )
+# time_period_result_phrdw_flu_b %>% saveRDS(file=here("model_result","time_period_result_phrdw_flu_b_2023.rds"))
+```
+
+```{r echo=FALSE}
+time_period_result_phrdw_flu_b <- readRDS(file=here("model_result","time_period_result_phrdw_flu_b_2023.rds"))
+plot(time_period_result_phrdw_flu_b)
+```
+
+#### RSV {.tabset .tabset-fade}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+phrdw_data_clean <- get_weekly_phrdw_by_type_date_age(
+   weekly_phrdw_data,
+   "rsv",
+   "2023-09-03",
+   "2024-12-31",
+   0,
+   18
+ )
+
+ggplot(phrdw_data_clean, aes(x=date, y=confirm)) + geom_line()
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+# time_period_result_phrdw_rsv <- forecast_time_period_epiestim(
+#    data = phrdw_data_clean,
+#    start_date_str = "2023-09-03", n_days = 14, type = "rsv", aggregate_week = TRUE
+#  )
+# time_period_result_phrdw_rsv %>% saveRDS(file=here("model_result","time_period_result_phrdw_rsv_2023.rds"))
+```
+
+```{r echo=FALSE}
+time_period_result_phrdw_rsv <- readRDS(file=here("model_result","time_period_result_phrdw_rsv_2023.rds"))
+plot(time_period_result_phrdw_rsv)
+```
+
+
+
+
+
+
