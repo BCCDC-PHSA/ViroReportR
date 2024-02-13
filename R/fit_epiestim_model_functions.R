@@ -1,4 +1,4 @@
-#' fit_epiestim_model - Function to estimate the reproduction number of an epidemic 
+#' fit_epiestim_model - Function to estimate the reproduction number of an epidemic
 #'
 #' @description A wrapper function for {\code{\link[EpiEstim]{estimate_R}}} from the \code{EpiEstim} library to estimate the reproduction number of epidemics to support short-term forecasts
 #'
@@ -29,6 +29,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
                       method = "parametric_si", mean_prior = NULL, std_prior = NULL, ...) {
 
   confirm <- NULL
+  incid <- data$confirm
   if (!is.data.frame(data) || !all(colnames(data) %in% c("date", "confirm"))) {
     stop("Must pass a data frame with two columns: date and confirm")
   }
@@ -40,10 +41,10 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
   }
   data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
   if (data_lag != 7 && dt == 7L) {
-    warning("Your data may not be weekly data. Please check input and consider changing dt argument (dt = 1L for daily data)")
+    warning("Your data may not be weekly data. Please check input.
+            We recommend only weekly data be input into EpiEstim for optimal performance")
   }
 
-  incid <- data$confirm
   if (is.null(mean_si) && is.null(std_si)) {
     if (type == "flu_a") {
       config <- EpiEstim::make_config(list(
@@ -82,9 +83,18 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
       std_prior = std_prior
     ))
   }
+  }
   a_prior <- (config$mean_prior / config$std_prior)^2
   min_nb_cases_per_time_period <- ceiling(1 / config$cv_posterior^2 - a_prior)
-
+  if (data$confirm[1] < min_nb_cases_per_time_period) {
+    reliable_date_data <- data %>%
+      dplyr::filter(confirm >= min_nb_cases_per_time_period)
+       incid <- reliable_date_data$confirm
+    warning(
+      "Incidence is too low on the current start date. R estimation started from ", reliable_date_data$date[1],
+      " for an accurate estimate of the reproduction number with EpiEstim"
+    )
+  }
   epiestim_estimates <- NULL
   epiestim_estimates <- suppressWarnings(EpiEstim::estimate_R(
     incid = incid,
@@ -93,15 +103,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
     method = method,
     config = config, ...
   ))
-  if (data$confirm[1] < min_nb_cases_per_time_period) {
-    min_reliable_date <- data %>%
-      dplyr::filter(confirm >= min_nb_cases_per_time_period) %>%
-      dplyr::pull(date)
-    warning(
-      "Incidence is too low on the current start date. Consider starting R estimation from ", min_reliable_date[1],
-      " for an accurate estimate of the reproduction number with EpiEstim"
-    )
-  }
+
 
   return(epiestim_estimates)
 }
@@ -113,10 +115,10 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #' @description Function to produce short-term forecasts from objects of class {\code{\link[EpiEstim]{estimate_R}}}
 #'
 #' @param data *data frame* containing two columns: date and confirm (number of cases per week)
-#' @param start_date_str Initial starting time-point. Must match a timepoint in the input dataset
-#' @param n_days The number of days to run simulations for. Defaults to 7
-#' @param type *character* Specifies type of epidemic. Must be one of "Influenza", "RSV" and "COVID"
-#' @param aggregate_week *logical* argument specifying whether to aggregate forecasts by weekly quantiles. Default is to return daily quantiles
+#' @param start_date Initial starting time-point. Must match a timepoint in the input dataset
+#' @param n_days Number of days to forecast ahead. Defaults to 7
+#' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"
+#' @param time_period time period string (e.g. 'daily', 'weekly'). Default is daily
 #' @param ... Pass on optional arguments from \code{fit_epiestim_model}
 #'
 #'
@@ -130,30 +132,30 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #' #  Daily forecast
 #' forecast_time_period_epiestim(
 #'   data = weekly_transformed_plover_data,
-#'   start_date_str = "2022-10-02", n_days = 14, type = "flu_a"
+#'   start_date = "2022-10-02", n_days = 14, type = "flu_a"
 #' )
 #'
 # weekly aggregated forecast
 #' forecast_time_period_epiestim(
 #'   data = weekly_transformed_plover_data,
-#'   start_date_str = "2022-10-02", n_days = 14, type = "flu_a", aggregate_week = TRUE
+#'   start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "weekly"
 #' )
-forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggregate_week = FALSE,
+forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "daily",
                                           type = NULL, ...) {
   sim <- week_date <- daily_date <- NULL
-  if (!(lubridate::ymd(start_date_str) %in% data$date)) {
+  if (!(lubridate::ymd(start_date) %in% data$date)) {
     stop("Start date not present in dataset. Please check your input")
   }
 
-  if (lubridate::ymd(start_date_str) >= max(data$date)) {
+  if (lubridate::ymd(start_date) >= max(data$date)) {
     stop("Start date greater than max date in dataset! Please check your input")
   }
-  start_index <- which(data$date == lubridate::ymd(start_date_str))
+  start_index <- which(data$date == lubridate::ymd(start_date))
   time_length <- nrow(data) - start_index
-  time_period <- seq_len(time_length)
-  time_period_result <- lapply(time_period, function(tp) {
+  time_period_index <- seq_len(time_length)
+  time_period_result <- lapply(time_period_index, function(tp) {
     model_data <- extend_rows_model_data(
-      data = data, min_model_date_str = start_date_str,
+      data = data, min_model_date_str = start_date,
       extension_interval = tp
     )
     print(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
@@ -164,8 +166,7 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
 
     model_data <- model_data %>%
       dplyr::rename(model_data_date = date)
-
-    if (isTRUE(aggregate_week)) {
+    if (time_period == "weekly") {
       if (isFALSE(n_days %% 7 == 0)) {
         stop("n_days must be a multiple of 7 to aggregate by week")
       }
@@ -176,41 +177,17 @@ forecast_time_period_epiestim <- function(data, start_date_str, n_days = 7, aggr
         dplyr::rename(quantile_date = week_date)
       quantile_unit <- "weekly"
       row <- c(cur_model, tp, model_data, cur_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
-    } else {
-      message("Note: Daily quantiles were calculated across simulated epicurves")
-      cur_samples_agg_quantiles <- cur_daily_samples %>%
-        create_quantiles(daily_date, variable = "daily_incidence") %>%
-        dplyr::rename(quantile_date = daily_date)
-      quantile_unit <- "daily"
-      row <- c(cur_model, tp, model_data, cur_daily_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
-    }
+   } else if (time_period == "daily") {
+    message("Note: Daily quantiles were calculated across simulated epicurves")
+   cur_samples_agg_quantiles <- cur_daily_samples %>%
+     create_quantiles(daily_date, variable = "daily_incidence") %>%
+   dplyr::rename(quantile_date = daily_date)
+   quantile_unit <- "daily"
+  row <- c(cur_model, tp, model_data, cur_daily_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
+ }
 
     return(row)
   })
-  class(time_period_result) <- c("forecast_time_period_epiestim", class(time_period_result))
-  return(time_period_result)
 }
 
 
-#' Plot forecasts at each iteration with uncertainty quantile ranges
-#'
-#' @param x object of class \code{forecast_time_period_epiestim}
-#' @param time_period optional parameter to show only plot at a specific time-point
-#' @param ... pass optional parameters to plot method
-#' @return Multiple plots with forecasts at each sliding window
-#'
-#' @export
-#' @examples
-#' plot(daily_time_period_result)
-plot.forecast_time_period_epiestim <- function(x, time_period = NULL, ...) {
-  if (is.null(time_period)) {
-    times_plots <- lapply(x, plot_all_time_period_forecast_data_helper)
-    times_plots
-  } else {
-    if (time_period > length(x)) {
-      stop("Time period index out of bounds. Please cross-check the time_period input with the length of your time_period_result object")
-    }
-    one_time_plot <- plot_all_time_period_forecast_data_helper(x[[time_period]])
-    one_time_plot
-  }
-}

@@ -1,25 +1,73 @@
+#' Iterate through a time-period as a sliding window to produce short-term forecasts
+#'
+#'
+#' @description Function to produce short-term forecasts using either the EpiEstim or EpiFilter algorithm
+#'
+#' @param data *data frame* containing two columns: date and confirm (number of cases per week)
+#' @param start_date_str Initial starting time-point. Must match a timepoint in the input dataset
+#' @param n_days The number of days to run simulations for. Defaults to 7
+#' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"
+#' @param time_period time period string (e.g. 'daily', 'weekly'). Default is daily
+#' @param algorithm argument to control if model fitting and forecasting is done by `EpiEstim` or `EpiFilter`
+#'
+#'
+#'
+#' @return List of class \code{forecast_time_period}
+#' storing quantiles of both daily and weekly forecasts from each sliding window
+#' @export
+#'
+#' @examples
+#'
+#' #  Forecast using EpiEstim
+#' forecast_time_period(
+#'   data = weekly_transformed_plover_data,
+#'   start_date = "2022-10-02", n_days = 14, type = "flu_a", algorithm = "EpiEstim"
+#' )
+#'
+#' #  Forecast using EpiFilter
+#' forecast_time_period(
+#'   data = weekly_transformed_plover_data,
+#'   start_date = "2022-10-02", n_days = 14, type = "flu_a", algorithm = "EpiFilter"
+#' )
+forecast_time_period <- function(data, start_date, n_days = 7, time_period = "daily",
+                                          type = NULL, algorithm = "EpiEstim") {
+  stopifnot(
+    "Only EpiFilter and EpiEstim are currently supported as forecasting models. Please check input." =
+      algorithm %in% c("EpiEstim", "EpiFilter")
+  )
+  if (algorithm == "EpiEstim") {
+    time_period_result <- forecast_time_period_epiestim(data = data, start_date = start_date, n_days = n_days,
+                                                        time_period = time_period, type = type)
+  } else if (algorithm == "EpiFilter") {
+    time_period_result <- forecast_time_period_epiestim(data = data, start_date = start_date, n_days = n_days,
+                                                        time_period = time_period, type = type)
+  }
+  class(time_period_result) <- c("forecast_time_period", class(time_period_result))
+  return(time_period_result)
+}
+
 #' Plot a violin plot with specific time horizon predictions against true values for validation
 #'
-#' @param time_period_result object of class \code{forecast_time_period_epiestim}
+#' @param time_period_result object of class \code{forecast_time_period}
 #' @param pred_horizon_str *string* prediction horizon time period to plot
 #' @param pred_plot either \code{"ribbon"} or \code{"violin"} (by default) to produce either ribbon prediction plots or violin plots respectively
 #' @return violin validation plot or ribbon validation plot  for a specific prediction horizon
 #'
 #' @export
 #' @examples
-#' plotValidation(weekly_time_period_result, pred_horizon_str = "1 week ahead")
-plotValidation <- function(time_period_result, pred_horizon_str = NULL, pred_plot = "violin") {
+#' plot_validation(weekly_time_period_result, pred_horizon_str = "1 week ahead")
+plot_validation <- function(time_period_result, pred_horizon_str = NULL, pred_plot = "violin") {
   p025 <- p975 <- p25 <- p75 <- NULL
   confirm <- p50 <- point_type <- pred_horizon <- sim_draws <- weekly_date <- NULL
   aggregate_unit <- time_period_result[[1]][["quantile_unit"]]
   if (is.null(pred_horizon_str)) {
     stop("Must specify prediction time horizon for validation plot")
   }
-  if (class(time_period_result)[1] != "forecast_time_period_epiestim") {
-    stop("time_period_result input must be object of class forecast_time_period_epiestim")
+  if (class(time_period_result)[1] != "forecast_time_period") {
+    stop("time_period_result input must be object of class forecast_time_period")
   }
   if (aggregate_unit == "daily") {
-    stop("Only weekly aggregated data suitable for validation plot. Please re-run forecast_time_period_epiestim with weekly_aggregate = TRUE")
+    stop("Only weekly aggregated data suitable for validation plot. Please re-run forecast_time_period_epiestim with time_period = weekly")
   }
   forecast_dat <- create_forecast_df(time_period_result)
   if (!(pred_horizon_str %in% forecast_dat$pred_horizon)) {
@@ -73,7 +121,7 @@ plotValidation <- function(time_period_result, pred_horizon_str = NULL, pred_plo
 #' Outputs a summary indicating the prediction quantile in which the confirmed weekly case from the data falls.
 #' The function warns when a confirmed case data-point is not within the predicted 95% confidence interval
 #'
-#' @param object An object of class \code{forecast_time_period_epiestim}
+#' @param object An object of class \code{forecast_time_period}
 #' @param pred_horizon_str A *string* indicating the prediction horizon time period to plot
 #' @param ... Additional optional parameters to pass to the summary method
 #' @return A list containing two dataframes: \code{individual_quantiles} and \code{quantiles_summary} respectively:
@@ -89,18 +137,18 @@ plotValidation <- function(time_period_result, pred_horizon_str = NULL, pred_plo
 
 #' @examples
 #' summary(weekly_time_period_result, pred_horizon_str = "1 week ahead")
-summary.forecast_time_period_epiestim <- function(object, pred_horizon_str = NULL, ...) {
+summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
   confirm <- p50 <- weighted_diff <- `50 percentile interval` <- `95 percentile interval` <- NULL
   pred_horizon <- weekly_date <- coverage <- NULL
-  if (class(object)[1] != "forecast_time_period_epiestim") {
-    stop("input must be object of class forecast_time_period_epiestim")
+  if (class(object)[1] != "forecast_time_period") {
+    stop("input must be object of class forecast_time_period")
   }
   aggregate_unit <- object[[1]][["quantile_unit"]]
   if (is.null(pred_horizon_str)) {
     stop("Must specify prediction time horizon for validation summary")
   }
   if (aggregate_unit == "daily") {
-    stop("Only weekly aggregated data suitable for validation summary. Please re-run forecast_time_period_epiestim with weekly_aggregate = TRUE")
+    stop("Only weekly aggregated data suitable for validation summary. Please re-run forecast_time_period_epiestim with time_period = weekly")
   }
   forecast_dat <- create_forecast_df(object)
   forecast_dat <- forecast_dat %>%
@@ -141,3 +189,25 @@ summary.forecast_time_period_epiestim <- function(object, pred_horizon_str = NUL
 }
 
 
+#' Plot forecasts at each iteration with uncertainty quantile ranges
+#'
+#' @param x object of class \code{forecast_time_period}
+#' @param time_period optional parameter to show only plot at a specific time-point
+#' @param ... pass optional parameters to plot method
+#' @return Multiple plots with forecasts at each sliding window
+#'
+#' @export
+#' @examples
+#' plot(daily_time_period_result)
+plot.forecast_time_period <- function(x, time_period = NULL, ...) {
+  if (is.null(time_period)) {
+    times_plots <- lapply(x, plot_all_time_period_forecast_data_helper)
+    times_plots
+  } else {
+    if (time_period > length(x)) {
+      stop("Time period index out of bounds. Please cross-check the time_period input with the length of your time_period_result object")
+    }
+    one_time_plot <- plot_all_time_period_forecast_data_helper(x[[time_period]])
+    one_time_plot
+  }
+}
