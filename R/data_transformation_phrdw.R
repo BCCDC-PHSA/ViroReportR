@@ -22,29 +22,7 @@
 #'
 #' @importFrom magrittr "%>%"
 #'
-#' @examples
-#' phrdw_data <- data.frame(
-#'   lis_date_collection = as.Date(c(
-#'     "2022-10-02", "2022-10-02",
-#'     "2022-10-09", "2022-10-09",
-#'     "2022-10-16", "2022-10-16",
-#'     "2022-10-23", "2022-10-23",
-#'     "2022-10-30", "2022-10-30"
-#'   )),
-#'   result_lab_name = c(
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control",
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control",
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control",
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control",
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control"
-#'   ),
-#'   age_years = c(7, 8, 7, 8, 7, 8, 7, 8, 7, 8),
-#'   sars_cov2 = c(15, 17, 30, 28, 41, 43, 71, 74, 80, 88),
-#'   rsv = c(14, 16, 29, 27, 40, 42, 70, 73, 79, 87),
-#'   flu_a = c(13, 15, 28, 26, 39, 41, 69, 72, 78, 86),
-#'   flu_b = c(12, 14, 27, 25, 38, 40, 68, 71, 77, 85)
-#' )
-#'
+
 get_daily_phrdw <- function(phrdw_flu_daily_count) {
   stopifnot(c(
     "lis_date_collection", "result_lab_name", "age_years",
@@ -96,29 +74,7 @@ get_daily_phrdw <- function(phrdw_flu_daily_count) {
 #'
 #' @importFrom magrittr "%>%"
 #'
-#' @examples
-#' phrdw_data <- data.frame(
-#'   lis_date_collection = as.Date(c(
-#'     "2022-10-02", "2022-10-02",
-#'     "2022-10-09", "2022-10-09",
-#'     "2022-10-16", "2022-10-16",
-#'     "2022-10-23", "2022-10-23",
-#'     "2022-10-30", "2022-10-30"
-#'   )),
-#'   result_lab_name = c(
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control",
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control",
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control",
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control",
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control"
-#'   ),
-#'   age_years = c(7, 8, 7, 8, 7, 8, 7, 8, 7, 8),
-#'   sars_cov2 = c(15, 17, 30, 28, 41, 43, 71, 74, 80, 88),
-#'   rsv = c(14, 16, 29, 27, 40, 42, 70, 73, 79, 87),
-#'   flu_a = c(13, 15, 28, 26, 39, 41, 69, 72, 78, 86),
-#'   flu_b = c(12, 14, 27, 25, 38, 40, 68, 71, 77, 85)
-#' )
-#'
+
 get_weekly_phrdw <- function(phrdw_flu_daily_count) {
   stopifnot(c(
     "lis_date_collection", "result_lab_name", "age_years",
@@ -186,29 +142,6 @@ get_weekly_phrdw <- function(phrdw_flu_daily_count) {
 #' @importFrom magrittr "%>%"
 #'
 #' @examples
-#' phrdw_data <- data.frame(
-#'   lis_date_collection = as.Date(c(
-#'     "2022-10-02", "2022-10-02",
-#'     "2022-10-09", "2022-10-09",
-#'     "2022-10-16", "2022-10-16",
-#'     "2022-10-23", "2022-10-23",
-#'     "2022-10-30", "2022-10-30"
-#'   )),
-#'   result_lab_name = c(
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control",
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control",
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control",
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control",
-#'     "BC Centre for Disease Control", "BC Centre for Disease Control"
-#'   ),
-#'   age_years = c(7, 8, 7, 8, 7, 8, 7, 8, 7, 8),
-#'   sars_cov2 = c(15, 17, 30, 28, 41, 43, 71, 74, 80, 88),
-#'   rsv = c(14, 16, 29, 27, 40, 42, 70, 73, 79, 87),
-#'   flu_a = c(13, 15, 28, 26, 39, 41, 69, 72, 78, 86),
-#'   flu_b = c(12, 14, 27, 25, 38, 40, 68, 71, 77, 85)
-#' )
-#'
-#'
 #' get_phrdw_by_type_date_age(
 #'   phrdw_data = phrdw_data,
 #'   time_period = "weekly",

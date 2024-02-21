@@ -123,7 +123,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #'
 #'
 #'
-#' @return List of class \code{forecast_time_period_epiestim}
+#' @return List of class \code{forecast_time_period}
 #' storing quantiles of both daily and weekly forecasts from each sliding window
 #' @export
 #'
@@ -152,8 +152,8 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
   }
   start_index <- which(data$date == lubridate::ymd(start_date))
   time_length <- nrow(data) - start_index
-  time_period_index <- seq_len(time_length)
-  time_period_result <- lapply(time_period_index, function(tp) {
+  time_index <- seq_len(time_length)
+  time_period_result <- lapply(time_index, function(tp) {
     model_data <- extend_rows_model_data(
       data = data, min_model_date_str = start_date,
       extension_interval = tp

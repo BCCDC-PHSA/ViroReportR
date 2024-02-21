@@ -1,11 +1,14 @@
 #################### Test fit_epiestim_model function ################################
-
-# Run Package Data Transformation Function for PHRDW data --------------------------------
-
-non_weekly_phrdw_data <- get_weekly_phrdw(phrdw_data) %>%
-  group_by(date) %>%
-  select(date, confirm = rsv)
-
+# Daily PHRDW data
+daily_phrdw_data <- get_phrdw_by_type_date_age(
+  phrdw_data = phrdw_data,
+   time_period = "daily",
+    type = "rsv",
+   start_date = "2022-10-01",
+   end_date = "2022-11-01",
+   start_age = 0,
+   end_age = 10
+   )
 # Low incidence dummy data
 weekly_plover_dup <- weekly_transformed_plover_data
 
@@ -45,7 +48,7 @@ test_that("Missing type error correct", {
 # Test function warning handling --------------------------------
 
 test_that("Function throws a warning when daily data is input and dt = 7L", {
-  expect_warning(fit_epiestim_model(data = non_weekly_phrdw_data, type = "rsv"),
+  expect_warning(fit_epiestim_model(data = daily_phrdw_data, type = "rsv"),
     "Your data may not be weekly data. Please check input and consider changing dt argument (dt = 1L for daily data)",
     fixed = TRUE
   )
@@ -78,4 +81,4 @@ test_that("Custom mean_si and std_si are used in place of default for covid, rsv
 })
 
 # Cleaning up environment
-rm(weekly_plover_data, disease_type, non_weekly_phrdw_data, weekly_plover_dup)
+rm(weekly_plover_data, disease_type, daily_phrdw_data, weekly_plover_dup)

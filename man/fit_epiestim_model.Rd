@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_epiestim_model_functions.R
 \name{fit_epiestim_model}
 \alias{fit_epiestim_model}
-\title{fit_epiestim_model - Function to estimate the reproduction number of an epidemic from weekly data}
+\title{fit_epiestim_model - Function to estimate the reproduction number of an epidemic}
 \usage{
 fit_epiestim_model(
   data,
@@ -12,11 +12,13 @@ fit_epiestim_model(
   std_si = NULL,
   recon_opt = "match",
   method = "parametric_si",
+  mean_prior = NULL,
+  std_prior = NULL,
   ...
 )
 }
 \arguments{
-\item{data}{\emph{data frame} containing two columns: date and confirm (number of cases per week)}
+\item{data}{\emph{data frame} containing two columns: date and confirm (number of cases)}
 
 \item{dt}{\emph{Integer}     length of temporal aggregations of the incidence data. This should be an integer or vector of integers. The default value is 7 time units (1 week).}
 
@@ -30,6 +32,10 @@ fit_epiestim_model(
 
 \item{method}{One of "non_parametric_si", "parametric_si", "uncertain_si", "si_from_data" or "si_from_sample" to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page)}
 
+\item{mean_prior}{\emph{Numeric} positive number giving the mean of the common prior distribution for all reproduction numbers}
+
+\item{std_prior}{\emph{Numeric} positive number giving the standard deviation of the common prior distribution for all reproduction numbers}
+
 \item{...}{Other optional parameters to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page) to control estimation of reproduction number}
 }
 \value{
@@ -39,8 +45,8 @@ Object of class {\code{\link[EpiEstim]{estimate_R}}} (see \code{EpiEstim} help p
 A wrapper function for {\code{\link[EpiEstim]{estimate_R}}} from the \code{EpiEstim} library to estimate the reproduction number of epidemics to support short-term forecasts
 }
 \details{
-\code{fit_epiestim_model} currently supports the following epidemics: Influenza, RSV and COVID-19. The serial intervals for the estimation of R were retrieved from
-Cowling et al., 2011, Vink et al., 2014 and Madewell et al., 2023 for Influenza, RSV and COVID (BA.5 Omicron variant) respectively
+\code{fit_epiestim_model} currently supports the following epidemics: Influenza, RSV and COVID-19. The default serial intervals for the estimation of R were retrieved from
+Cowling et al., 2011, Vink et al., 2014 and Madewell et al., 2023 for Influenza A, Influenza B, RSV and COVID (BA.5 Omicron variant) respectively
 }
 \examples{
 fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a")

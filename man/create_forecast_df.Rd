@@ -7,7 +7,7 @@
 create_forecast_df(time_period_result)
 }
 \arguments{
-\item{time_period_result}{output from  \code{forecast_time_period_epiestim}}
+\item{time_period_result}{output from  \code{forecast_time_period}}
 }
 \value{
 Data frame with forecasts at all time-points

@@ -23,22 +23,6 @@
 #'
 #'
 #' @examples
-#' plover_data <- data.frame(
-#'   epiWeek_date = as.Date(c(
-#'     "2022-10-02", "2022-10-09",
-#'     "2022-10-16", "2022-10-23", "2022-10-30",
-#'     "2022-11-06", "2022-11-13", "2022-11-20",
-#'     "2022-11-27", "2022-12-04"
-#'   )),
-#'   epiWeek_year = c(
-#'     2022, 2022, 2022, 2022,
-#'     2022, 2022, 2022, 2022, 2022, 2022
-#'   ),
-#'   Epiweek = c(40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
-#'   flu_a = c(17, 19, 32, 38, 43, 45, 73, 88, 94, 105),
-#'   flu_b = c(24, 31, 39, 45, 50, 52, 68, 83, 89, 97)
-#' )
-#'
 #' get_weekly_plover(plover_data)
 get_weekly_plover <- function(plover_data) {
   stopifnot(c("epiWeek_date", "epiWeek_year", "Epiweek", "flu_a", "flu_b") %in% colnames(plover_data))
@@ -92,22 +76,6 @@ get_weekly_plover <- function(plover_data) {
 #' @importFrom tidyr pivot_longer
 #'
 #' @examples
-#' plover_data <- data.frame(
-#'   epiWeek_date = as.Date(c(
-#'     "2022-10-02", "2022-10-09",
-#'     "2022-10-16", "2022-10-23", "2022-10-30",
-#'     "2022-11-06", "2022-11-13", "2022-11-20",
-#'     "2022-11-27", "2022-12-04"
-#'   )),
-#'   epiWeek_year = c(
-#'     2022, 2022, 2022, 2022,
-#'     2022, 2022, 2022, 2022, 2022, 2022
-#'   ),
-#'   Epiweek = c(40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
-#'   flu_a = c(17, 19, 32, 38, 43, 45, 73, 88, 94, 105),
-#'   flu_b = c(24, 31, 39, 45, 50, 52, 68, 83, 89, 97)
-#' )
-#'
 #' get_weekly_plover_by_date_type(
 #'   plover_data,
 #'   "flu_a",

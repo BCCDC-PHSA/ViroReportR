@@ -60,7 +60,7 @@ The function provides progress updates as it is running about the current time p
 
 ```{r message = FALSE}
 time_period_result_daily <- forecast_time_period(data = 
-weekly_plover_date_type, start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "weekly", algorithm = "EpiEstim")
+weekly_plover_date_type, start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "daily", algorithm = "EpiEstim")
 ```
 
 The forecasts can then be plotted at all the sliding windows used using the `plot` function which uses the output of `forecast_time_period`. The function takes in an object of of class `forecast_time_period`

@@ -13,7 +13,6 @@
 #' }
 #' @name plover_data
 #'
-#' @source "O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/plover_weekly_resp.rds"
 #'
 #' @docType data
 "plover_data"
@@ -38,7 +37,6 @@
 #' }
 #' @name phrdw_data
 #'
-#' @source "O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/phrdw_flu_daily_count_vpp_only.rData"
 #'
 #' @docType data
 "phrdw_data"

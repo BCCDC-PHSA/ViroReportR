@@ -9,7 +9,13 @@
 BCCDC R package for forecasting viral respiratory infection cases and outcomes.
 }
 \author{
-\strong{Maintainer}: First Last \email{first.last@example.com} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
+\strong{Maintainer}: Mike Irvine \email{mike.irvine@bccdc.ca}
+
+Authors:
+\itemize{
+  \item Caesar Wong
+  \item Nirupama Tamvada
+}
 
 }
 \keyword{internal}

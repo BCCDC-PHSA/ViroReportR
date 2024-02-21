@@ -4,10 +4,10 @@
 \alias{get_weekly_plover_by_date_type}
 \title{Filter the weekly plover data by date & disease type}
 \usage{
-get_weekly_plover_by_date_type(weekly_plover_data, type, start_date, end_date)
+get_weekly_plover_by_date_type(plover_data, type, start_date, end_date)
 }
 \arguments{
-\item{weekly_plover_data}{weekly plover data from \code{get_weekly_plover()}}
+\item{plover_data}{raw plover data before any transformation}
 
 \item{type}{disease type string (e.g. 'flu_a', 'flu_b')}
 
@@ -27,11 +27,18 @@ disease type and the date range, it performs the following steps:
 \item Renames the epiweek date as \code{date} & the flu type as \code{confirm}.
 }
 
-The input dataframe \code{weekly_plover_data} must be the output of \code{get_weekly_plover()}.
-
 The input flu type must be 'flu_a' or 'flu_b'.
 
 The input start date must be earlier than the input end date.
+
+The input dataframe \code{plover_data} must have the following columns:
+\itemize{
+\item \code{epiWeek_date}: Epiweek Date String (e.g. '2019-01-01')
+\item \code{epiWeek_year}: Epiweek Year Number (e.g. 2019)
+\item \code{Epiweek}: Epiweek Number (e.g. 1, 2, ..., 53)
+\item \code{flu_a}: Confirmed Cases Count (e.g. 1, 2, ...)
+\item \code{flu_b}: Confirmed Cases Count (e.g. 1, 2, ...)
+}
 }
 \examples{
 plover_data <- data.frame(
@@ -50,16 +57,10 @@ plover_data <- data.frame(
   flu_b = c(24, 31, 39, 45, 50, 52, 68, 83, 89, 97)
 )
 
-weekly_plover_data <- get_weekly_plover(plover_data)
-
 get_weekly_plover_by_date_type(
-  weekly_plover_data,
+  plover_data,
   "flu_a",
   "2022-10-01",
   "2022-12-05"
 )
-}
-\seealso{
-\code{\link[=get_weekly_plover]{get_weekly_plover()}} which produces the input dataframe of
-this function.
 }
