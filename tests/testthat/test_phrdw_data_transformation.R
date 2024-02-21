@@ -1,8 +1,6 @@
 # Run Package Data Transformation Function --------------------------------
 disease_type <- "rsv"
 
-daily_phrdw_data <- get_daily_phrdw(phrdw_data)
-
 daily_phrdw_type_date_age <- get_phrdw_by_type_date_age(
   phrdw_data = phrdw_data,
   time_period = "daily",

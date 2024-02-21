@@ -42,8 +42,8 @@ get_daily_phrdw <- function(phrdw_flu_daily_count) {
       sars_cov2 = sum(sars_cov2),
       rsv = sum(rsv),
       flu_a = sum(flu_a),
-      flu_b = sum(flu_b)
-    ) %>%
+      flu_b = sum(flu_b),
+      .groups = "keep") %>%
     dplyr::rename(date = lis_date_collection) %>%
     dplyr::ungroup()
 
@@ -95,8 +95,8 @@ get_weekly_phrdw <- function(phrdw_flu_daily_count) {
       sars_cov2 = sum(sars_cov2),
       rsv = sum(rsv),
       flu_a = sum(flu_a),
-      flu_b = sum(flu_b)
-    ) %>%
+      flu_b = sum(flu_b),
+    .groups = "keep") %>%
     dplyr::ungroup()
 
   return(agg_phrdw_data_date_type)
@@ -187,8 +187,8 @@ get_phrdw_by_type_date_age <- function(phrdw_data, time_period="daily",
       ) %>%
       dplyr::group_by(date) %>%
       dplyr::summarize(
-        days_in_week = dplyr::n_distinct(date)
-      ) %>%
+        days_in_week = dplyr::n_distinct(date),
+        .groups = "keep") %>%
       dplyr::ungroup() %>%
       dplyr::filter(days_in_week < 7) %>%
       dplyr::mutate(
@@ -213,8 +213,8 @@ get_phrdw_by_type_date_age <- function(phrdw_data, time_period="daily",
       sars_cov2 = sum(sars_cov2),
       rsv = sum(rsv),
       flu_a = sum(flu_a),
-      flu_b = sum(flu_b)
-    ) %>%
+      flu_b = sum(flu_b),
+    .groups = "keep") %>%
     dplyr::select(date, dplyr::all_of(type)) %>%
     dplyr::rename("confirm" = type) %>%
     dplyr::ungroup()
