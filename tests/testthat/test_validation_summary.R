@@ -9,7 +9,7 @@ test_that("Empty prediction horizon throws an error", {
 test_that("Daily aggregated data throws an error", {
   expect_error(
     summary(daily_time_period_result, pred_horizon_str = "1 week ahead"),
-    "Only weekly aggregated data suitable for validation summary. Please re-run forecast_time_period_epiestim with weekly_aggregate = TRUE"
+    "Only weekly aggregated data suitable for validation summary. Please re-run forecast_time_period_epiestim with time_period = weekly"
   )
 })
 
