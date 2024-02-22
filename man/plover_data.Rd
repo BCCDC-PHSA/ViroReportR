@@ -14,9 +14,6 @@ A data frame with over 1000 rows and 5 variables:
 \item{flu_b}{number of confirmed flu B cases}
 }
 }
-\source{
-"O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/plover_weekly_resp.rds"
-}
 \usage{
 plover_data
 }

@@ -13,6 +13,9 @@
     <loc>/articles/index.html</loc>
   </url>
   <url>
+    <loc>/articles/vriforecasting-model-fitting-epiestim.html</loc>
+  </url>
+  <url>
     <loc>/articles/vriforecasting-model-fitting-for-forecasts.html</loc>
   </url>
   <url>
@@ -52,7 +55,25 @@
     <loc>/reference/fit_epiestim_model.html</loc>
   </url>
   <url>
+    <loc>/reference/forecast_time_period.html</loc>
+  </url>
+  <url>
     <loc>/reference/forecast_time_period_epiestim.html</loc>
+  </url>
+  <url>
+    <loc>/reference/generate_forecast_report.html</loc>
+  </url>
+  <url>
+    <loc>/reference/generic_data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_daily_phrdw.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_phrdw_by_type_date_age.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_weekly_aggregated_data.html</loc>
   </url>
   <url>
     <loc>/reference/get_weekly_phrdw.html</loc>
@@ -73,6 +94,9 @@
     <loc>/reference/phrdw_data.html</loc>
   </url>
   <url>
+    <loc>/reference/plot.forecast_time_period.html</loc>
+  </url>
+  <url>
     <loc>/reference/plot.forecast_time_period_epiestim.html</loc>
   </url>
   <url>
@@ -82,6 +106,9 @@
     <loc>/reference/plot_all_time_period_forecast_data_helper.html</loc>
   </url>
   <url>
+    <loc>/reference/plot_validation.html</loc>
+  </url>
+  <url>
     <loc>/reference/plover_data.html</loc>
   </url>
   <url>
@@ -89,6 +116,9 @@
   </url>
   <url>
     <loc>/reference/rtrunc_norm.html</loc>
+  </url>
+  <url>
+    <loc>/reference/summary.forecast_time_period.html</loc>
   </url>
   <url>
     <loc>/reference/summary.forecast_time_period_epiestim.html</loc>

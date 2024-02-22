@@ -4,7 +4,7 @@
 #' @description Function to produce short-term forecasts using either the EpiEstim or EpiFilter algorithm
 #'
 #' @param data *data frame* containing two columns: date and confirm (number of cases per week)
-#' @param start_date_str Initial starting time-point. Must match a timepoint in the input dataset
+#' @param start_date Initial starting time-point. Must match a timepoint in the input dataset
 #' @param n_days The number of days to run simulations for. Defaults to 7
 #' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"
 #' @param time_period time period string (e.g. 'daily', 'weekly'). Default is daily

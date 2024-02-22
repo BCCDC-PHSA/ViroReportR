@@ -11,7 +11,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 status](https://www.r-pkg.org/badges/version/vriforecasting)](https://CRAN.R-project.org/package=vriforecasting)
 <!-- badges: end -->
 
-<img src="inst/vri_forecasting_hexSticker.png" width="40%" />
+<img src="man/figures/vri_forecasting_hexSticker.png" width="40%" />
 
 The goal of `vriforecasting` is to provide a toolbox to conveniently
 generate short-term forecasts (with accompanied diagnostics) for viral
@@ -47,7 +47,7 @@ Influenza-A.
 library(vriforecasting)
 #> ================================================
 #> Welcome to vriforecasting! 
-#> Please run `build_site(lazy = TRUE)` in your console 
+#> Please run `pkgdown::build_site(lazy = TRUE)` in your console 
 #> to access documentation on the package website 
 #> ================================================
 ```
@@ -59,11 +59,9 @@ data into a dataset with two columns: `date` and `confirm` in accordance
 to format accepted by the model fitting functions.
 
 ``` r
-weekly_plover_data <- get_weekly_plover(plover_data)
-
 disease_type <- "flu_a"
 weekly_plover_date_type <- get_weekly_plover_by_date_type(
-  weekly_plover_data = weekly_plover_data,
+  plover_data = plover_data,
   type = disease_type,
   start_date = "2022-10-01",
   end_date = "2022-12-01")
@@ -83,16 +81,18 @@ head(weekly_plover_date_type)
 ## Model fitting and forecasting over sliding windows
 
 The `forecast_time_period_epiestim` can be used to produce both daily
-and weekly forecasts using weekly sliding windows using `EpiEstim`.
+and weekly forecasts using weekly sliding windows. For this example, we
+produce forecasts using `EpiEstim` as the backend algorithm choice. The
+other current choice for the forecasting algorithm is `EpiFilter` (WIP).
 
 We can produce forecasts aggregated by week by setting
-`aggregate_week = TRUE`. For the functionality, `n_days` must be a
+`time_period = weekly`. For the functionality, `n_days` must be a
 multiple of 7. Thus, specifying `n_days = 14` when
-`aggregate_week = TRUE` produces 14/7 i.e. 2-week ahead forecasts.
+`time_period = weekly` produces 14/7 i.e. 2-week ahead forecasts.
 
 ``` r
-time_period_result_weekly <- forecast_time_period_epiestim(data = weekly_plover_date_type, 
-start_date_str = "2022-10-02", n_days = 14, type = "flu_a",  aggregate_week = TRUE)
+time_period_result_weekly <- forecast_time_period(data = weekly_plover_date_type, 
+start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "weekly" , algorithm = "EpiEstim")
 #> [1] "Current time period: 1 (2022-10-09)"
 #> [1] "Current time period: 2 (2022-10-16)"
 #> [1] "Current time period: 3 (2022-10-23)"
@@ -103,40 +103,40 @@ start_date_str = "2022-10-02", n_days = 14, type = "flu_a",  aggregate_week = TR
 #> [1] "Current time period: 8 (2022-11-27)"
 ```
 
-Finally, we can plot a validation plot using the `plotValidation`
+Finally, we can plot a validation plot using the `plot_validation`
 function. We can plot 2 week ahead forecasts for example by setting the
 `pred_horizon` argument.
 
 ``` r
-plotValidation(time_period_result_weekly, pred_horizon_str = "2 week ahead", pred_plot = "ribbon")
+plot_validation(time_period_result_weekly, pred_horizon_str = "2 week ahead", pred_plot = "ribbon")
 ```
 
 <img src="man/figures/README-unnamed-chunk-5-1.png" width="80%" style="display: block; margin: auto;" />
 
-The object of class `forecast_time_period_epiestim` produced by the
-`forecast_time_period_epiestim` function also has a customized `summary`
+The object of class `forecast_time_period` produced by the
+`forecast_time_period` function also has a customized `summary`
 function. This function checks to see if the weekly data inputted fall
 into the ranges of the prediction quantiles and issues a warning if this
 is not the case. This can be a useful check to assess the forecasts
 produced and the model fit along with the validation plot. It takes in
-the same arguments as the `plotValidation` function above:
+the same arguments as the `plot_validation` function above:
 
 ``` r
 summary(time_period_result_weekly, pred_horizon_str = "2 week ahead")
-#> Warning in summary.forecast_time_period_epiestim(time_period_result_weekly, :
-#> Prediction percentile intervals do not cover some data-points in validation
-#> fits. Some forecasts may not be reliable
+#> Warning in summary.forecast_time_period(time_period_result_weekly,
+#> pred_horizon_str = "2 week ahead"): Prediction percentile intervals do not cover
+#> some data-points in validation fits. Some forecasts may not be reliable
 #> $individual_quantiles
 #> # A tibble: 6 × 7
 #> # Groups:   weekly_date [6]
 #>   weekly_date coverage                   weighted_diff confirm median.prediction
 #>   <date>      <chr>                              <dbl>   <dbl>             <dbl>
-#> 1 2022-10-23  only 95 percentile interv…          588       38              24  
-#> 2 2022-10-30  only 95 percentile interv…        16651.      43             118. 
-#> 3 2022-11-06  50 and 95 percentile inte…            3       45              44  
-#> 4 2022-11-13  50 and 95 percentile inte…          147       73              66  
-#> 5 2022-11-20  only 95 percentile interv…         5167.      88              46.5
-#> 6 2022-11-27  Outside 95 percentile int…        70227       94             247  
+#> 1 2022-10-23  only 95 percentile interv…          1875      38                13
+#> 2 2022-10-30  only 95 percentile interv…          3072      43                75
+#> 3 2022-11-06  50 and 95 percentile inte…           363      45                34
+#> 4 2022-11-13  only 95 percentile interv…          2352      73                45
+#> 5 2022-11-20  only 95 percentile interv…          6912      88                40
+#> 6 2022-11-27  Outside 95 percentile int…         43200      94               214
 #> # ℹ 2 more variables: `50 percentile interval` <glue>,
 #> #   `95 percentile interval` <glue>
 #> 
@@ -144,12 +144,21 @@ summary(time_period_result_weekly, pred_horizon_str = "2 week ahead")
 #> # A tibble: 3 × 2
 #>   coverage                       count
 #>   <chr>                          <int>
-#> 1 50 and 95 percentile interval      2
+#> 1 50 and 95 percentile interval      1
 #> 2 Outside 95 percentile interval     1
-#> 3 only 95 percentile interval        3
+#> 3 only 95 percentile interval        4
 #> 
 #> $time_weighted_mspe
-#> [1] 124.3533
+#> [1] 98.12747
+```
+
+Finally, the `vriforecasting` package can conveniently generate an
+automated report for the current season for all supported viral
+respiratory diseases (Influenza-A, Influenza-B, RSV and SARS-CoV2) using
+the `generate_forecast_report` function, which renders an HTML report.
+
+``` r
+generate_forecast_report(output_dir = "PATH OF DIRECTORY")
 ```
 
 ## Work flow

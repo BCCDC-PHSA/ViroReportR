@@ -8,13 +8,15 @@ forecast_time_period(
   data,
   start_date,
   n_days = 7,
-  time_period = "daily",
+  time_period = "weekly",
   type = NULL,
   algorithm = "EpiEstim"
 )
 }
 \arguments{
 \item{data}{\emph{data frame} containing two columns: date and confirm (number of cases per week)}
+
+\item{start_date}{Initial starting time-point. Must match a timepoint in the input dataset}
 
 \item{n_days}{The number of days to run simulations for. Defaults to 7}
 
@@ -23,8 +25,6 @@ forecast_time_period(
 \item{type}{\emph{character} Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"}
 
 \item{algorithm}{argument to control if model fitting and forecasting is done by \code{EpiEstim} or \code{EpiFilter}}
-
-\item{start_date_str}{Initial starting time-point. Must match a timepoint in the input dataset}
 }
 \value{
 List of class \code{forecast_time_period}

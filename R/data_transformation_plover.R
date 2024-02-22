@@ -22,8 +22,6 @@
 #' @importFrom magrittr "%>%"
 #'
 #'
-#' @examples
-#' get_weekly_plover(plover_data)
 get_weekly_plover <- function(plover_data) {
   stopifnot(c("epiWeek_date", "epiWeek_year", "Epiweek", "flu_a", "flu_b") %in% colnames(plover_data))
 

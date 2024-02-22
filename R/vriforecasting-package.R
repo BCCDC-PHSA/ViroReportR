@@ -11,9 +11,10 @@
 #' @importFrom rlang .data
 #' @importFrom tibble tibble
 #' @importFrom utils tail
-#' @importFrom stats pnorm qnorm runif
+#' @importFrom stats pnorm qnorm runif dnorm dgamma runif quantile rpois
 #' @importFrom graphics plot
 #' @importFrom tidyr pivot_longer
 #' @importFrom glue glue
+#' @importFrom here here
 ## usethis namespace: end
 NULL

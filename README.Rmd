@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 ```{r, out.width = "40%", echo = FALSE}
-knitr::include_graphics(path = "inst/vri_forecasting_hexSticker.png")
+knitr::include_graphics(path = "man/figures/vri_forecasting_hexSticker.png")
 ```
 
 The goal of `vriforecasting` is to provide a toolbox to conveniently generate short-term forecasts (with accompanied diagnostics) for viral respiratory diseases.
@@ -54,11 +54,9 @@ library(vriforecasting)
 We will use the PLOVER weekly data for Influenza A, which is included with the `vriforecasting` package. We then use the `get_weekly_plover` and `get_weekly_plover_by_date_type` functions to transform the PLOVER data into a dataset with two columns: `date` and `confirm` in accordance to format accepted by the model fitting functions. 
 
 ```{r }
-weekly_plover_data <- get_weekly_plover(plover_data)
-
 disease_type <- "flu_a"
 weekly_plover_date_type <- get_weekly_plover_by_date_type(
-  weekly_plover_data = weekly_plover_data,
+  plover_data = plover_data,
   type = disease_type,
   start_date = "2022-10-01",
   end_date = "2022-12-01")
@@ -68,26 +66,33 @@ head(weekly_plover_date_type)
 
 ## Model fitting and forecasting over sliding windows 
 
-The `forecast_time_period_epiestim` can be used to produce both daily and weekly forecasts using weekly sliding windows using `EpiEstim`.
+The `forecast_time_period_epiestim` can be used to produce both daily and weekly forecasts using weekly sliding windows. For this example, we produce forecasts using `EpiEstim` as the backend algorithm choice. The other current choice for the forecasting algorithm is `EpiFilter` (WIP).
 
-We can produce forecasts aggregated by week by setting `aggregate_week = TRUE`. For the functionality, `n_days` must be a multiple of 7. Thus, specifying `n_days = 14` when `aggregate_week = TRUE` produces 14/7 i.e. 2-week ahead forecasts. 
+We can produce forecasts aggregated by week by setting `time_period = weekly`. For the functionality, `n_days` must be a multiple of 7. Thus, specifying `n_days = 14` when `time_period = weekly` produces 14/7 i.e. 2-week ahead forecasts. 
 
 ```{r message = FALSE}
-time_period_result_weekly <- forecast_time_period_epiestim(data = weekly_plover_date_type, 
-start_date_str = "2022-10-02", n_days = 14, type = "flu_a",  aggregate_week = TRUE)
+time_period_result_weekly <- forecast_time_period(data = weekly_plover_date_type, 
+start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "weekly" , algorithm = "EpiEstim")
 ```
 
-Finally, we can plot a validation plot using the `plotValidation` function. We can plot 2 week ahead forecasts for example by setting the `pred_horizon` argument. 
+Finally, we can plot a validation plot using the `plot_validation` function. We can plot 2 week ahead forecasts for example by setting the `pred_horizon` argument. 
 
 ```{r , dpi = 300, fig.align = "center", fig.height = 5, fig.width = 5, out.width= '80%'}
-plotValidation(time_period_result_weekly, pred_horizon_str = "2 week ahead", pred_plot = "ribbon")
+plot_validation(time_period_result_weekly, pred_horizon_str = "2 week ahead", pred_plot = "ribbon")
 ```
 
-The object of class `forecast_time_period_epiestim` produced by the `forecast_time_period_epiestim` function also has a customized `summary` function. This function checks to see if the weekly data inputted fall into the ranges of the prediction quantiles and issues a warning if this is not the case. This can be a useful check to assess the forecasts produced and the model fit along with the validation plot. It takes in the same arguments as the `plotValidation` function above:
+The object of class `forecast_time_period` produced by the `forecast_time_period` function also has a customized `summary` function. This function checks to see if the weekly data inputted fall into the ranges of the prediction quantiles and issues a warning if this is not the case. This can be a useful check to assess the forecasts produced and the model fit along with the validation plot. It takes in the same arguments as the `plot_validation` function above:
 
 ```{r}
 summary(time_period_result_weekly, pred_horizon_str = "2 week ahead")
 ```
+
+Finally, the `vriforecasting` package can conveniently generate an automated report for the current season for all supported viral respiratory diseases (Influenza-A, Influenza-B, RSV and SARS-CoV2) using the `generate_forecast_report` function, which renders an HTML report.
+
+```{r eval = FALSE}
+generate_forecast_report(output_dir = "PATH OF DIRECTORY")
+```
+
 
 ## Work flow
 

@@ -16,9 +16,6 @@ A data frame with over 8000 rows and 7 variables:
 \item{flu_b}{number of confirmed flu B cases}
 }
 }
-\source{
-"O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/phrdw_flu_daily_count_vpp_only.rData"
-}
 \usage{
 phrdw_data
 }
