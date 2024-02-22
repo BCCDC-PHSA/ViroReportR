@@ -9,7 +9,7 @@
 #'
 #' @param data *data frame* containing two columns: date and confirm (number of cases)
 #' @param dt *Integer* 	length of temporal aggregations of the incidence data. This should be an integer or vector of integers. The default value is 7 time units (1 week).
-#' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"
+#' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "custom"
 #' @param mean_si *Numeric* User specification of mean of parametric serial interval
 #' @param std_si *Numeric* User specification of standard deviation of parametric serial interval
 #' @param recon_opt One of "naive" or "match" to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page)
@@ -26,70 +26,69 @@
 #' fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a")
 #'
 fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
-                      method = "parametric_si", mean_prior = NULL, std_prior = NULL, ...) {
+                               method = "parametric_si", mean_prior = NULL, std_prior = NULL, ...) {
 
   confirm <- NULL
   incid <- data$confirm
   if (!is.data.frame(data) || !all(colnames(data) %in% c("date", "confirm"))) {
     stop("Must pass a data frame with two columns: date and confirm")
   }
-  if (missing(type) || !(type %in% c("flu_a", "flu_b", "sars_cov2", "rsv", "other"))) {
-    stop("Must specify the type of epidemic (flu_a, flu_b, covid, rsv or other)")
+  if (missing(type) || !(type %in% c("flu_a", "flu_b", "sars_cov2", "rsv", "custom"))) {
+    stop("Must specify the type of epidemic (flu_a, flu_b, covid, rsv or custom)")
   }
-  if (type == "other" && is.null(mean_si) && is.null(std_si)) {
-    stop("Must specify mean and standard deviation of parametric serial interval for type other")
+  if (type == "custom" && any(is.null(mean_si), is.null(std_si), is.null(mean_prior), is.null(std_prior))) {
+    stop("Must specify mean_si, std_si, mean_prior and std_prior for type custom")
   }
+
+  if (type != "custom" && any(!is.null(mean_si), !is.null(std_si), !is.null(mean_prior), !is.null(std_prior))) {
+    warning("Custom mean_si, std_s, mean_prior and std_prior can only be specified with type set to custom. Default config values were used")
+  }
+
   data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
   if (data_lag != 7 && dt == 7L) {
-    warning("Your data may not be weekly data. Please check input.
-            We recommend only weekly data be input into EpiEstim for optimal performance")
+    warning("Your data may not be weekly data. Please check input. We recommend only weekly data be input into EpiEstim for optimal performance")
   }
 
-  if (is.null(mean_si) && is.null(std_si)) {
-    if (type == "flu_a") {
-      config <- EpiEstim::make_config(list(
-        mean_si = 3.1,
-        std_si = 1.6,
-        mean_prior = 1,
-        std_prior = 0.5
-      ))
-    } else if (type == "flu_b") {
-        config <- EpiEstim::make_config(list(
-          mean_si = 3.7,
-          std_si = 2.1,
-          mean_prior = 1,
-          std_prior = 0.5
+  # 6. Providing default values
+  if (is.null(mean_si)) mean_si <- switch(type,
+                                          "flu_a" = 3.1,
+                                          "flu_b" = 3.7,
+                                          "rsv" = 7.5,
+                                          "sars_cov2" = 2.75,
+                                          "custom" = NULL)
+  if (is.null(std_si)) std_si <- switch(type,
+                                        "flu_a" = 1.6,
+                                        "flu_b" = 2.1,
+                                        "rsv" = 2.1,
+                                        "sars_cov2" = 2.53,
+                                        "custom" = NULL)
+  if (is.null(mean_prior)) mean_prior <- switch(type,
+                                                "flu_a" = 1,
+                                                "flu_b" = 1,
+                                                "rsv" = 1,
+                                                "sars_cov2" = 2,
+                                                "custom" = NULL)
+  if (is.null(std_prior)) std_prior <- switch(type,
+                                              "flu_a" = 1,
+                                              "flu_b" = 1,
+                                              "rsv" = 1,
+                                              "sars_cov2" = 2,
+                                              "custom" = NULL)
 
-        ))
-    } else if (type == "rsv") {
-      config <- EpiEstim::make_config(list(
-        mean_si = 7.5,
-        std_si = 2.1,
-        mean_prior = 1,
-        std_prior = 0.5
-      ))
-    } else if (type == "sars_cov2") {
-      config <- EpiEstim::make_config(list(
-        mean_si = 2.75,
-        std_si = 2.53,
-        mean_prior = 2,
-        std_prior = 1
-      ))
-  } else {
-    config <- EpiEstim::make_config(list(
-      mean_si = mean_si,
-      std_si = std_si,
-      mean_prior = mean_prior,
-      std_prior = std_prior
-    ))
-  }
-  }
+  # 7. Configuring based on type
+  config <- EpiEstim::make_config(list(
+                     mean_si = mean_si,
+                     std_si = std_si,
+                     mean_prior = mean_prior,
+                     std_prior = std_prior
+                   ))
+
   a_prior <- (config$mean_prior / config$std_prior)^2
   min_nb_cases_per_time_period <- ceiling(1 / config$cv_posterior^2 - a_prior)
   if (data$confirm[1] < min_nb_cases_per_time_period) {
     reliable_date_data <- data %>%
       dplyr::filter(confirm >= min_nb_cases_per_time_period)
-       incid <- reliable_date_data$confirm
+    incid <- reliable_date_data$confirm
     warning(
       "Incidence is too low on the current start date. R estimation started from ", reliable_date_data$date[1],
       " for an accurate estimate of the reproduction number with EpiEstim"
