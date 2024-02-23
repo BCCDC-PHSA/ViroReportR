@@ -118,6 +118,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #' @param n_days Number of days to forecast ahead. Defaults to 7
 #' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"
 #' @param time_period time period string (e.g. 'daily', 'weekly'). Default is daily
+#' @param verbose set to true to display progress output
 #' @param ... Pass on optional arguments from \code{fit_epiestim_model}
 #'
 #'
@@ -140,7 +141,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #'   start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "weekly"
 #' )
 forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "daily",
-                                          type = NULL, ...) {
+                                          type = NULL, verbose = FALSE, ...) {
   sim <- week_date <- daily_date <- NULL
   if (!(lubridate::ymd(start_date) %in% data$date)) {
     stop("Start date not present in dataset. Please check your input")
@@ -157,7 +158,9 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
   data = data, min_model_date_str = start_date,
   extension_interval = tp
   )
+  if (isTRUE(verbose)) {
   print(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
+  }
  cur_model <- fit_epiestim_model(model_data, type = type, ...)
     cur_daily_samples <- extract_daily_samples_epiestim_fit(data = model_data, model_fit = cur_model, n_days = n_days)
     cur_daily_samples <- cur_daily_samples %>%

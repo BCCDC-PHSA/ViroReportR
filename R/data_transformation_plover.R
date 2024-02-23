@@ -87,9 +87,9 @@ get_weekly_plover_by_date_type <- function(plover_data, type, start_date, end_da
   )
   stopifnot("start date is later than the end date" = (start_date < end_date))
 
-  epiWeek_date <- NULL
-
   weekly_plover_data <- get_weekly_plover(plover_data)
+
+  epiWeek_date <- NULL
 
   filtered_weekly_plover_data <- weekly_plover_data %>%
     dplyr::filter(

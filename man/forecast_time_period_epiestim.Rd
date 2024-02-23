@@ -10,6 +10,7 @@ forecast_time_period_epiestim(
   n_days = 7,
   time_period = "daily",
   type = NULL,
+  verbose = FALSE,
   ...
 )
 }
@@ -23,6 +24,8 @@ forecast_time_period_epiestim(
 \item{time_period}{time period string (e.g. 'daily', 'weekly'). Default is daily}
 
 \item{type}{\emph{character} Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"}
+
+\item{verbose}{set to true to display progress output}
 
 \item{...}{Pass on optional arguments from \code{fit_epiestim_model}}
 }

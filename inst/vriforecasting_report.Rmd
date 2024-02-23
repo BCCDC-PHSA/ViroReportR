@@ -7,7 +7,7 @@ Description:
 
 Forecast report for each RVI (Flu-A, Flu-B, RSV, and SARS-CoV2) for all population (PLOVER) and pediatric only population (PHRDW).
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, message = FALSE, warning = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 # setup -------------------------------------------------------------------
@@ -15,105 +15,230 @@ library(dplyr)
 library(vriforecasting)
 library(ggplot2)
 library(here)
+
+# Read in config file 
+config <- yaml::yaml.load_file("config.yml")
 ```
 
 # Load PHRDW and PLOVER data
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-# load plover data
-#raw_plover_data <- readRDS("O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/plover_weekly_resp.rds")
+#raw_phrdw_data <- config$PHRDW$path
 
-raw_plover_data <- plover_data
-# load phrdw data
-#load("O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/phrdw_flu_daily_count_vpp_only.rData")
-# named `phrdw_flu_daily_count`
-#raw_phrdw_data <- phrdw_flu_daily_count
+load("~/Desktop/bccdc/vriforecasting/dat_test/phrdw_flu_daily_count_vpp_only.rData")
 
-raw_phrdw_data <- phrdw_data
+raw_plover_data <-readRDS("~/Desktop/bccdc/vriforecasting/dat_test/plover_weekly_resp.rds")
+
+raw_phrdw_data <- phrdw_flu_daily_count
 ```
 
-# Observed Trends in Confirmed Cases {.tabset .tabset-pills}
+# Weekly observed Trends in Confirmed Cases {.tabset .tabset-pills}
 
 ## PLOVER {.tabset .tabset-fade}
 
 ### Flu A 
 
 ```{r echo=FALSE}
-plover_data_clean <- get_weekly_plover_by_date_type(
+plover_flua <- get_weekly_plover_by_date_type(
    raw_plover_data,
    "flu_a",
-   "2019-01-01",
+   "2022-09-18",
    "2023-12-31"
  )
 
-ggplot(plover_data_clean, aes(x=date, y=confirm)) + geom_line()
+ggplot(plover_flua, aes(x=date, y=confirm)) + geom_line() + theme_bw() + labs(x = "Time", y = "Confirmed Cases")
 ```
 
 ### Flu B 
 
 ```{r echo=FALSE}
-plover_data_clean <- get_weekly_plover_by_date_type(
+plover_flub <- get_weekly_plover_by_date_type(
    raw_plover_data,
    "flu_b",
-   "2019-01-01",
+   "2021-10-31",
    "2023-12-31"
  )
 
-ggplot(plover_data_clean, aes(x=date, y=confirm)) + geom_line()
+ggplot(plover_flub, aes(x=date, y=confirm)) + geom_line() + theme_bw() + labs(x = "Time", y = "Confirmed Cases")
 ```
 
 
-## PHRDW {.tabset .tabset-fade}
+
+## PHRDW (pediatric population only) {.tabset .tabset-fade}
 
 ### Flu A {.tabset .tabset-fade}
 
 ```{r echo=FALSE}
-phrdw_data_clean <- get_phrdw_by_type_date_age(
+phrdw_clean_flua <- get_phrdw_by_type_date_age(
    raw_phrdw_data,
+   time_period = "weekly",
    "flu_a",
-   "2021-01-01",
+   "2022-09-18",
    "2023-12-31", 
-   time_period = "weekly"
- )
+   start_age = 0, 
+   end_age = 18
+   )
 
-ggplot(phrdw_data_clean, aes(x=date, y=confirm)) + geom_line()
+ggplot(phrdw_clean_flua, aes(x=date, y=confirm)) + geom_line() + theme_bw() + labs(x = "Time", y = "Confirmed Cases")
 ```
 
 ### Flu B {.tabset .tabset-fade}
 
 ```{r echo=FALSE}
-phrdw_data_clean <- get_phrdw_by_type_date_age(
+phrdw_clean_flub <- get_phrdw_by_type_date_age(
    raw_phrdw_data,
+   time_period = "weekly",
    "flu_b",
-   "2021-01-01",
-   "2023-12-31",
-   time_period = 'weekly'
- )
+   "2021-10-31",
+   "2023-12-31", 
+   start_age = 0, 
+   end_age = 18
+   )
 
-ggplot(phrdw_data_clean, aes(x=date, y=confirm)) + geom_line()
+ggplot(phrdw_clean_flub, aes(x=date, y=confirm)) + geom_line() + theme_bw() + labs(x = "Time", y = "Confirmed Cases")
 ```
-
-
-
 
 ### RSV {.tabset .tabset-fade}
 
 ```{r echo=FALSE}
-phrdw_data_clean <- get_phrdw_by_type_date_age(
+phrdw_clean_rsv <- get_phrdw_by_type_date_age(
    raw_phrdw_data,
+   time_period = "weekly",
    "rsv",
-   "2021-01-01",
-   "2023-12-31",
-   time_period = 'weekly'
- )
+   "2021-10-17",
+   "2023-12-31", 
+   start_age = 0, 
+   end_age = 18
+   )
 
-ggplot(phrdw_data_clean, aes(x=date, y=confirm)) + geom_line()
+ggplot(phrdw_clean_rsv, aes(x=date, y=confirm)) + geom_line() + theme_bw() + labs(x = "Time", y = "Confirmed Cases")
 ```
 
-# Model Forecast {.tabset}
+### SARS-CoV2 {.tabset .tabset-fade}
+
+```{r echo=FALSE}
+phrdw_clean_covid <- get_phrdw_by_type_date_age(
+   raw_phrdw_data,
+   time_period = "weekly",
+   "sars_cov2",
+   "2022-02-20",
+   "2023-12-31", 
+   start_age = 0, 
+   end_age = 18
+   )
+
+ggplot(phrdw_clean_covid, aes(x=date, y=confirm)) + geom_line() + theme_bw() + labs(x = "Time", y = "Confirmed Cases")
+```
+
+# 1-week ahead Model Forecast {.tabset}
 
 ## PLOVER {.tabset .tabset-fade}
 
-### Previous Season {.tabset .tabset-fade}
+### Flu A {.tabset .tabset-fade}
 
-#### Flu A {.tabset .tabset-fade}
+```{r echo=FALSE, message = FALSE}
+forecast_flu_a_plover <- forecast_time_period(plover_flua, type = "flu_a", n_days = 7, start_date = "2022-09-18")
+
+plot_validation(forecast_flu_a_plover, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
+```
+
+
+### Flu B {.tabset .tabset-fade}
+
+
+```{r echo=FALSE, message = FALSE}
+forecast_flu_b_plover <- forecast_time_period(plover_flub, type = "flu_b", n_days = 7, start_date = "2021-10-31")
+
+plot_validation(forecast_flu_b_plover, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
+```
+
+
+
+## PHRDW (pediatric population only) {.tabset .tabset-fade}
+
+### Flu A {.tabset .tabset-fade}
+
+
+```{r echo=FALSE, message = FALSE}
+forecast_flu_a <- forecast_time_period(phrdw_clean_flua, type = "flu_a", n_days = 7, start_date = "2022-09-18")
+
+plot_validation(forecast_flu_a, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
+```
+
+### Flu B {.tabset .tabset-fade}
+
+```{r echo=FALSE, message = FALSE}
+forecast_flu_b <- forecast_time_period(phrdw_clean_flub, type = "flu_b", n_days = 7, start_date = "2021-10-31")
+
+plot_validation(forecast_flu_b, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
+```
+
+### RSV {.tabset .tabset-fade}
+
+```{r echo=FALSE, message = FALSE}
+forecast_flu_rsv <- forecast_time_period(phrdw_clean_rsv, type = "rsv", n_days = 7, start_date = "2021-10-17")
+
+plot_validation(forecast_flu_rsv, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
+```
+
+
+### SARS-CoV2 {.tabset .tabset-fade}
+
+```{r echo=FALSE, message = FALSE}
+forecast_flu_covid <- forecast_time_period(phrdw_clean_covid, type = "sars_cov2", n_days = 7, start_date = "2022-02-20")
+
+plot_validation(forecast_flu_covid, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
+```
+
+# Forecast validation metrics {.tabset}
+
+
+## PLOVER {.tabset .tabset-fade}
+
+### Flu A {.tabset .tabset-fade}
+
+```{r echo = FALSE}
+summary(forecast_flu_a_plover, pred_horizon_str = "1 week ahead")
+```
+
+
+### Flu B {.tabset .tabset-fade}
+
+```{r echo = FALSE}
+summary(forecast_flu_b_plover, pred_horizon_str = "1 week ahead")
+```
+
+
+
+## PHRDW (pediatric population only) {.tabset .tabset-fade}
+
+### Flu A {.tabset .tabset-fade}
+
+```{r echo = FALSE}
+summary(forecast_flu_a, pred_horizon_str = "1 week ahead")
+```
+
+
+### Flu B {.tabset .tabset-fade}
+
+```{r echo = FALSE}
+summary(forecast_flu_b, pred_horizon_str = "1 week ahead")
+```
+
+
+### RSV {.tabset .tabset-fade}
+
+```{r echo = FALSE}
+summary(forecast_flu_rsv, pred_horizon_str = "1 week ahead")
+```
+
+
+### SARS-CoV2 {.tabset .tabset-fade}
+
+```{r echo = FALSE}
+summary(forecast_flu_covid, pred_horizon_str = "1 week ahead")$quantile_summary
+
+summary(forecast_flu_covid, pred_horizon_str = "1 week ahead")$time_weighted_mspe
+```
+
+

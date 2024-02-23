@@ -1,0 +1,5 @@
+PLOVER:
+  path: "O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/plover_weekly_resp.rds"
+  
+PHRDW:
+  path: "O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/phrdw_flu_daily_count_vpp_only.rData"

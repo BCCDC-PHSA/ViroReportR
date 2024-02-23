@@ -109,7 +109,7 @@ plot_validation <- function(time_period_result, pred_horizon_str = NULL, pred_pl
         axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
       ) +
       ggplot2::scale_colour_manual(values = c("#471164FF")) +
-      ggplot2::scale_x_date(date_breaks = "1 week", date_labels = "%b %d")
+      ggplot2::scale_x_date(date_breaks = "1 month", date_labels = "%b %d")
   }
   return(p)
 }
