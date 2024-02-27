@@ -201,7 +201,7 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
     p <- data_proj %>%
       dplyr::mutate(incidence = incidence) %>%
       create_quantiles(date, variable = "incidence") %>%
-      ggplot2::ggplot(ggplot2::aes(x = date)) +
+      ggplot2::ggplot(data = data_proj, ggplot2::aes(x = date, group = 1)) +
       ggplot2::theme_bw() +
       ggplot2::geom_ribbon(ggplot2::aes(ymin = p025, ymax = p975), fill = "#08519C", alpha = 0.25) +
       ggplot2::geom_ribbon(ggplot2::aes(ymin = p25, ymax = p75), fill = "#08519C", alpha = 0.25) +
@@ -210,7 +210,7 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
       ggplot2::scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
       ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
       ggplot2::labs(
-        x = "Time", y = paste("Weekly projection of confirmed \ncases starting from", max(cur_time_period_result$model_data_date), sep = " "),
+        x = "", y = paste("Weekly projection of confirmed \ncases starting from", max(cur_time_period_result$model_data_date), sep = " "),
         fill = "", color = ""
       )
   } else if (aggregate_unit == "daily") {
@@ -231,7 +231,7 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
       ggplot2::scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
       ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
       ggplot2::labs(
-        x = "Time", y = paste("Weekly projection of confirmed \ncases starting from", max(cur_time_period_result$model_data_date), sep = " "),
+        x = "", y = paste("Weekly projection of confirmed \ncases starting from", max(cur_time_period_result$model_data_date), sep = " "),
         fill = "", color = ""
       )
   }

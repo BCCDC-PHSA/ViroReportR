@@ -20,25 +20,25 @@ library(here)
 config <- yaml::yaml.load_file("config.yml")
 ```
 
-# Load PHRDW and PLOVER data
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-#raw_phrdw_data <- config$PHRDW$path
+raw_plover_data <- readRDS("~/Desktop/bccdc/vriforecasting/dat_test/plover_weekly_resp.rds")
+raw_phrdw_data <- config$PHRDW$path
 
-load("~/Desktop/bccdc/vriforecasting/dat_test/phrdw_flu_daily_count_vpp_only.rData")
-
-raw_plover_data <-readRDS("~/Desktop/bccdc/vriforecasting/dat_test/plover_weekly_resp.rds")
-
-raw_phrdw_data <- phrdw_flu_daily_count
+raw_plover_data <- config$PLOVER$path
 ```
 
-# Weekly observed Trends in Confirmed Cases {.tabset .tabset-pills}
+## Current season forecast
+
+# Include current Rt value
 
 ## PLOVER {.tabset .tabset-fade}
 
 ### Flu A 
 
 ```{r echo=FALSE}
+# Dates min and max 
+# Log file 
 plover_flua <- get_weekly_plover_by_date_type(
    raw_plover_data,
    "flu_a",
@@ -132,14 +132,19 @@ ggplot(phrdw_clean_covid, aes(x=date, y=confirm)) + geom_line() + theme_bw() + l
 
 # 1-week ahead Model Forecast {.tabset}
 
+# Plot Rt out 
+
 ## PLOVER {.tabset .tabset-fade}
 
 ### Flu A {.tabset .tabset-fade}
 
 ```{r echo=FALSE, message = FALSE}
-forecast_flu_a_plover <- forecast_time_period(plover_flua, type = "flu_a", n_days = 7, start_date = "2022-09-18")
+forecast_flu_a_plover <- forecast_time_period(plover_flua, type = "flu_a", n_days = 14, start_date = "2022-09-18")
 
-plot_validation(forecast_flu_a_plover, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
+plot(forecast_flu_a_plover) +
+  scale_x_date(limits = as.Date(c('2023-12-01','2024-01-15')))
+
+plot_validation(forecast_flu_a_plover, pred_horizon_str = "1 week ahead", pred_plot = "ribbon") 
 ```
 
 
@@ -188,6 +193,8 @@ plot_validation(forecast_flu_rsv, pred_horizon_str = "1 week ahead", pred_plot =
 forecast_flu_covid <- forecast_time_period(phrdw_clean_covid, type = "sars_cov2", n_days = 7, start_date = "2022-02-20")
 
 plot_validation(forecast_flu_covid, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
+# year labels underneath 
+# get rid of time 
 ```
 
 # Forecast validation metrics {.tabset}
@@ -236,6 +243,7 @@ summary(forecast_flu_rsv, pred_horizon_str = "1 week ahead")
 ### SARS-CoV2 {.tabset .tabset-fade}
 
 ```{r echo = FALSE}
+# percentage, last should be out of 95
 summary(forecast_flu_covid, pred_horizon_str = "1 week ahead")$quantile_summary
 
 summary(forecast_flu_covid, pred_horizon_str = "1 week ahead")$time_weighted_mspe

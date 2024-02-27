@@ -60,14 +60,14 @@ The function provides progress updates as it is running about the current time p
 
 ```{r message = FALSE}
 time_period_result_daily <- forecast_time_period(data = 
-weekly_plover_date_type, start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "weekly", 
+weekly_plover_date_type, start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "daily", 
 algorithm = "EpiEstim")
 ```
 
 The forecasts can then be plotted at all the sliding windows used using the `plot` function which uses the output of `forecast_time_period`. The function takes in an object of of class `forecast_time_period`
 
 ```{r forecast_plot, dpi = 300, out.width = "70%"}
-plot(time_period_result_daily, time_period = 8)
+plot(time_period_result_daily, time_period = 8) 
 ```
 
 We can also produce forecasts aggregated by week by setting `time_period = "weekly"`. For the functionality, `n_days` must be a multiple of 7. Thus, specifying `n_days = 14` when `time_period = "weekly` produces 14/7 i.e. 2-week ahead forecasts. 
@@ -81,7 +81,7 @@ start_date = "2022-10-02", n_days = 14, type = "flu_a",  time_period = "weekly",
 Optionally, one can also choose to plot the forecast for a single time period by specifying the time period using the `time_period` argument:
 
 ```{r forecast_plot_weekly, dpi = 300, out.width= '80%'}
-plot(time_period_result_weekly, time_period = 1)
+plot(time_period_result_weekly) 
 ```
 
 Finally, we can plot a validation violin plot using the `plot_validation` function. As the `EpiEstim` model fit is compatible with weekly forecasted data. this plot does not support daily forecasts. We can plot 1 week ahead forecasts for example by setting the `pred_horizon` argument. The function can produce either a `violin` or `ribbon` plot, which can be controlled by the `pred_plot` argument: 

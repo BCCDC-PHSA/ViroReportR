@@ -81,6 +81,7 @@ get_weekly_plover <- function(plover_data) {
 #'   "2022-12-05"
 #' )
 get_weekly_plover_by_date_type <- function(plover_data, type, start_date, end_date) {
+  # Include RSV and covid
   stopifnot(
     "invalid disease type, available options: 'flu_a', 'flu_b'" =
       type %in% c("flu_a", "flu_b")

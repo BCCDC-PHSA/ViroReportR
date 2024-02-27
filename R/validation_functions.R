@@ -201,8 +201,8 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
 #' plot(daily_time_period_result)
 plot.forecast_time_period <- function(x, time_period = NULL, ...) {
   if (is.null(time_period)) {
-    times_plots <- lapply(x, plot_all_time_period_forecast_data_helper)
-    times_plots
+    forecast_plot <- plot_all_time_period_forecast_data_helper(x[[length(x)]])
+    forecast_plot
   } else {
     if (time_period > length(x)) {
       stop("Time period index out of bounds. Please cross-check the time_period input with the length of your time_period_result object")
