@@ -72,7 +72,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
                                               "flu_a" = 1,
                                               "flu_b" = 1,
                                               "rsv" = 1,
-                                              "sars_cov2" = 2,
+                                              "sars_cov2" = 1,
                                               "custom" = NULL)
 
   # 7. Configuring based on type
@@ -83,17 +83,6 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
                      std_prior = std_prior
                    ))
 
-  a_prior <- (config$mean_prior / config$std_prior)^2
-  min_nb_cases_per_time_period <- ceiling(1 / config$cv_posterior^2 - a_prior)
-  if (data$confirm[1] < min_nb_cases_per_time_period) {
-    reliable_date_data <- data %>%
-      dplyr::filter(confirm >= min_nb_cases_per_time_period)
-    incid <- reliable_date_data$confirm
-    warning(
-      "Incidence is too low on the current start date. R estimation started from ", reliable_date_data$date[1],
-      " for an accurate estimate of the reproduction number with EpiEstim"
-    )
-  }
   epiestim_estimates <- NULL
   epiestim_estimates <- suppressWarnings(EpiEstim::estimate_R(
     incid = incid,
@@ -153,6 +142,7 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
   start_index <- which(data$date == lubridate::ymd(start_date))
   time_length <- nrow(data) - start_index
   time_index <- seq_len(time_length)
+
  time_period_result <- lapply(time_index, function(tp) {
   model_data <- extend_rows_model_data(
   data = data, min_model_date_str = start_date,

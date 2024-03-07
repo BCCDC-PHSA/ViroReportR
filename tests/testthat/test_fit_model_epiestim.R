@@ -52,10 +52,6 @@ test_that("Function throws a warning when daily data is input", {
                "Your data may not be weekly data. Please check input. We recommend only weekly data be input into EpiEstim for optimal performance", fixed = TRUE)
 })
 
-test_that("Function throws warning when the incidence at the start date is too low", {
-  expect_warning(fit_epiestim_model(data = weekly_plover_dup, type = "flu_a"),
-                 "Incidence is too low on the current start date. R estimation started from 2022-10-09 for an accurate estimate of the reproduction number with EpiEstim")
-})
 
 test_that("Types other than custom do not use custom arguments", {
   expect_warning(fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a", mean_prior = 5.5),
@@ -76,9 +72,6 @@ test_that("Function produces estimate_R object as output with all columns", {
   ))
 })
 
-test_that("Function automatically movies to date with highest incidence if first date is not sufficient", {
-  expect_equal(length(suppressWarnings(fit_epiestim_model(data = weekly_plover_dup, type = "flu_a"))$I), 56)
-})
 
 test_that("Custom mean_si and std_si are used in place of default  when type is custom", {
   expect_equal(fit_epiestim_model(data = weekly_transformed_plover_data, type = "custom", mean_si = 5.5, std_si = 0.2, mean_prior = 2, std_prior = 1)$SI.Moments$Mean, 5.5)

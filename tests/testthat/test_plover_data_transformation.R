@@ -27,7 +27,7 @@ test_that("invalid disease type handling correct", {
       start_date = "2022-10-01",
       end_date = "2022-12-01"
     ),
-    "invalid disease type, available options: 'flu_a', 'flu_b'"
+    "invalid disease type, available options: 'flu_a', 'flu_b', 'rsv' and 'sars_cov2'"
   )
 })
 

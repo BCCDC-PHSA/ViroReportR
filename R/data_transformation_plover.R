@@ -23,19 +23,20 @@
 #'
 #'
 get_weekly_plover <- function(plover_data) {
-  stopifnot(c("epiWeek_date", "epiWeek_year", "Epiweek", "flu_a", "flu_b") %in% colnames(plover_data))
+  stopifnot(c("epiWeek_date", "epiWeek_year", "Epiweek", "flu_a", "flu_b", "rsv", "sars_cov2")
+            %in% colnames(plover_data))
 
   epiWeek_date <- epiWeek_year <- Epiweek <- type <- flu_cases <- NULL
 
   agg_plover_data_date_type <- plover_data %>%
     tidyr::pivot_longer(
-      cols = c("flu_a", "flu_b"),
-      names_to = "type", values_to = "flu_cases"
+      cols = c("flu_a", "flu_b", "rsv", "sars_cov2"),
+      names_to = "type", values_to = "vri_cases"
     ) %>%
     dplyr::group_by(epiWeek_date, epiWeek_year, Epiweek, type) %>%
-    dplyr::summarise(flu_cases = sum(flu_cases)) %>%
+    dplyr::summarise(vri_cases = sum(vri_cases), .groups = "keep") %>%
     dplyr::ungroup() %>%
-    tidyr::pivot_wider(names_from = "type", values_from = "flu_cases")
+    tidyr::pivot_wider(names_from = "type", values_from = "vri_cases")
 
   return(agg_plover_data_date_type)
 }
@@ -50,7 +51,7 @@ get_weekly_plover <- function(plover_data) {
 #' 2. Selects the epiweek date & flu type columns.
 #' 3. Renames the epiweek date as `date` & the flu type as `confirm`.
 #'
-#' The input flu type must be 'flu_a' or 'flu_b'.
+#' The input disease type must be one of 'sars_cov2', 'rsv', 'flu_a', 'flu_b'
 #'
 #' The input start date must be earlier than the input end date.
 #'
@@ -62,7 +63,7 @@ get_weekly_plover <- function(plover_data) {
 #' * `flu_b`: Confirmed Cases Count (e.g. 1, 2, ...)
 #'
 #' @param plover_data raw plover data before any transformation
-#' @param type disease type string (e.g. 'flu_a', 'flu_b')
+#' @param type disease type (e.g. 'sars_cov2', 'rsv', 'flu_a', 'flu_b')
 #' @param start_date start date string (e.g. '2022-01-01')
 #' @param end_date end date string (e.g. '2022-12-31')
 #'
@@ -80,11 +81,13 @@ get_weekly_plover <- function(plover_data) {
 #'   "2022-10-01",
 #'   "2022-12-05"
 #' )
-get_weekly_plover_by_date_type <- function(plover_data, type, start_date, end_date) {
-  # Include RSV and covid
+get_weekly_plover_by_date_type <- function(plover_data, type, start_date = min(plover_data$epiWeek_date), end_date =
+                                             max(plover_data$epiWeek_date)) {
+  plover_data <- plover_data %>%
+    rename("sars_cov2" = corona)
   stopifnot(
-    "invalid disease type, available options: 'flu_a', 'flu_b'" =
-      type %in% c("flu_a", "flu_b")
+    "invalid disease type, available options: 'flu_a', 'flu_b', 'rsv' and 'sars_cov2'" =
+      type %in% c("flu_a", "flu_b", "rsv", "sars_cov2")
   )
   stopifnot("start date is later than the end date" = (start_date < end_date))
 

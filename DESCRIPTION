@@ -39,7 +39,9 @@ Imports:
     tidyr,
     glue,
     here,
-    yaml
+    yaml,
+    DT,
+   emojifont
 VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)

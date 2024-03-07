@@ -3,148 +3,242 @@ title: "Summary report of short-term forecasts for viral respiratory diseases by
 output: html_document
 ---
 
-Description: 
+## Description: 
 
-Forecast report for each RVI (Flu-A, Flu-B, RSV, and SARS-CoV2) for all population (PLOVER) and pediatric only population (PHRDW).
+This report provides the forecast of 1-week ahead confirmed cases for the 4 prevalent respiratory viral cases in BC (Flu-A, Flu-B, RSV and SAR-CoV2). Forecast reports were generated using both the weekly-aggregated data population (PLOVER) and the weekly-aggregated pediatric only population data (PHRDW). `vriforecasting` uses `EpiEstim` as the backend to forecast weekly confirmed cases, which forecasts cases using the time varying instantaneous reproduction number during the epidemic. The report is divided into two sections: 1-week forecast for the current season of respiratory cases as well as validation plots and metrics for the performance of the forecasting model on historical data to help in the assessment of model performance. 
 
 ```{r setup, include=FALSE, message = FALSE, warning = FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 # setup -------------------------------------------------------------------
 library(dplyr)
 library(vriforecasting)
 library(ggplot2)
 library(here)
+library(DT)
+
 
 # Read in config file 
 config <- yaml::yaml.load_file("config.yml")
 ```
 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, eval = FALSE}
+# Data setup and cleaning code
+disease_types <- c("flu_a", "flu_b", "sars_cov2", "rsv")
+
+
 raw_plover_data <- readRDS("~/Desktop/bccdc/vriforecasting/dat_test/plover_weekly_resp.rds")
-raw_phrdw_data <- config$PHRDW$path
 
-raw_plover_data <- config$PLOVER$path
+raw_phrdw_data <- load("~/Desktop/bccdc/vriforecasting/dat_test/phrdw_flu_daily_count_vpp_only.rData")
+
+raw_phrdw_data <- phrdw_flu_daily_count
+
+# PHRDW and PLOVER data
+plover_list <- setNames(
+  lapply(disease_types, function(disease_type) {
+    get_weekly_plover_by_date_type(plover_data = raw_plover_data, type = disease_type)
+  }),
+  disease_types
+)
+
+phrdw_list <- setNames(
+  lapply(disease_types, function(disease_type) {
+    get_phrdw_by_type_date_age(phrdw_data = raw_phrdw_data, type = disease_type)
+  }),
+  disease_types
+)
+
+# Reliable estimation date
+cred <- vriforecasting:::common_reliable_estimation_date(raw_plover_data, raw_phrdw_data)
 ```
 
-## Current season forecast
+```{r echo = FALSE}
+load("~/Desktop/yoursession.RData")
+```
 
-# Include current Rt value
+```{r echo = FALSE, eval = FALSE}
+# Model fitting chunk
+plover_forecast_flua <- forecast_time_period(plover_list$flu_a, type = "flu_a", n_days = 14, start_date = cred$common_plover_date)
+
+plover_forecast_flub <- forecast_time_period(plover_list$flu_b, type = "flu_b", n_days = 14, start_date = cred$common_plover_date, iter = 20L, verbose = TRUE, time_period = "weekly")
+
+plover_forecast_rsv <- forecast_time_period(plover_list$rsv, type = "rsv", n_days = 14, start_date = cred$common_plover_date)
+
+plover_forecast_covid <- forecast_time_period(plover_list$sars_cov2, type = "sars_cov2", n_days = 14, start_date = cred$common_plover_date)
+
+phrdw_forecast_flua <- forecast_time_period(phrdw_list$flu_a, type = "flu_a", n_days = 14, start_date = cred$common_phrdw_date[1])
+
+phrdw_forecast_flub <- forecast_time_period(phrdw_list$flu_b, type = "flu_b", n_days = 14, start_date = cred$common_phrdw_date[2])
+
+phrdw_forecast_rsv <- forecast_time_period(phrdw_list$rsv, type = "rsv", n_days = 14, start_date = cred$common_phrdw_date[3])
+
+phrdw_forecast_covid <- forecast_time_period(phrdw_list$sars_cov2, type = "sars_cov2", n_days = 14, cred$common_phrdw_date[4])
+```
+
+
+# Current season forecast {.tabset}
+
+## Description {.tabset .tabset-fade}
+
+This section presents the 1-week ahead model forecast for the current season for both PHRDW and PLOVER data. The 1-week ahead forecasted confirmed cases is reported with the 95% and 50% percentile interval. The last estimated reproduction number is also reported with the 95% confidence interval. 
 
 ## PLOVER {.tabset .tabset-fade}
 
-### Flu A 
+### Flu A {.tabset .tabset-fade}
 
-```{r echo=FALSE}
-# Dates min and max 
-# Log file 
-plover_flua <- get_weekly_plover_by_date_type(
-   raw_plover_data,
-   "flu_a",
-   "2022-09-18",
-   "2023-12-31"
- )
+```{r echo=FALSE, warning = FALSE}
+plot(plover_forecast_flua) 
 
-ggplot(plover_flua, aes(x=date, y=confirm)) + geom_line() + theme_bw() + labs(x = "Time", y = "Confirmed Cases")
+flua_metrics <- vriforecasting:::forecast_metrics(plover_forecast_flua) 
 ```
 
-### Flu B 
+The 1-week ahead forecast value of confirmed cases is: `r flua_metrics$prediction` cases/week 
 
-```{r echo=FALSE}
-plover_flub <- get_weekly_plover_by_date_type(
-   raw_plover_data,
-   "flu_b",
-   "2021-10-31",
-   "2023-12-31"
- )
+The 95-percentile interval is: `r flua_metrics$interval_90[1]`
 
-ggplot(plover_flub, aes(x=date, y=confirm)) + geom_line() + theme_bw() + labs(x = "Time", y = "Confirmed Cases")
+The 50-percentile interval is: `r flua_metrics$interval_50[1]`
+
+The last estimated Rt value with the 95% confidence interval is `r flua_metrics$Rt_mean` `r flua_metrics$R_interval``
+
+
+### Flu B {.tabset .tabset-fade}
+
+```{r echo=FALSE, warning = FALSE,}
+plot(plover_forecast_flub) 
+
+flub_metrics <- forecast_metrics(plover_forecast_flub)
 ```
 
+The 1-week ahead forecast value of confirmed cases is: `r flub_metrics$prediction` cases/week 
+
+The 95-percentile interval is: `r flub_metrics$interval_90[1]`
+
+The 50-percentile interval is: `r flub_metrics$interval_50[1]`
+
+The last estimated Rt value with the 95% confidence interval is `r flub_metrics$Rt_mean` `r flub_metrics$R_interval``
+
+
+### RSV{.tabset .tabset-fade}
+
+```{r echo=FALSE, warning = FALSE}
+plot(plover_forecast_rsv) 
+
+rsv_metrics <- forecast_metrics(plover_forecast_rsv)
+```
+
+The 1-week ahead forecast value of confirmed cases is: `r rsv_metrics$prediction` cases/week 
+
+The 95-percentile interval is: `r rsv_metrics$interval_90[1]`
+
+The 50-percentile interval is: `r rsv_metrics$interval_50[1]`
+
+The last estimated Rt value with the 95% confidence interval is `r rsv_metrics$Rt_mean` `r rsv_metrics$R_interval``
+
+
+
+### SARS-CoV2 {.tabset .tabset-fade}
+
+```{r echo=FALSE, warning = FALSE}
+plot(plover_forecast_covid) 
+
+covid_metrics <- forecast_metrics(plover_forecast_covid)
+```
+
+The 1-week ahead forecast value of confirmed cases is: `r covid_metrics$prediction` cases/week 
+
+The 95-percentile interval is: `r covid_metrics$interval_90[1]`
+
+The 50-percentile interval is: `r covid_metrics$interval_50[1]`
+
+The last estimated Rt value with the 95% confidence interval is `r covid_metrics$Rt_mean` `r covid_metrics$R_interval``
 
 
 ## PHRDW (pediatric population only) {.tabset .tabset-fade}
 
 ### Flu A {.tabset .tabset-fade}
 
-```{r echo=FALSE}
-phrdw_clean_flua <- get_phrdw_by_type_date_age(
-   raw_phrdw_data,
-   time_period = "weekly",
-   "flu_a",
-   "2022-09-18",
-   "2023-12-31", 
-   start_age = 0, 
-   end_age = 18
-   )
+```{r echo=FALSE, warning = FALSE}
+plot(phrdw_forecast_flua) 
 
-ggplot(phrdw_clean_flua, aes(x=date, y=confirm)) + geom_line() + theme_bw() + labs(x = "Time", y = "Confirmed Cases")
+flua_metrics <- forecast_metrics(phrdw_forecast_flua)
 ```
+
+The 1-week ahead forecast value of confirmed cases is: `r flua_metrics$prediction` cases/week 
+
+The 95-percentile interval is: `r flua_metrics$interval_90[1]`
+
+The 50-percentile interval is: `r flua_metrics$interval_50[1]`
+
+The last estimated Rt value with the 95% confidence interval is `r flua_metrics$Rt_mean` `r flua_metrics$R_interval``
+
 
 ### Flu B {.tabset .tabset-fade}
 
-```{r echo=FALSE}
-phrdw_clean_flub <- get_phrdw_by_type_date_age(
-   raw_phrdw_data,
-   time_period = "weekly",
-   "flu_b",
-   "2021-10-31",
-   "2023-12-31", 
-   start_age = 0, 
-   end_age = 18
-   )
+```{r echo=FALSE, warning = FALSE}
+plot(phrdw_forecast_flub) 
 
-ggplot(phrdw_clean_flub, aes(x=date, y=confirm)) + geom_line() + theme_bw() + labs(x = "Time", y = "Confirmed Cases")
+flub_metrics <- forecast_metrics(phrdw_forecast_flub)
 ```
+
+The 1-week ahead forecast value of confirmed cases is: `r flub_metrics$prediction` cases/week 
+
+The 95-percentile interval is: `r flub_metrics$interval_90[1]`
+
+The 50-percentile interval is: `r flub_metrics$interval_50[1]`
+
+The last estimated Rt value with the 95% confidence interval is `r flub_metrics$Rt_mean` `r flub_metrics$R_interval``
+
 
 ### RSV {.tabset .tabset-fade}
 
-```{r echo=FALSE}
-phrdw_clean_rsv <- get_phrdw_by_type_date_age(
-   raw_phrdw_data,
-   time_period = "weekly",
-   "rsv",
-   "2021-10-17",
-   "2023-12-31", 
-   start_age = 0, 
-   end_age = 18
-   )
+```{r echo=FALSE, warning = FALSE}
+plot(phrdw_forecast_rsv) 
 
-ggplot(phrdw_clean_rsv, aes(x=date, y=confirm)) + geom_line() + theme_bw() + labs(x = "Time", y = "Confirmed Cases")
+rsv_metrics <- forecast_metrics(phrdw_forecast_rsv)
 ```
+
+The 1-week ahead forecast value of confirmed cases is: `r rsv_metrics$prediction` cases/week 
+
+The 95-percentile interval is: `r rsv_metrics$interval_90[1]`
+
+The 50-percentile interval is: `r rsv_metrics$interval_50[1]`
+
+The last estimated Rt value with the 95% confidence interval is `r rsv_metrics$Rt_mean` `r rsv_metrics$R_interval``
+
+
 
 ### SARS-CoV2 {.tabset .tabset-fade}
 
-```{r echo=FALSE}
-phrdw_clean_covid <- get_phrdw_by_type_date_age(
-   raw_phrdw_data,
-   time_period = "weekly",
-   "sars_cov2",
-   "2022-02-20",
-   "2023-12-31", 
-   start_age = 0, 
-   end_age = 18
-   )
+```{r echo=FALSE, warning = FALSE}
+plot(phrdw_forecast_covid) 
 
-ggplot(phrdw_clean_covid, aes(x=date, y=confirm)) + geom_line() + theme_bw() + labs(x = "Time", y = "Confirmed Cases")
+covid_metrics <- forecast_metrics(phrdw_forecast_covid)
 ```
 
-# 1-week ahead Model Forecast {.tabset}
+The 1-week ahead forecast value of confirmed cases is: `r covid_metrics$prediction` cases/week 
 
-# Plot Rt out 
+The 95-percentile interval is: `r covid_metrics$interval_90[1]`
+
+The 50-percentile interval is: `r covid_metrics$interval_50[1]`
+
+The last estimated Rt value with the 95% confidence interval is `r covid_metrics$Rt_mean` `r covid_metrics$R_interval``
+
+
+# 1-week ahead Model Forecast Validation {.tabset}
+
+## Description {.tabset .tabset-fade}
+
+This section presents validation plots for the 1-week ahead model forecasts for the current season for both PHRDW and PLOVER data. The forecasting model is trained by fitting to historical data, which is used to then make the prediction 1-week ahead. Here, the fit of the model to the known historical data can be visualized. A strong association in trend between the historical data and the historical forecasts is an indicator of the quality of the model future predictions. 
+
 
 ## PLOVER {.tabset .tabset-fade}
 
 ### Flu A {.tabset .tabset-fade}
 
 ```{r echo=FALSE, message = FALSE}
-forecast_flu_a_plover <- forecast_time_period(plover_flua, type = "flu_a", n_days = 14, start_date = "2022-09-18")
-
-plot(forecast_flu_a_plover) +
-  scale_x_date(limits = as.Date(c('2023-12-01','2024-01-15')))
-
-plot_validation(forecast_flu_a_plover, pred_horizon_str = "1 week ahead", pred_plot = "ribbon") 
+plot_validation(plover_forecast_flua, pred_horizon_str = "1 week ahead", pred_plot = "ribbon") 
 ```
 
 
@@ -152,11 +246,21 @@ plot_validation(forecast_flu_a_plover, pred_horizon_str = "1 week ahead", pred_p
 
 
 ```{r echo=FALSE, message = FALSE}
-forecast_flu_b_plover <- forecast_time_period(plover_flub, type = "flu_b", n_days = 7, start_date = "2021-10-31")
-
-plot_validation(forecast_flu_b_plover, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
+plot_validation(plover_forecast_flub, pred_horizon_str = "1 week ahead", pred_plot = "ribbon") 
 ```
 
+### RSV {.tabset .tabset-fade}
+
+```{r echo=FALSE, message = FALSE}
+plot_validation(plover_forecast_rsv, pred_horizon_str = "1 week ahead", pred_plot = "ribbon") 
+```
+
+
+### SARS-CoV2 {.tabset .tabset-fade}
+
+```{r echo=FALSE, message = FALSE}
+plot_validation(plover_forecast_covid, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")  
+```
 
 
 ## PHRDW (pediatric population only) {.tabset .tabset-fade}
@@ -165,88 +269,168 @@ plot_validation(forecast_flu_b_plover, pred_horizon_str = "1 week ahead", pred_p
 
 
 ```{r echo=FALSE, message = FALSE}
-forecast_flu_a <- forecast_time_period(phrdw_clean_flua, type = "flu_a", n_days = 7, start_date = "2022-09-18")
-
-plot_validation(forecast_flu_a, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
+plot_validation(phrdw_forecast_flua, pred_horizon_str = "1 week ahead", pred_plot = "ribbon") 
 ```
 
 ### Flu B {.tabset .tabset-fade}
 
 ```{r echo=FALSE, message = FALSE}
-forecast_flu_b <- forecast_time_period(phrdw_clean_flub, type = "flu_b", n_days = 7, start_date = "2021-10-31")
-
-plot_validation(forecast_flu_b, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
+plot_validation(phrdw_forecast_flub, pred_horizon_str = "1 week ahead", pred_plot = "ribbon") 
 ```
 
 ### RSV {.tabset .tabset-fade}
 
 ```{r echo=FALSE, message = FALSE}
-forecast_flu_rsv <- forecast_time_period(phrdw_clean_rsv, type = "rsv", n_days = 7, start_date = "2021-10-17")
-
-plot_validation(forecast_flu_rsv, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
+plot_validation(phrdw_forecast_rsv, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
 ```
 
 
 ### SARS-CoV2 {.tabset .tabset-fade}
 
 ```{r echo=FALSE, message = FALSE}
-forecast_flu_covid <- forecast_time_period(phrdw_clean_covid, type = "sars_cov2", n_days = 7, start_date = "2022-02-20")
-
-plot_validation(forecast_flu_covid, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
-# year labels underneath 
-# get rid of time 
+plot_validation(phrdw_forecast_covid, pred_horizon_str = "1 week ahead", pred_plot = "ribbon") 
 ```
 
 # Forecast validation metrics {.tabset}
 
+## Description {.tabset .tabset-fade}
+
+This section presents validation plots for the 1-week ahead model forecasts for the current season for both PHRDW and PLOVER data. The forecasting model is trained by fitting to historical data, which is used to then make the prediction 1-week ahead. Here, the fit of the model to the known historical data can be visualized. A strong association in trend between the historical data and the historical forecasts is an indicator of the quality of the model future predictions. 
 
 ## PLOVER {.tabset .tabset-fade}
 
 ### Flu A {.tabset .tabset-fade}
 
-```{r echo = FALSE}
-summary(forecast_flu_a_plover, pred_horizon_str = "1 week ahead")
+```{r echo = FALSE, warning = FALSE}
+formatted_flua <- vriforecasting:::summary_ind_quantiles_formatter(summary(plover_forecast_flua, pred_horizon_str = "1 week ahead")$individual_quantiles)
+
+datatable(formatted_flua)
 ```
 
+Previous 1-week ahead forecasts had `r summary(plover_forecast_flua, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[1]` % (
+`r summary(plover_forecast_flua, pred_horizon_str = "1 week ahead")$counts[1]`/ `r sum(summary(plover_forecast_flua, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 50% percentile interval, `r summary(plover_forecast_flua, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[2]` % (`r summary(plover_forecast_flua, pred_horizon_str = "1 week ahead")$counts[2]`/ `r sum(summary(plover_forecast_flua, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 95% percentile interval and  `r summary(plover_forecast_flua, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[3]` % (
+`r summary(plover_forecast_flua, pred_horizon_str = "1 week ahead")$counts[3]`/ `r sum(summary(plover_forecast_flua, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases outside the 95% percentile interval. 
+
+The Mean squared percentage error on the validation test is: `r summary(plover_forecast_flua, pred_horizon_str = "1 week ahead")$time_weighted_mspe`
 
 ### Flu B {.tabset .tabset-fade}
 
-```{r echo = FALSE}
-summary(forecast_flu_b_plover, pred_horizon_str = "1 week ahead")
+```{r echo = FALSE, warning = FALSE}
+formatted_flub <- vriforecasting:::summary_ind_quantiles_formatter(summary(plover_forecast_flub, pred_horizon_str = "1 week ahead")$individual_quantiles)
+
+datatable(formatted_flub)
 ```
 
+
+Previous 1-week ahead forecasts had `r summary(plover_forecast_flub, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[1]` % (
+`r summary(plover_forecast_flub, pred_horizon_str = "1 week ahead")$counts[1]`/ `r sum(summary(plover_forecast_flub, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 50% percentile interval, `r summary(plover_forecast_flub, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[2]` % (`r summary(plover_forecast_flub, pred_horizon_str = "1 week ahead")$counts[2]`/ `r sum(summary(plover_forecast_flub, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 95% percentile interval and  `r summary(plover_forecast_flub, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[3]` % (
+`r summary(plover_forecast_flub, pred_horizon_str = "1 week ahead")$counts[3]`/ `r sum(summary(plover_forecast_flub, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases outside the 95% percentile interval. 
+
+
+The Mean squared percentage error on the validation test is: `r summary(plover_forecast_flub, pred_horizon_str = "1 week ahead")$time_weighted_mspe`
+
+### RSV {.tabset .tabset-fade}
+
+```{r echo = FALSE, warning = FALSE}
+formatted_rsv <- vriforecasting:::summary_ind_quantiles_formatter(summary(plover_forecast_rsv, pred_horizon_str = "1 week ahead")$individual_quantiles)
+
+datatable(formatted_rsv)
+
+```
+
+
+Previous 1-week ahead forecasts had `r summary(plover_forecast_rsv, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[1]` % (
+`r summary(plover_forecast_rsv, pred_horizon_str = "1 week ahead")$counts[1]`/ `r sum(summary(plover_forecast_rsv, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 50% percentile interval, `r summary(plover_forecast_rsv, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[2]` % (`r summary(plover_forecast_rsv, pred_horizon_str = "1 week ahead")$counts[2]`/ `r sum(summary(plover_forecast_rsv, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 95% percentile interval and  `r summary(plover_forecast_rsv, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[3]` % (
+`r summary(plover_forecast_rsv, pred_horizon_str = "1 week ahead")$counts[3]`/ `r sum(summary(plover_forecast_rsv, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases outside the 95% percentile interval. 
+
+
+The Mean squared percentage error on the validation test is: `r summary(plover_forecast_rsv, pred_horizon_str = "1 week ahead")$time_weighted_mspe`
+
+
+### SARS-CoV2 {.tabset .tabset-fade}
+
+```{r echo = FALSE, warning = FALSE}
+formatted_covid <- vriforecasting:::summary_ind_quantiles_formatter(summary(plover_forecast_covid, pred_horizon_str = "1 week ahead")$individual_quantiles)
+
+datatable(formatted_covid)
+
+```
+
+
+Previous 1-week ahead forecasts had `r summary(plover_forecast_covid, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[1]` % (
+`r summary(plover_forecast_covid,, pred_horizon_str = "1 week ahead")$counts[1]`/ `r sum(summary(plover_forecast_covid,, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 50% percentile interval, `r summary(plover_forecast_covid,, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[2]` % (`r summary(plover_forecast_covid, pred_horizon_str = "1 week ahead")$counts[2]`/ `r sum(summary(plover_forecast_covid, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 95% percentile interval and  `r summary(plover_forecast_covid, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[3]` % (
+`r summary(plover_forecast_covid, pred_horizon_str = "1 week ahead")$counts[3]`/ `r sum(summary(plover_forecast_covid, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases outside the 95% percentile interval. 
+
+
+The Mean squared percentage error on the validation test is: `r summary(plover_forecast_covid, pred_horizon_str = "1 week ahead")$time_weighted_mspe`
 
 
 ## PHRDW (pediatric population only) {.tabset .tabset-fade}
 
 ### Flu A {.tabset .tabset-fade}
 
-```{r echo = FALSE}
-summary(forecast_flu_a, pred_horizon_str = "1 week ahead")
+```{r echo = FALSE, warning = FALSE}
+formatted_flua <- vriforecasting:::summary_ind_quantiles_formatter(summary(phrdw_forecast_flua, pred_horizon_str = "1 week ahead")$individual_quantiles)
+
+datatable(formatted_flua)
+
 ```
 
+Previous 1-week ahead forecasts had `r summary(phrdw_forecast_flua, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[1]` % (
+`r summary(phrdw_forecast_flua, pred_horizon_str = "1 week ahead")$counts[1]`/ `r sum(summary(phrdw_forecast_flua, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 50% percentile interval, `r summary(phrdw_forecast_flua, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[2]` % (`r summary(phrdw_forecast_flua, pred_horizon_str = "1 week ahead")$counts[2]`/ `r sum(summary(phrdw_forecast_flua, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 95% percentile interval and  `r summary(phrdw_forecast_flua, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[3]` % (
+`r summary(phrdw_forecast_flua, pred_horizon_str = "1 week ahead")$counts[3]`/ `r sum(summary(phrdw_forecast_flua, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases outside the 95% percentile interval. 
+
+
+
+The Mean squared percentage error on the validation test is: `r summary(phrdw_forecast_flua, pred_horizon_str = "1 week ahead")$time_weighted_mspe`
 
 ### Flu B {.tabset .tabset-fade}
 
 ```{r echo = FALSE}
-summary(forecast_flu_b, pred_horizon_str = "1 week ahead")
+formatted_flub <- vriforecasting:::summary_ind_quantiles_formatter(summary(phrdw_forecast_flub, pred_horizon_str = "1 week ahead")$individual_quantiles)
+
+datatable(formatted_flub)
+
 ```
 
+
+Previous 1-week ahead forecasts had `r summary(phrdw_forecast_flub, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[1]` % (
+`r summary(phrdw_forecast_flub, pred_horizon_str = "1 week ahead")$counts[1]`/ `r sum(summary(phrdw_forecast_flub, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 50% percentile interval, `r summary(phrdw_forecast_flub, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[2]` % (`r summary(phrdw_forecast_flub, pred_horizon_str = "1 week ahead")$counts[2]`/ `r sum(summary(phrdw_forecast_flub, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 95% percentile interval and  `r summary(phrdw_forecast_flub, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[3]` % (
+`r summary(phrdw_forecast_flub, pred_horizon_str = "1 week ahead")$counts[3]`/ `r sum(summary(phrdw_forecast_flub, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases outside the 95% percentile interval. 
+
+
+
+The Mean squared percentage error on the validation test is: `r summary(phrdw_forecast_flub, pred_horizon_str = "1 week ahead")$time_weighted_mspe`
 
 ### RSV {.tabset .tabset-fade}
 
 ```{r echo = FALSE}
-summary(forecast_flu_rsv, pred_horizon_str = "1 week ahead")
+formatted_rsv <- vriforecasting:::summary_ind_quantiles_formatter(summary(phrdw_forecast_rsv, pred_horizon_str = "1 week ahead")$individual_quantiles)
+
+datatable(formatted_rsv)
 ```
 
+
+Previous 1-week ahead forecasts had `r summary(phrdw_forecast_rsv, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[1]` % (
+`r summary(phrdw_forecast_rsv, pred_horizon_str = "1 week ahead")$counts[1]`/ `r sum(summary(phrdw_forecast_flua, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 50% percentile interval, `r summary(phrdw_forecast_rsv, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[2]` % (`r summary(phrdw_forecast_rsv, pred_horizon_str = "1 week ahead")$counts[2]`/ `r sum(summary(phrdw_forecast_rsv, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 95% percentile interval and  `r summary(phrdw_forecast_rsv, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[3]` % (
+`r summary(phrdw_forecast_rsv, pred_horizon_str = "1 week ahead")$counts[3]`/ `r sum(summary(phrdw_forecast_rsv, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases outside the 95% percentile interval. 
+
+
+The Mean squared percentage error on the validation test is: `r summary(phrdw_forecast_rsv, pred_horizon_str = "1 week ahead")$time_weighted_mspe`
 
 ### SARS-CoV2 {.tabset .tabset-fade}
 
 ```{r echo = FALSE}
-# percentage, last should be out of 95
-summary(forecast_flu_covid, pred_horizon_str = "1 week ahead")$quantile_summary
+formatted_covid <- vriforecasting:::summary_ind_quantiles_formatter(summary(phrdw_forecast_covid, pred_horizon_str = "1 week ahead")$individual_quantiles)
 
-summary(forecast_flu_covid, pred_horizon_str = "1 week ahead")$time_weighted_mspe
+datatable(formatted_covid)
 ```
 
+
+Previous 1-week ahead forecasts had `r summary(phrdw_forecast_covid, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[1]` % (
+`r summary(phrdw_forecast_covid, pred_horizon_str = "1 week ahead")$counts[1]`/ `r sum(summary(phrdw_forecast_covid, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 50% percentile interval, `r summary(phrdw_forecast_covid, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[2]` % (`r summary(phrdw_forecast_covid, pred_horizon_str = "1 week ahead")$counts[2]`/ `r sum(summary(phrdw_forecast_covid, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases within the 95% percentile interval and  `r summary(phrdw_forecast_covid, pred_horizon_str = "1 week ahead")$quantile_summary$proportion[3]` % (
+`r summary(phrdw_forecast_covid, pred_horizon_str = "1 week ahead")$counts[3]`/ `r sum(summary(phrdw_forecast_covid, pred_horizon_str = "1 week ahead")$counts)`) of the true confirmed cases outside the 95% percentile interval. 
+
+
+The Mean squared percentage error on the validation test is: `r summary(phrdw_forecast_covid, pred_horizon_str = "1 week ahead")$time_weighted_mspe`
 

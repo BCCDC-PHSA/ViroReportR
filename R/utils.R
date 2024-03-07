@@ -201,7 +201,7 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
     p <- data_proj %>%
       dplyr::mutate(incidence = incidence) %>%
       create_quantiles(date, variable = "incidence") %>%
-      ggplot2::ggplot(data = data_proj, ggplot2::aes(x = date, group = 1)) +
+      ggplot2::ggplot(ggplot2::aes(x = date)) +
       ggplot2::theme_bw() +
       ggplot2::geom_ribbon(ggplot2::aes(ymin = p025, ymax = p975), fill = "#08519C", alpha = 0.25) +
       ggplot2::geom_ribbon(ggplot2::aes(ymin = p25, ymax = p75), fill = "#08519C", alpha = 0.25) +
@@ -210,7 +210,7 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
       ggplot2::scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
       ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
       ggplot2::labs(
-        x = "", y = paste("Weekly projection of confirmed \ncases starting from", max(cur_time_period_result$model_data_date), sep = " "),
+        x = "Time", y = paste("Weekly projection of confirmed \ncases starting from", max(cur_time_period_result$model_data_date), sep = " "),
         fill = "", color = ""
       )
   } else if (aggregate_unit == "daily") {
@@ -231,7 +231,7 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
       ggplot2::scale_x_date(date_breaks = "1 week", date_labels = "%b %d") +
       ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
       ggplot2::labs(
-        x = "", y = paste("Weekly projection of confirmed \ncases starting from", max(cur_time_period_result$model_data_date), sep = " "),
+        x = "Time", y = paste("Weekly projection of confirmed \ncases starting from", max(cur_time_period_result$model_data_date), sep = " "),
         fill = "", color = ""
       )
   }
@@ -363,4 +363,128 @@ time_weighted_diff <- function(confirm, p50, pred_horizon_str = NULL) {
   date_weights <- seq(from = future_preds + 1, to = length(confirm)+future_preds)
   weighted_squared_diff <- date_weights*squared_diff
   return(weighted_squared_diff)
+}
+
+#' Helper function to filter and extract first reliable date
+#' @param data weekly transformed PLOVER or PHRDW data
+#' @param min_cases minimum number of reliable cases for EpiEstim from config file
+filter_dates <- function(data, min_cases) {
+data <- data %>%
+  dplyr::filter(confirm >= min_cases) %>%
+  dplyr::pull(date)
+return(data)
+}
+
+#' Extract common date that all diseases in PHRDW and PLOVER data can be reliably estimated with in EpiEstim
+#' @param confirm confirmed weekly cases
+#' @param p50 prediction median quantile value
+#' @param pred_horizon_str *string* prediction horizon time period to plot
+#' @return *numeric* Weighted squared error at each data time-point
+#'
+common_reliable_estimation_date <- function(PLOVER_data, PHRDW_data,
+                                            flua_min = config$min_nb_cases_flua,
+                                            flub_min = config$min_nb_cases_flub,
+                                            cov_min = config$min_nb_cases_covid,
+                                            rsv_min = config$min_nb_cases_rsv) {
+  disease_types <- c("flu_a", "flu_b", "sars_cov2", "rsv")
+  min_cases_per_disease <- max(c(flua_min, flub_min, cov_min, rsv_min))
+  plover_list <- lapply(disease_types, function(disease_type) {
+    get_weekly_plover_by_date_type(plover_data = PLOVER_data, type = disease_type)
+  })
+
+  flu_a <- format(as.Date(filter_dates(plover_list[[1]],
+                                       min_cases_per_disease)))
+  flu_b <- format(as.Date(filter_dates(plover_list[[2]],
+                                       min_cases_per_disease)))
+  covid <- format(as.Date(filter_dates(plover_list[[3]],
+                                       min_cases_per_disease)))
+  rsv <- format(as.Date(filter_dates(plover_list[[4]],
+                                       min_cases_per_disease)))
+
+  common_plover_date <- min(Reduce(intersect, list(flu_a, flu_b, covid, rsv)))
+
+  if(is.na(common_plover_date)) {
+    common_plover_date <- c(min(flu_a), min(flu_b), min(covid), min(rsv))
+  }
+
+  phrdw_list <- lapply(disease_types, function(disease_type) {
+    suppressWarnings(get_phrdw_by_type_date_age(phrdw_data = PHRDW_data, type = disease_type))
+  })
+
+  flu_a <- format(as.Date(filter_dates(phrdw_list[[1]],
+                                       min_cases_per_disease)))
+  flu_b <- format(as.Date(filter_dates(phrdw_list[[2]],
+                                       min_cases_per_disease)))
+  covid <- format(as.Date(filter_dates(phrdw_list[[3]],
+                                       min_cases_per_disease)))
+  rsv <- format(as.Date(filter_dates(phrdw_list[[4]],
+                                     min_cases_per_disease)))
+
+  common_phrdw_date <- min(Reduce(intersect, list(flu_a, flu_b, covid, rsv)))
+
+  if(is.na(common_phrdw_date)) {
+    common_phrdw_date <- c(min(flu_a), min(flu_b), min(covid), min(rsv))
+  }
+
+ return(list(common_phrdw_date = common_phrdw_date, common_plover_date = common_plover_date))
+}
+
+#' Format summary table for vriforecasting report
+#' @param summary_individual_quantiles
+#' @return Formatted summary table with wide format for coverage
+#'
+summary_ind_quantiles_formatter <- function(summary_individual_quantiles) {
+  summary_individual_quantiles <- summary_individual_quantiles %>%
+    dplyr::count(`Confirmed cases`, `Predicted cases`, `50 percentile interval`, `95 percentile interval`, coverage) %>%
+    tidyr::pivot_wider(
+      names_from = "coverage",
+      values_from = "n",
+      id_cols = c("Confirmed cases", "Predicted cases", "50 percentile interval",
+                  "95 percentile interval", "weekly_date")
+    ) %>%
+    replace(is.na(.), 0) %>%
+    dplyr::mutate_at(
+      vars(`50 and 95 percentile interval`, `only 95 percentile interval`, `Outside 95 percentile interval`),
+      funs(case_when(
+        . == 0 ~ emojifont::emoji(search_emoji('x'))[28],
+        . == 1 ~ emojifont::emoji(search_emoji('check'))[1])
+    )
+
+    ) %>%
+    dplyr::select(weekly_date, `Confirmed cases`, `Predicted cases`, `50 and 95 percentile interval`, `only 95 percentile interval`,
+                  `Outside 95 percentile interval`, `50 percentile interval`, `95 percentile interval`)
+  return(summary_individual_quantiles)
+
+}
+
+
+#' Extract current forecast metrics: forecast prediction, percentile interval and Rt value
+#' @param time_period_result output from  \code{forecast_time_period}
+#' @return current forecast metrics
+#'
+forecast_metrics <- function(time_period_result, iter = 10) {
+cur_time_period_result <- time_period_result[[length(time_period_result)]]
+
+Rt_mean = round(cur_time_period_result$R$`Mean(R)`[length(cur_time_period_result$R$`Mean(R)`)], 2)
+Rt_std = cur_time_period_result$R$`Std(R)`[length(cur_time_period_result$R$`Std(R)`)]
+R_lower <- round(Rt_mean - 1.96*Rt_std/sqrt(iter), 2)
+R_upper <- round(Rt_mean + 1.96*Rt_std/sqrt(iter), 2)
+
+
+data_proj <- tibble::tibble(
+  date = cur_time_period_result$week_date,
+  sim = cur_time_period_result$sim,
+  incidence = cur_time_period_result$weekly_incidence,
+)
+data_proj <- data_proj %>%
+  dplyr::mutate(incidence = incidence) %>%
+  create_quantiles(date, variable = "incidence") %>%
+  mutate_if(is.numeric, round) %>%
+  dplyr::mutate(`95 percentile interval` = glue::glue("({p025},{p975})")) %>%
+  dplyr::mutate(`50 percentile interval` = glue::glue("({p25},{p75})"))
+
+Rt_interval = glue::glue("({R_lower},{R_upper})")
+
+return(list(Rt_mean = Rt_mean, Rt_interval = Rt_interval, prediction = unname(data_proj$p50[1]),
+               interval_90 = data_proj$`95 percentile interval`, interval_50 = data_proj$`50 percentile interval`))
 }

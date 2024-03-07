@@ -30,14 +30,14 @@
 #'   start_date = "2022-10-02", n_days = 14, type = "flu_a", algorithm = "EpiFilter"
 #' )
 forecast_time_period <- function(data, start_date, n_days = 7, time_period = "weekly",
-                                          type = NULL, algorithm = "EpiEstim") {
+                                          type = NULL, algorithm = "EpiEstim", ...) {
   stopifnot(
     "Only EpiFilter and EpiEstim are currently supported as forecasting models. Please check input." =
       algorithm %in% c("EpiEstim", "EpiFilter")
   )
   if (algorithm == "EpiEstim") {
     time_period_result <- forecast_time_period_epiestim(data = data, start_date = start_date, n_days = n_days,
-                                                        time_period = eval(parse(text = "time_period")), type = eval(parse(text = "type")))
+                                                        time_period = eval(parse(text = "time_period")), type = eval(parse(text = "type")), ...)
   } else if (algorithm == "EpiFilter") {
     time_period_result <- forecast_time_period_epiestim(data = data, start_date = start_date, n_days = n_days,
                                                         time_period = eval(parse(text = "time_period")), type = eval(parse(text = "type")))
@@ -84,17 +84,18 @@ plot_validation <- function(time_period_result, pred_horizon_str = NULL, pred_pl
   )
   model_data$point_type <- rep("Confirmed Case", nrow(model_data))
   if (pred_plot == "violin") {
-    p <- ggplot2::ggplot(forecast_dat, ggplot2::aes(x = factor(weekly_date), y = sim_draws)) +
+    p <- ggplot2::ggplot(forecast_dat, ggplot2::aes(x = weekly_date, y = sim_draws, group = weekly_date)) +
       ggplot2::geom_violin(scale = "count", colour = "gray", fill = "blue", alpha = 0.1, draw_quantiles = 0.5) +
       ggplot2::ggtitle(paste0("Violin plot of ", pred_horizon_str, " prediction")) +
-      ggplot2::geom_point(ggplot2::aes(x = factor(date), y = confirm, colour = point_type), data = model_data) +
+      ggplot2::geom_point(ggplot2::aes(x = date, y = confirm, colour = point_type), data = model_data) +
       ggplot2::theme_bw() +
-      ggplot2::labs(x = "Time", y = paste0(pred_horizon_str, " projection of confirmed cases", fill = "", colour = "")) +
+      ggplot2::labs(x = "", y = paste0(pred_horizon_str, " projection of confirmed cases", fill = "", colour = "")) +
       ggplot2::theme(
         legend.title = ggplot2::element_blank(), legend.position = "top",
         axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
       ) +
-      ggplot2::scale_colour_manual(values = c("#471164FF"))
+      ggplot2::scale_colour_manual(values = c("#471164FF")) +
+      ggplot2::scale_x_date(date_breaks = "1 month", date_labels = "%b %Y")
   } else if (pred_plot == "ribbon") {
     p <- ggplot2::ggplot(forecast_dat, ggplot2::aes(x = weekly_date)) +
       ggplot2::geom_ribbon(ggplot2::aes(ymin = p025, ymax = p975), fill = "#08519C", alpha = 0.25) +
@@ -103,13 +104,13 @@ plot_validation <- function(time_period_result, pred_horizon_str = NULL, pred_pl
       ggplot2::ggtitle(paste0("Ribbon plot of ", pred_horizon_str, " prediction")) +
       ggplot2::geom_point(ggplot2::aes(x = date, y = confirm, colour = point_type), data = model_data) +
       ggplot2::theme_bw() +
-      ggplot2::labs(x = "Time", y = paste0(pred_horizon_str, " projection of confirmed cases", fill = "", colour = "")) +
+      ggplot2::labs(x = "", y = paste0(pred_horizon_str, " projection of confirmed cases", fill = "", colour = "")) +
       ggplot2::theme(
         legend.title = ggplot2::element_blank(), legend.position = "top",
         axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
       ) +
       ggplot2::scale_colour_manual(values = c("#471164FF")) +
-      ggplot2::scale_x_date(date_breaks = "1 month", date_labels = "%b %d")
+      ggplot2::scale_x_date(date_breaks = "1 month", date_labels = "%b %Y")
   }
   return(p)
 }
@@ -174,14 +175,24 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
     dplyr::mutate(weighted_diff = time_weighted_diff(confirm, p50, pred_horizon_str = eval(parse(text = "pred_horizon_str")))) %>%
     dplyr::mutate(`50 percentile interval` = glue::glue("({p25},{p75})")) %>%
     dplyr::mutate(`95 percentile interval` = glue::glue("({p025},{p975})")) %>%
-    dplyr::select(weekly_date, coverage, weighted_diff, confirm, median.prediction = p50, `50 percentile interval`, `95 percentile interval`)
+    dplyr::select(weekly_date, coverage, weighted_diff, confirm, median.prediction = p50, `50 percentile interval`, `95 percentile interval`) %>%
+    dplyr::rename("Confirmed cases" = confirm, "Predicted cases" = median.prediction)
   if ((any(forecast_cases_dat$coverage %in% "Outside 95 percentile interval"))) {
     warning("Prediction percentile intervals do not cover some data-points in validation fits. Some forecasts may not be reliable")
   }
   forecast_cases_dat_summ <- forecast_cases_dat %>%
     dplyr::group_by(coverage) %>%
-    dplyr::summarise(count = dplyr::n())
+    dplyr::summarise(counts = dplyr::n()) %>%
+    dplyr::mutate(proportion = round(counts/sum(counts), 2))
+forecast_cases_dat_summ$coverage <- factor( forecast_cases_dat_summ$coverage,
+                                            levels = c("50 and 95 percentile interval",
+                                                       "only 95 percentile interval",
+                                                       "Outside 95 percentile interval"))
+forecast_cases_dat_summ <- forecast_cases_dat_summ[order(forecast_cases_dat_summ$coverage),]
   time_weighted_mspe <- sqrt(mean(forecast_cases_dat$weighted_diff))
+
+  forecast_cases_dat <- forecast_cases_dat %>%
+    select(-weighted_diff)
   return(list(
     individual_quantiles = forecast_cases_dat,
     quantile_summary = forecast_cases_dat_summ, time_weighted_mspe = time_weighted_mspe
@@ -200,9 +211,16 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
 #' @examples
 #' plot(daily_time_period_result)
 plot.forecast_time_period <- function(x, time_period = NULL, ...) {
-  if (is.null(time_period)) {
+  aggregate_unit <- x[[length(x)]]$quantile_unit
+  if(is.null(time_period)) {
     forecast_plot <- plot_all_time_period_forecast_data_helper(x[[length(x)]])
-    forecast_plot
+    plot_dates <- c(x[[length(x)]][["model_data_date"]], x[[length(x)]][["quantile_date"]])
+    model_incidence <- x[[length(x)]][["confirm"]]
+    pred_incidence <- unname(forecast_plot$data$p50)
+    plot_incidence <- c( model_incidence, pred_incidence)
+    plot_incidence <- utils::tail(plot_incidence, n = 15)
+    forecast_plot + ggplot2::scale_x_date(limits = as.Date(c(plot_dates[which.max(plot_dates)-20], max(plot_dates))),
+                                 date_breaks = "1 month", date_labels = "%b %Y") + ggplot2::cale_y_continuous(limits = c(0, max(plot_incidence)))
   } else {
     if (time_period > length(x)) {
       stop("Time period index out of bounds. Please cross-check the time_period input with the length of your time_period_result object")

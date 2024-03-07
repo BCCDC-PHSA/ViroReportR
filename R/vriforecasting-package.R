@@ -16,5 +16,7 @@
 #' @importFrom tidyr pivot_longer
 #' @importFrom glue glue
 #' @importFrom here here
+#' @importFrom DT datatable
+#' @importFrom emojifont emoji
 ## usethis namespace: end
 NULL

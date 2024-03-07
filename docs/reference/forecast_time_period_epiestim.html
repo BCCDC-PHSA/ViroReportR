@@ -54,6 +54,7 @@
   n_days <span class="op">=</span> <span class="fl">7</span>,
   time_period <span class="op">=</span> <span class="st">"daily"</span>,
   type <span class="op">=</span> <span class="cn">NULL</span>,
+  verbose <span class="op">=</span> <span class="cn">FALSE</span>,
   <span class="va">...</span>
 <span class="op">)</span></code></pre></div>
     </div>
@@ -70,6 +71,8 @@
 <dd><p>time period string (e.g. 'daily', 'weekly'). Default is daily</p></dd>
 <dt>type</dt>
 <dd><p><em>character</em> Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"</p></dd>
+<dt>verbose</dt>
+<dd><p>set to true to display progress output</p></dd>
 <dt>...</dt>
 <dd><p>Pass on optional arguments from <code>fit_epiestim_model</code></p></dd>
 </dl></div>
@@ -86,7 +89,6 @@
 <span class="r-in">  data <span class="op">=</span> <span class="va">weekly_transformed_plover_data</span>,</span>
 <span class="r-in">  start_date <span class="op">=</span> <span class="st">"2022-10-02"</span>, n_days <span class="op">=</span> <span class="fl">14</span>, type <span class="op">=</span> <span class="st">"flu_a"</span></span>
 <span class="r-in"><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 1 (2022-10-09)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -109,7 +111,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 10</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> R estimation starts on day 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Daily quantiles were calculated across simulated epicurves</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 2 (2022-10-16)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -132,7 +133,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 10</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> R estimation starts on day 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Daily quantiles were calculated across simulated epicurves</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 3 (2022-10-23)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -155,7 +155,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 10</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> R estimation starts on day 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Daily quantiles were calculated across simulated epicurves</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 4 (2022-10-30)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -178,7 +177,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 10</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> R estimation starts on day 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Daily quantiles were calculated across simulated epicurves</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 5 (2022-11-06)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -201,7 +199,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 10</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> R estimation starts on day 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Daily quantiles were calculated across simulated epicurves</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 6 (2022-11-13)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -224,7 +221,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 10</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> R estimation starts on day 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Daily quantiles were calculated across simulated epicurves</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 7 (2022-11-20)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -247,7 +243,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 10</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> R estimation starts on day 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Daily quantiles were calculated across simulated epicurves</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 8 (2022-11-27)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -275,7 +270,6 @@
 <span class="r-in">  data <span class="op">=</span> <span class="va">weekly_transformed_plover_data</span>,</span>
 <span class="r-in">  start_date <span class="op">=</span> <span class="st">"2022-10-02"</span>, n_days <span class="op">=</span> <span class="fl">14</span>, type <span class="op">=</span> <span class="st">"flu_a"</span>, time_period <span class="op">=</span> <span class="st">"weekly"</span></span>
 <span class="r-in"><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 1 (2022-10-09)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -298,7 +292,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 10</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> R estimation starts on day 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Weekly quantiles were calculated across simulated epicurves</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 2 (2022-10-16)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -321,7 +314,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 10</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> R estimation starts on day 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Weekly quantiles were calculated across simulated epicurves</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 3 (2022-10-23)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -344,7 +336,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 10</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> R estimation starts on day 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Weekly quantiles were calculated across simulated epicurves</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 4 (2022-10-30)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -367,7 +358,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 10</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> R estimation starts on day 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Weekly quantiles were calculated across simulated epicurves</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 5 (2022-11-06)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -390,7 +380,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 10</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> R estimation starts on day 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Weekly quantiles were calculated across simulated epicurves</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 6 (2022-11-13)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -413,7 +402,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 10</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> R estimation starts on day 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Weekly quantiles were calculated across simulated epicurves</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 7 (2022-11-20)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
@@ -436,7 +424,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 10</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> R estimation starts on day 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Weekly quantiles were calculated across simulated epicurves</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Current time period: 8 (2022-11-27)"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Reconstructed incidence for iteration: 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimated R for iteration: 2</span>
