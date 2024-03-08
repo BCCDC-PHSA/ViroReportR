@@ -139,7 +139,7 @@ plot_validation <- function(time_period_result, pred_horizon_str = NULL, pred_pl
 #' @examples
 #' summary(weekly_time_period_result, pred_horizon_str = "1 week ahead")
 summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
-  confirm <- p50 <- weighted_diff <- `50 percentile interval` <- `95 percentile interval` <- NULL
+  confirm <- p50 <- weighted_diff <- `50 percentile interval` <- `95 percentile interval` <- counts <- median.prediction <- NULL
   pred_horizon <- weekly_date <- coverage <- NULL
   if (class(object)[1] != "forecast_time_period") {
     stop("input must be object of class forecast_time_period")
@@ -183,7 +183,7 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
   forecast_cases_dat_summ <- forecast_cases_dat %>%
     dplyr::group_by(coverage) %>%
     dplyr::summarise(counts = dplyr::n()) %>%
-    dplyr::mutate(proportion = round(counts/sum(counts), 2))
+    dplyr::mutate(proportion = round(counts/sum(counts)*100, 2))
 forecast_cases_dat_summ$coverage <- factor( forecast_cases_dat_summ$coverage,
                                             levels = c("50 and 95 percentile interval",
                                                        "only 95 percentile interval",
@@ -195,7 +195,7 @@ forecast_cases_dat_summ <- forecast_cases_dat_summ[order(forecast_cases_dat_summ
     select(-weighted_diff)
   return(list(
     individual_quantiles = forecast_cases_dat,
-    quantile_summary = forecast_cases_dat_summ, time_weighted_mspe = time_weighted_mspe
+    quantile_summary = forecast_cases_dat_summ, time_weighted_mspe = round(time_weighted_mspe, 2)
   ))
 }
 
@@ -220,7 +220,7 @@ plot.forecast_time_period <- function(x, time_period = NULL, ...) {
     plot_incidence <- c( model_incidence, pred_incidence)
     plot_incidence <- utils::tail(plot_incidence, n = 15)
     forecast_plot + ggplot2::scale_x_date(limits = as.Date(c(plot_dates[which.max(plot_dates)-20], max(plot_dates))),
-                                 date_breaks = "1 month", date_labels = "%b %Y") + ggplot2::cale_y_continuous(limits = c(0, max(plot_incidence)))
+                                 date_breaks = "1 month", date_labels = "%b %Y") + ggplot2::scale_y_continuous(limits = c(0, max(plot_incidence)))
   } else {
     if (time_period > length(x)) {
       stop("Time period index out of bounds. Please cross-check the time_period input with the length of your time_period_result object")

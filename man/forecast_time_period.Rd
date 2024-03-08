@@ -10,7 +10,8 @@ forecast_time_period(
   n_days = 7,
   time_period = "weekly",
   type = NULL,
-  algorithm = "EpiEstim"
+  algorithm = "EpiEstim",
+  ...
 )
 }
 \arguments{

@@ -6,12 +6,12 @@
 \usage{
 get_phrdw_by_type_date_age(
   phrdw_data,
-  time_period = "daily",
+  time_period = "weekly",
   type,
-  start_date,
-  end_date,
+  start_date = min(phrdw_data$lis_date_collection),
+  end_date = max(phrdw_data$lis_date_collection),
   start_age = 0,
-  end_age = 150
+  end_age = 17
 )
 }
 \arguments{

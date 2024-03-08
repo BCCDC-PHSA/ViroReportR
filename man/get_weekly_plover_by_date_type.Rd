@@ -4,12 +4,17 @@
 \alias{get_weekly_plover_by_date_type}
 \title{Filter the weekly plover data by date & disease type}
 \usage{
-get_weekly_plover_by_date_type(plover_data, type, start_date, end_date)
+get_weekly_plover_by_date_type(
+  plover_data,
+  type,
+  start_date = min(plover_data$epiWeek_date),
+  end_date = max(plover_data$epiWeek_date)
+)
 }
 \arguments{
 \item{plover_data}{raw plover data before any transformation}
 
-\item{type}{disease type string (e.g. 'flu_a', 'flu_b')}
+\item{type}{disease type (e.g. 'sars_cov2', 'rsv', 'flu_a', 'flu_b')}
 
 \item{start_date}{start date string (e.g. '2022-01-01')}
 
@@ -27,7 +32,7 @@ disease type and the date range, it performs the following steps:
 \item Renames the epiweek date as \code{date} & the flu type as \code{confirm}.
 }
 
-The input flu type must be 'flu_a' or 'flu_b'.
+The input disease type must be one of 'sars_cov2', 'rsv', 'flu_a', 'flu_b'
 
 The input start date must be earlier than the input end date.
 
@@ -38,6 +43,8 @@ The input dataframe \code{plover_data} must have the following columns:
 \item \code{Epiweek}: Epiweek Number (e.g. 1, 2, ..., 53)
 \item \code{flu_a}: Confirmed Cases Count (e.g. 1, 2, ...)
 \item \code{flu_b}: Confirmed Cases Count (e.g. 1, 2, ...)
+\item \code{rsv}: Confirmed Cases Count (e.g. 1, 2, ...)
+\item \code{corona}: Confirmed Cases Count (e.g. 1, 2, ...)
 }
 }
 \examples{

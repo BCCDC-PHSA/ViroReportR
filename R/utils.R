@@ -369,6 +369,7 @@ time_weighted_diff <- function(confirm, p50, pred_horizon_str = NULL) {
 #' @param data weekly transformed PLOVER or PHRDW data
 #' @param min_cases minimum number of reliable cases for EpiEstim from config file
 filter_dates <- function(data, min_cases) {
+  confirm <- NULL
 data <- data %>%
   dplyr::filter(confirm >= min_cases) %>%
   dplyr::pull(date)
@@ -386,6 +387,7 @@ common_reliable_estimation_date <- function(PLOVER_data, PHRDW_data,
                                             flub_min = config$min_nb_cases_flub,
                                             cov_min = config$min_nb_cases_covid,
                                             rsv_min = config$min_nb_cases_rsv) {
+  config <- NULL
   disease_types <- c("flu_a", "flu_b", "sars_cov2", "rsv")
   min_cases_per_disease <- max(c(flua_min, flub_min, cov_min, rsv_min))
   plover_list <- lapply(disease_types, function(disease_type) {
@@ -430,10 +432,12 @@ common_reliable_estimation_date <- function(PLOVER_data, PHRDW_data,
 }
 
 #' Format summary table for vriforecasting report
-#' @param summary_individual_quantiles
+#' @param summary_individual_quantiles Individual quantile summary extracted from `summary` function
 #' @return Formatted summary table with wide format for coverage
 #'
 summary_ind_quantiles_formatter <- function(summary_individual_quantiles) {
+  `Confirmed cases` <- `Predicted cases` <- `50 percentile interval` <- `95 percentile interval` <- weekly_date <- NULL
+    coverage <- `.` <- `50 and 95 percentile interval` <- `only 95 percentile interval` <- `Outside 95 percentile interval` <- NULL
   summary_individual_quantiles <- summary_individual_quantiles %>%
     dplyr::count(`Confirmed cases`, `Predicted cases`, `50 percentile interval`, `95 percentile interval`, coverage) %>%
     tidyr::pivot_wider(
@@ -443,11 +447,12 @@ summary_ind_quantiles_formatter <- function(summary_individual_quantiles) {
                   "95 percentile interval", "weekly_date")
     ) %>%
     replace(is.na(.), 0) %>%
+    dplyr::mutate_if(is.numeric, round) %>%
     dplyr::mutate_at(
-      vars(`50 and 95 percentile interval`, `only 95 percentile interval`, `Outside 95 percentile interval`),
-      funs(case_when(
-        . == 0 ~ emojifont::emoji(search_emoji('x'))[28],
-        . == 1 ~ emojifont::emoji(search_emoji('check'))[1])
+      dplyr::vars(`50 and 95 percentile interval`, `only 95 percentile interval`, `Outside 95 percentile interval`),
+      dplyr::funs(case_when(
+        . == 0 ~ emojifont::emoji(emojifont::search_emoji('x'))[28],
+        . == 1 ~ emojifont::emoji(emojifont::search_emoji('check'))[1])
     )
 
     ) %>%
@@ -460,6 +465,7 @@ summary_ind_quantiles_formatter <- function(summary_individual_quantiles) {
 
 #' Extract current forecast metrics: forecast prediction, percentile interval and Rt value
 #' @param time_period_result output from  \code{forecast_time_period}
+#' @param iter number of MCMC iterations used to generate Rt posterior
 #' @return current forecast metrics
 #'
 forecast_metrics <- function(time_period_result, iter = 10) {
@@ -479,7 +485,7 @@ data_proj <- tibble::tibble(
 data_proj <- data_proj %>%
   dplyr::mutate(incidence = incidence) %>%
   create_quantiles(date, variable = "incidence") %>%
-  mutate_if(is.numeric, round) %>%
+  dplyr::mutate_if(is.numeric, round) %>%
   dplyr::mutate(`95 percentile interval` = glue::glue("({p025},{p975})")) %>%
   dplyr::mutate(`50 percentile interval` = glue::glue("({p25},{p75})"))
 

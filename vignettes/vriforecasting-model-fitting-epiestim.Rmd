@@ -67,7 +67,7 @@ algorithm = "EpiEstim")
 The forecasts can then be plotted at all the sliding windows used using the `plot` function which uses the output of `forecast_time_period`. The function takes in an object of of class `forecast_time_period`
 
 ```{r forecast_plot, dpi = 300, out.width = "70%"}
-plot(time_period_result_daily, time_period = 8) 
+plot(time_period_result_daily) 
 ```
 
 We can also produce forecasts aggregated by week by setting `time_period = "weekly"`. For the functionality, `n_days` must be a multiple of 7. Thus, specifying `n_days = 14` when `time_period = "weekly` produces 14/7 i.e. 2-week ahead forecasts. 

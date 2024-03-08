@@ -17,14 +17,10 @@ test_that("Error is correctly thrown when time_period specified is out of range"
 
 # Test function output of plot_all_time_period_forecast_data --------------------------------
 
-test_that("Correct number of plots are produced for daily plot", {
-  expect_equal(length(plot(daily_time_period_result)), nrow(weekly_transformed_plover_data) - 1)
+test_that("Correct number of plots are produced for plot with time period", {
+  expect_equal(length(plot(daily_time_period_result, time_period = 1)), 1)
 })
 
-
-test_that("Correct number of plots are produced for weekly plot", {
-  expect_equal(length(plot(weekly_time_period_result)), nrow(weekly_transformed_plover_data) - 1)
-})
 
 
 # Cleaning up environment

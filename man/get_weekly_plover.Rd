@@ -28,5 +28,7 @@ The input dataframe \code{plover_data} must have the following columns:
 \item \code{Epiweek}: Epiweek Number (e.g. 1, 2, ..., 53)
 \item \code{flu_a}: Confirmed Cases Count (e.g. 1, 2, ...)
 \item \code{flu_b}: Confirmed Cases Count (e.g. 1, 2, ...)
+\item \code{rsv}: Confirmed Cases Count (e.g. 1, 2, ...)
+\item \code{corona}: Confirmed Cases Count (e.g. 1, 2, ...)
 }
 }

@@ -14,6 +14,8 @@
 #' * `Epiweek`: Epiweek Number (e.g. 1, 2, ..., 53)
 #' * `flu_a`: Confirmed Cases Count (e.g. 1, 2, ...)
 #' * `flu_b`: Confirmed Cases Count (e.g. 1, 2, ...)
+#' * `rsv`: Confirmed Cases Count (e.g. 1, 2, ...)
+#' * `corona`: Confirmed Cases Count (e.g. 1, 2, ...)
 #'
 #' @param plover_data raw plover data before any transformation
 #'
@@ -26,7 +28,7 @@ get_weekly_plover <- function(plover_data) {
   stopifnot(c("epiWeek_date", "epiWeek_year", "Epiweek", "flu_a", "flu_b", "rsv", "sars_cov2")
             %in% colnames(plover_data))
 
-  epiWeek_date <- epiWeek_year <- Epiweek <- type <- flu_cases <- NULL
+  epiWeek_date <- epiWeek_year <- Epiweek <- type <- vri_cases <-  NULL
 
   agg_plover_data_date_type <- plover_data %>%
     tidyr::pivot_longer(
@@ -61,6 +63,8 @@ get_weekly_plover <- function(plover_data) {
 #' * `Epiweek`: Epiweek Number (e.g. 1, 2, ..., 53)
 #' * `flu_a`: Confirmed Cases Count (e.g. 1, 2, ...)
 #' * `flu_b`: Confirmed Cases Count (e.g. 1, 2, ...)
+#' * `rsv`: Confirmed Cases Count (e.g. 1, 2, ...)
+#' * `corona`: Confirmed Cases Count (e.g. 1, 2, ...)
 #'
 #' @param plover_data raw plover data before any transformation
 #' @param type disease type (e.g. 'sars_cov2', 'rsv', 'flu_a', 'flu_b')
@@ -83,6 +87,7 @@ get_weekly_plover <- function(plover_data) {
 #' )
 get_weekly_plover_by_date_type <- function(plover_data, type, start_date = min(plover_data$epiWeek_date), end_date =
                                              max(plover_data$epiWeek_date)) {
+  corona <- NULL
   plover_data <- plover_data %>%
     rename("sars_cov2" = corona)
   stopifnot(
