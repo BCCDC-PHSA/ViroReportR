@@ -377,12 +377,15 @@ return(data)
 }
 
 #' Extract common date that all diseases in PHRDW and PLOVER data can be reliably estimated with in EpiEstim
-#' @param confirm confirmed weekly cases
-#' @param p50 prediction median quantile value
-#' @param pred_horizon_str *string* prediction horizon time period to plot
+#' @param plover_list List of transformed PLOVER data (output of `get_all_vri_data`)
+#' @param phrdw_list List of transformed PHRDW data (output of `get_all_vri_data`)
+#' @param flua_min Minimum number of Flu-A cases required for reliable estimation by EpiEstim
+#' @param flub_min Minimum number of Flu-B cases required for reliable estimation by EpiEstim
+#' @param cov_min Minimum number of SARS-CoV2 cases required for reliable estimation by EpiEstim
+#' @param rsv_min Minimum number of RSV cases required for reliable estimation by EpiEstim
 #' @return *numeric* Weighted squared error at each data time-point
 #'
-common_reliable_estimation_date <- function(PLOVER_data, PHRDW_data,
+common_reliable_estimation_date <- function(plover_list, phrdw_list,
                                             flua_min = config$min_nb_cases_flua,
                                             flub_min = config$min_nb_cases_flub,
                                             cov_min = config$min_nb_cases_covid,
@@ -390,17 +393,14 @@ common_reliable_estimation_date <- function(PLOVER_data, PHRDW_data,
   config <- NULL
   disease_types <- c("flu_a", "flu_b", "sars_cov2", "rsv")
   min_cases_per_disease <- max(c(flua_min, flub_min, cov_min, rsv_min))
-  plover_list <- lapply(disease_types, function(disease_type) {
-    get_weekly_plover_by_date_type(plover_data = PLOVER_data, type = disease_type)
-  })
 
-  flu_a <- format(as.Date(filter_dates(plover_list[[1]],
+  flu_a <- format(as.Date(filter_dates(plover_list$flu_a,
                                        min_cases_per_disease)))
-  flu_b <- format(as.Date(filter_dates(plover_list[[2]],
+  flu_b <- format(as.Date(filter_dates(plover_list$flu_b,
                                        min_cases_per_disease)))
-  covid <- format(as.Date(filter_dates(plover_list[[3]],
+  covid <- format(as.Date(filter_dates(plover_list$sars_cov2,
                                        min_cases_per_disease)))
-  rsv <- format(as.Date(filter_dates(plover_list[[4]],
+  rsv <- format(as.Date(filter_dates(plover_list$rsv,
                                        min_cases_per_disease)))
 
   common_plover_date <- min(Reduce(intersect, list(flu_a, flu_b, covid, rsv)))
@@ -409,17 +409,14 @@ common_reliable_estimation_date <- function(PLOVER_data, PHRDW_data,
     common_plover_date <- c(min(flu_a), min(flu_b), min(covid), min(rsv))
   }
 
-  phrdw_list <- lapply(disease_types, function(disease_type) {
-    suppressWarnings(get_phrdw_by_type_date_age(phrdw_data = PHRDW_data, type = disease_type))
-  })
 
-  flu_a <- format(as.Date(filter_dates(phrdw_list[[1]],
+  flu_a <- format(as.Date(filter_dates(phrdw_list$flu_a,
                                        min_cases_per_disease)))
-  flu_b <- format(as.Date(filter_dates(phrdw_list[[2]],
+  flu_b <- format(as.Date(filter_dates(phrdw_list$flu_b,
                                        min_cases_per_disease)))
-  covid <- format(as.Date(filter_dates(phrdw_list[[3]],
+  covid <- format(as.Date(filter_dates(phrdw_list$sars_cov2,
                                        min_cases_per_disease)))
-  rsv <- format(as.Date(filter_dates(phrdw_list[[4]],
+  rsv <- format(as.Date(filter_dates(phrdw_list$rsv,
                                      min_cases_per_disease)))
 
   common_phrdw_date <- min(Reduce(intersect, list(flu_a, flu_b, covid, rsv)))
@@ -437,7 +434,7 @@ common_reliable_estimation_date <- function(PLOVER_data, PHRDW_data,
 #'
 summary_ind_quantiles_formatter <- function(summary_individual_quantiles) {
   `Confirmed cases` <- `Predicted cases` <- `50 percentile interval` <- `95 percentile interval` <- weekly_date <- NULL
-    coverage <- `.` <- `50 and 95 percentile interval` <- `only 95 percentile interval` <- `Outside 95 percentile interval` <- NULL
+    coverage <- `.` <- `50 and 95 percentile interval` <- `only 95 percentile interval`  <- NULL
   summary_individual_quantiles <- summary_individual_quantiles %>%
     dplyr::count(`Confirmed cases`, `Predicted cases`, `50 percentile interval`, `95 percentile interval`, coverage) %>%
     tidyr::pivot_wider(
@@ -449,7 +446,7 @@ summary_ind_quantiles_formatter <- function(summary_individual_quantiles) {
     replace(is.na(.), 0) %>%
     dplyr::mutate_if(is.numeric, round) %>%
     dplyr::mutate_at(
-      dplyr::vars(`50 and 95 percentile interval`, `only 95 percentile interval`, `Outside 95 percentile interval`),
+      dplyr::vars(`50 and 95 percentile interval`, `only 95 percentile interval`),
       dplyr::funs(case_when(
         . == 0 ~ emojifont::emoji(emojifont::search_emoji('x'))[28],
         . == 1 ~ emojifont::emoji(emojifont::search_emoji('check'))[1])
@@ -457,7 +454,7 @@ summary_ind_quantiles_formatter <- function(summary_individual_quantiles) {
 
     ) %>%
     dplyr::select(weekly_date, `Confirmed cases`, `Predicted cases`, `50 and 95 percentile interval`, `only 95 percentile interval`,
-                  `Outside 95 percentile interval`, `50 percentile interval`, `95 percentile interval`)
+                  `50 percentile interval`, `95 percentile interval`)
   return(summary_individual_quantiles)
 
 }
@@ -466,7 +463,7 @@ summary_ind_quantiles_formatter <- function(summary_individual_quantiles) {
 #' Extract current forecast metrics: forecast prediction, percentile interval and Rt value
 #' @param time_period_result output from  \code{forecast_time_period}
 #' @param iter number of MCMC iterations used to generate Rt posterior
-#' @return current forecast metrics
+#' @return dataframe of current forecast metrics
 #'
 forecast_metrics <- function(time_period_result, iter = 10) {
 cur_time_period_result <- time_period_result[[length(time_period_result)]]
@@ -486,11 +483,41 @@ data_proj <- data_proj %>%
   dplyr::mutate(incidence = incidence) %>%
   create_quantiles(date, variable = "incidence") %>%
   dplyr::mutate_if(is.numeric, round) %>%
-  dplyr::mutate(`95 percentile interval` = glue::glue("({p025},{p975})")) %>%
-  dplyr::mutate(`50 percentile interval` = glue::glue("({p25},{p75})"))
+  dplyr::mutate(`95 percentile interval` = glue::glue("{p025}-{p975}")) %>%
+  dplyr::mutate(`50 percentile interval` = glue::glue("{p25}-{p75}"))
 
-Rt_interval = glue::glue("({R_lower},{R_upper})")
+Rt_interval = glue::glue("{R_lower}-{R_upper}")
 
 return(list(Rt_mean = Rt_mean, Rt_interval = Rt_interval, prediction = unname(data_proj$p50[1]),
                interval_90 = data_proj$`95 percentile interval`, interval_50 = data_proj$`50 percentile interval`))
 }
+
+
+#' Process PLOVER and PHRDW data for all respiratory diseases supported by vriforecasting
+#' @param raw_plover_data PLOVER data
+#' @param raw_phrdw_data PHRDW data
+#' @return Lists of dataframes of transformed PLOVER and PHRDW data for each respiratory viral disease with columns `date` and `confirm`
+get_all_vri_data <- function(raw_plover_data, raw_phrdw_data) {
+ disease_types <- c("flu_a", "flu_b", "sars_cov2", "rsv")
+  plover_list <- setNames(
+    lapply(disease_types, function(disease_type) {
+      get_weekly_plover_by_date_type(plover_data = raw_plover_data, type = disease_type, start_date = "2021-09-01")
+    }),
+    disease_types
+  )
+
+  phrdw_list <- setNames(
+    lapply(disease_types, function(disease_type) {
+      get_phrdw_by_type_date_age(phrdw_data = phrdw_flu_daily_count, type = disease_type, start_date = "2021-09-01")
+    }),
+    disease_types
+  )
+return(list(plover_list = plover_list, phrdw_list = phrdw_list))
+}
+
+
+#' Print out text output for vriforecasting report detailing current number of case visits, last value of Rt and corresponding intervals
+#' @param time_period_result output from  \code{forecast_time_period}
+#' @param iter number of MCMC iterations used to generate Rt posterior
+#' @return current forecast metrics
+#'

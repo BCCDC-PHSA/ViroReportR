@@ -220,5 +220,6 @@ get_phrdw_by_type_date_age <- function(phrdw_data, time_period="weekly",
     dplyr::rename("confirm" = type) %>%
     dplyr::ungroup()
 
+
   return(filtered_phrdw_data)
 }

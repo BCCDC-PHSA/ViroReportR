@@ -108,5 +108,6 @@ get_weekly_plover_by_date_type <- function(plover_data, type, start_date = min(p
     dplyr::select(epiWeek_date, dplyr::all_of(type)) %>%
     dplyr::rename("date" = "epiWeek_date", "confirm" = type)
 
+
   return(filtered_weekly_plover_data)
 }

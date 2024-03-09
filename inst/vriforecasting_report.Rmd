@@ -18,7 +18,7 @@ library(DT)
 
 
 # Read in config file 
-config <- yaml::yaml.load_file("config.yml")
+config <- yaml::yaml.load_file(here::here("inst/config.yml"))
 ```
 
 
@@ -26,32 +26,11 @@ config <- yaml::yaml.load_file("config.yml")
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, eval = FALSE}
 # Data setup and cleaning code
-disease_types <- c("flu_a", "flu_b", "sars_cov2", "rsv")
+vri_data <- get_all_vri_data(raw_plover_data = readRDS(config$PLOVER$temp_path), 
+                             raw_phrdw_data = readRData(config$PHRDW$temp_path))
 
-
-raw_plover_data <- readRDS("~/Desktop/bccdc/vriforecasting/dat_test/plover_weekly_resp.rds")
-
-raw_phrdw_data <- load("~/Desktop/bccdc/vriforecasting/dat_test/phrdw_flu_daily_count_vpp_only.rData")
-
-raw_phrdw_data <- phrdw_flu_daily_count
-
-# PHRDW and PLOVER data
-plover_list <- setNames(
-  lapply(disease_types, function(disease_type) {
-    get_weekly_plover_by_date_type(plover_data = raw_plover_data, type = disease_type)
-  }),
-  disease_types
-)
-
-phrdw_list <- setNames(
-  lapply(disease_types, function(disease_type) {
-    get_phrdw_by_type_date_age(phrdw_data = raw_phrdw_data, type = disease_type)
-  }),
-  disease_types
-)
-
-# Reliable estimation date
-cred <- vriforecasting:::common_reliable_estimation_date(raw_plover_data, raw_phrdw_data)
+# Reliable common estimation date
+cred <- common_reliable_estimation_date(vri_data$plover_list, vri_data$phrdw_list)
 ```
 
 ```{r echo = FALSE}

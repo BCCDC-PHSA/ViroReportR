@@ -173,10 +173,11 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
       p975 < confirm || confirm < p025 ~ "Outside 95 percentile interval"
     )) %>%
     dplyr::mutate(weighted_diff = time_weighted_diff(confirm, p50, pred_horizon_str = eval(parse(text = "pred_horizon_str")))) %>%
-    dplyr::mutate(`50 percentile interval` = glue::glue("({p25},{p75})")) %>%
-    dplyr::mutate(`95 percentile interval` = glue::glue("({p025},{p975})")) %>%
+    dplyr::mutate(`50 percentile interval` = glue::glue("{p25}-{p75}")) %>%
+    dplyr::mutate(`95 percentile interval` = glue::glue("{p025}-{p975}")) %>%
     dplyr::select(weekly_date, coverage, weighted_diff, confirm, median.prediction = p50, `50 percentile interval`, `95 percentile interval`) %>%
-    dplyr::rename("Confirmed cases" = confirm, "Predicted cases" = median.prediction)
+    dplyr::rename("Confirmed cases" = confirm, "Predicted cases" = median.prediction, "Weekly date" = weekly_date) %>%
+    dplyr::filter(coverage != "Outside 95 percentile interva")
   if ((any(forecast_cases_dat$coverage %in% "Outside 95 percentile interval"))) {
     warning("Prediction percentile intervals do not cover some data-points in validation fits. Some forecasts may not be reliable")
   }
@@ -195,7 +196,7 @@ forecast_cases_dat_summ <- forecast_cases_dat_summ[order(forecast_cases_dat_summ
     select(-weighted_diff)
   return(list(
     individual_quantiles = forecast_cases_dat,
-    quantile_summary = forecast_cases_dat_summ, time_weighted_mspe = round(time_weighted_mspe, 2)
+    quantile_summary = forecast_cases_dat_summ, time_weighted_mspe = round(time_weighted_mspe, 3)
   ))
 }
 

@@ -1,8 +1,12 @@
 PLOVER:
-  path: "O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/plover_weekly_resp.rds"
+  temp_path: "~/Desktop/bccdc/vriforecasting/dat_test/plover_weekly_resp.rds"
+  bccdc_path: "O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/plover_weekly_resp.rds"
   
 PHRDW:
-  path: "O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/phrdw_flu_daily_count_vpp_only.rData"
+  temp_path: "~/Desktop/bccdc/vriforecasting/dat_test/phrdw_flu_daily_count_vpp_only.rData"
+  bccdc_path: "O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/phrdw_flu_daily_count_vpp_only.rData"
+
+
 
 min_nb_cases_flua: 11
 min_nb_cases_flub: 11
