@@ -429,12 +429,14 @@ common_reliable_estimation_date <- function(plover_list, phrdw_list,
 }
 
 #' Format summary table for vriforecasting report
-#' @param summary_individual_quantiles Individual quantile summary extracted from `summary` function
-#' @return Formatted summary table with wide format for coverage
+#' @param time_period_result output from  \code{forecast_time_period}
+#' @return Formatted data.table summary table with wide format for coverage
 #'
-summary_ind_quantiles_formatter <- function(summary_individual_quantiles) {
+summary_ind_quantiles_formatter <- function(time_period_result) {
   `Confirmed cases` <- `Predicted cases` <- `50 percentile interval` <- `95 percentile interval` <- weekly_date <- NULL
     coverage <- `.` <- `50 and 95 percentile interval` <- `only 95 percentile interval`  <- NULL
+  summary_table <- summary(time_period_result, pred_horizon_str = "1 week ahead")
+  summary_individual_quantiles <- summary_table$individual_quantiles
   summary_individual_quantiles <- summary_individual_quantiles %>%
     dplyr::count(`Confirmed cases`, `Predicted cases`, `50 percentile interval`, `95 percentile interval`, coverage) %>%
     tidyr::pivot_wider(
@@ -455,6 +457,7 @@ summary_ind_quantiles_formatter <- function(summary_individual_quantiles) {
     ) %>%
     dplyr::select(weekly_date, `Confirmed cases`, `Predicted cases`, `50 and 95 percentile interval`, `only 95 percentile interval`,
                   `50 percentile interval`, `95 percentile interval`)
+  summary_individual_quantiles <- DT::datatable(summary_individual_quantiles)
   return(summary_individual_quantiles)
 
 }
@@ -489,7 +492,8 @@ data_proj <- data_proj %>%
 Rt_interval = glue::glue("{R_lower}-{R_upper}")
 
 return(list(Rt_mean = Rt_mean, Rt_interval = Rt_interval, prediction = unname(data_proj$p50[1]),
-               interval_90 = data_proj$`95 percentile interval`, interval_50 = data_proj$`50 percentile interval`))
+               interval_90 = data_proj$`95 percentile interval`, interval_50 = data_proj$`50 percentile interval`,
+            forecast_date = unname(data_proj$date[1])))
 }
 
 
@@ -508,7 +512,7 @@ get_all_vri_data <- function(raw_plover_data, raw_phrdw_data) {
 
   phrdw_list <- setNames(
     lapply(disease_types, function(disease_type) {
-      get_phrdw_by_type_date_age(phrdw_data = phrdw_flu_daily_count, type = disease_type, start_date = "2021-09-01")
+      get_phrdw_by_type_date_age(phrdw_data = raw_phrdw_data, type = disease_type, start_date = "2021-09-01")
     }),
     disease_types
   )
@@ -518,6 +522,32 @@ return(list(plover_list = plover_list, phrdw_list = phrdw_list))
 
 #' Print out text output for vriforecasting report detailing current number of case visits, last value of Rt and corresponding intervals
 #' @param time_period_result output from  \code{forecast_time_period}
-#' @param iter number of MCMC iterations used to generate Rt posterior
+#' @param ... optional arguments to be passed on to \code{forecast_metrics}
 #' @return current forecast metrics
-#'
+current_forecast_text <- function(time_period_result, ...) {
+  forecast_metrics <- forecast_metrics(time_period_result, ...)
+  cat("The 1-week ahead forecast value of confirmed cases for", forecast_metrics$forecast_date,
+  "is:", forecast_metrics$prediction, "cases/week \n
+  The 95 % prediction interval for this forecast is", forecast_metrics$interval_90[1],
+  "\n The 50 % prediction interval for this forecast is:", forecast_metrics$interval_50[1],
+  "\n The last estimated Rt value with the 95% confidence interval is:", forecast_metrics$Rt_mean, forecast_metrics$Rt_interval)
+
+}
+
+
+
+#' Print out text output for vriforecasting report detailing validation information including proportion of predictions in 50% and 95% intervals
+#' @param time_period_result output from  \code{forecast_time_period}
+#' @return current forecast metrics
+validation_summary_text <- function(time_period_result) {
+  summary_table_quantiles <- summary(time_period_result, pred_horizon_str = "1 week ahead")
+  proportion_95 <- summary_table_quantiles$quantile_summary$proportion[2]
+  proportion_50 <- summary_table_quantiles$quantile_summary$proportion[1]
+  frac_95 <- glue("({summary_table_quantiles$quantile_summary$counts[2]}/{sum(summary_table_quantiles$quantile_summary$counts)})")
+  frac_50 <- glue("({summary_table_quantiles$quantile_summary$counts[1]}/{sum(summary_table_quantiles$quantile_summary$counts)})")
+  mspe <- summary_table_quantiles$time_weighted_mspe
+  cat("Previous 1-week ahead forecasts had", proportion_50, "%", frac_50, "of the true confirmed cases within the 50% prediction interval"
+      "and", proportion_95 "%", frac_95, "of the true confirmed cases outside the 95% prediction interval \n
+      The Mean squared percentage error on the validation set is:", mspe)
+
+}
