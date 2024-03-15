@@ -5,8 +5,8 @@
 \title{Extract common date that all diseases in PHRDW and PLOVER data can be reliably estimated with in EpiEstim}
 \usage{
 common_reliable_estimation_date(
-  PLOVER_data,
-  PHRDW_data,
+  plover_list,
+  phrdw_list,
   flua_min = config$min_nb_cases_flua,
   flub_min = config$min_nb_cases_flub,
   cov_min = config$min_nb_cases_covid,
@@ -14,11 +14,17 @@ common_reliable_estimation_date(
 )
 }
 \arguments{
-\item{confirm}{confirmed weekly cases}
+\item{plover_list}{List of transformed PLOVER data (output of \code{get_all_vri_data})}
 
-\item{p50}{prediction median quantile value}
+\item{phrdw_list}{List of transformed PHRDW data (output of \code{get_all_vri_data})}
 
-\item{pred_horizon_str}{\emph{string} prediction horizon time period to plot}
+\item{flua_min}{Minimum number of Flu-A cases required for reliable estimation by EpiEstim}
+
+\item{flub_min}{Minimum number of Flu-B cases required for reliable estimation by EpiEstim}
+
+\item{cov_min}{Minimum number of SARS-CoV2 cases required for reliable estimation by EpiEstim}
+
+\item{rsv_min}{Minimum number of RSV cases required for reliable estimation by EpiEstim}
 }
 \value{
 \emph{numeric} Weighted squared error at each data time-point

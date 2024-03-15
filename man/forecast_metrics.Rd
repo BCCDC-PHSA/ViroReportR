@@ -12,7 +12,7 @@ forecast_metrics(time_period_result, iter = 10)
 \item{iter}{number of MCMC iterations used to generate Rt posterior}
 }
 \value{
-current forecast metrics
+dataframe of current forecast metrics
 }
 \description{
 Extract current forecast metrics: forecast prediction, percentile interval and Rt value

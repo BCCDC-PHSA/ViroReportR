@@ -2,14 +2,12 @@
 % Please edit documentation in R/validation_functions.R
 \name{plot.forecast_time_period}
 \alias{plot.forecast_time_period}
-\title{Plot forecasts at each iteration with uncertainty quantile ranges}
+\title{Plot current forecast at last chaining iteration with uncertainty quantile ranges}
 \usage{
-\method{plot}{forecast_time_period}(x, time_period = NULL, ...)
+\method{plot}{forecast_time_period}(x, ...)
 }
 \arguments{
 \item{x}{object of class \code{forecast_time_period}}
-
-\item{time_period}{optional parameter to show only plot at a specific time-point}
 
 \item{...}{pass optional parameters to plot method}
 }
@@ -17,7 +15,7 @@
 Multiple plots with forecasts at each sliding window
 }
 \description{
-Plot forecasts at each iteration with uncertainty quantile ranges
+Plot current forecast at last chaining iteration with uncertainty quantile ranges
 }
 \examples{
 plot(daily_time_period_result)

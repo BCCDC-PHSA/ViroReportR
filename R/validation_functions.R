@@ -9,7 +9,7 @@
 #' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"
 #' @param time_period time period string (e.g. 'daily', 'weekly'). Default is daily
 #' @param algorithm argument to control if model fitting and forecasting is done by `EpiEstim` or `EpiFilter`
-#'
+#' @param ... optional arguments to control model fitting process from \code{fit_model_epiestim}
 #'
 #'
 #' @return List of class \code{forecast_time_period}
@@ -173,11 +173,11 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
       p975 < confirm || confirm < p025 ~ "Outside 95 percentile interval"
     )) %>%
     dplyr::mutate(weighted_diff = time_weighted_diff(confirm, p50, pred_horizon_str = eval(parse(text = "pred_horizon_str")))) %>%
-    dplyr::mutate(`50 percentile interval` = glue::glue("{p25}-{p75}")) %>%
-    dplyr::mutate(`95 percentile interval` = glue::glue("{p025}-{p975}")) %>%
+    dplyr::mutate_if(is.numeric, round) %>%
+    dplyr::mutate(`50 percentile interval` = glue::glue("({p25}-{p75})")) %>%
+    dplyr::mutate(`95 percentile interval` = glue::glue("({p025}-{p975})")) %>%
     dplyr::select(weekly_date, coverage, weighted_diff, confirm, median.prediction = p50, `50 percentile interval`, `95 percentile interval`) %>%
-    dplyr::rename("Confirmed cases" = confirm, "Predicted cases" = median.prediction, "Weekly date" = weekly_date) %>%
-    dplyr::filter(coverage != "Outside 95 percentile interva")
+    dplyr::rename("Confirmed cases" = confirm, "Predicted cases" = median.prediction)
   if ((any(forecast_cases_dat$coverage %in% "Outside 95 percentile interval"))) {
     warning("Prediction percentile intervals do not cover some data-points in validation fits. Some forecasts may not be reliable")
   }
@@ -201,32 +201,16 @@ forecast_cases_dat_summ <- forecast_cases_dat_summ[order(forecast_cases_dat_summ
 }
 
 
-#' Plot forecasts at each iteration with uncertainty quantile ranges
+#' Plot current forecast at last chaining iteration with uncertainty quantile ranges
 #'
 #' @param x object of class \code{forecast_time_period}
-#' @param time_period optional parameter to show only plot at a specific time-point
 #' @param ... pass optional parameters to plot method
 #' @return Multiple plots with forecasts at each sliding window
 #'
 #' @export
 #' @examples
 #' plot(daily_time_period_result)
-plot.forecast_time_period <- function(x, time_period = NULL, ...) {
-  aggregate_unit <- x[[length(x)]]$quantile_unit
-  if(is.null(time_period)) {
+plot.forecast_time_period <- function(x, ...) {
     forecast_plot <- plot_all_time_period_forecast_data_helper(x[[length(x)]])
-    plot_dates <- c(x[[length(x)]][["model_data_date"]], x[[length(x)]][["quantile_date"]])
-    model_incidence <- x[[length(x)]][["confirm"]]
-    pred_incidence <- unname(forecast_plot$data$p50)
-    plot_incidence <- c( model_incidence, pred_incidence)
-    plot_incidence <- utils::tail(plot_incidence, n = 15)
-    forecast_plot + ggplot2::scale_x_date(limits = as.Date(c(plot_dates[which.max(plot_dates)-20], max(plot_dates))),
-                                 date_breaks = "1 month", date_labels = "%b %Y") + ggplot2::scale_y_continuous(limits = c(0, max(plot_incidence)))
-  } else {
-    if (time_period > length(x)) {
-      stop("Time period index out of bounds. Please cross-check the time_period input with the length of your time_period_result object")
-    }
-    one_time_plot <- plot_all_time_period_forecast_data_helper(x[[time_period]])
-    one_time_plot
-  }
+  return(forecast_plot)
 }

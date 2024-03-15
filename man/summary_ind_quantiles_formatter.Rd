@@ -4,13 +4,13 @@
 \alias{summary_ind_quantiles_formatter}
 \title{Format summary table for vriforecasting report}
 \usage{
-summary_ind_quantiles_formatter(summary_individual_quantiles)
+summary_ind_quantiles_formatter(time_period_result)
 }
 \arguments{
-\item{summary_individual_quantiles}{Individual quantile summary extracted from \code{summary} function}
+\item{time_period_result}{output from  \code{forecast_time_period}}
 }
 \value{
-Formatted summary table with wide format for coverage
+Formatted data.table summary table with wide format for coverage
 }
 \description{
 Format summary table for vriforecasting report

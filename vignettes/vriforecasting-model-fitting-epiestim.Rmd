@@ -64,7 +64,7 @@ weekly_plover_date_type, start_date = "2022-10-02", n_days = 14, type = "flu_a",
 algorithm = "EpiEstim")
 ```
 
-The forecasts can then be plotted at all the sliding windows used using the `plot` function which uses the output of `forecast_time_period`. The function takes in an object of of class `forecast_time_period`
+The forecasts can then be plotted  using the `plot` function which uses the output of `forecast_time_period`. The function takes in an object of of class `forecast_time_period`
 
 ```{r forecast_plot, dpi = 300, out.width = "70%"}
 plot(time_period_result_daily) 
@@ -78,7 +78,7 @@ start_date = "2022-10-02", n_days = 14, type = "flu_a",  time_period = "weekly",
 ```
 
 
-Optionally, one can also choose to plot the forecast for a single time period by specifying the time period using the `time_period` argument:
+One can the plot the latest forecast again:
 
 ```{r forecast_plot_weekly, dpi = 300, out.width= '80%'}
 plot(time_period_result_weekly) 

@@ -10,6 +10,8 @@
 #'   \item{Epiweek}{the epiweek number (1 -- 53)}
 #'   \item{flu_a}{number of confirmed flu A cases}
 #'   \item{flu_b}{number of confirmed flu B cases}
+#'   \item{corona}{number of confirmed SARS CoV2 cases}
+#'   \item{rsv}{number of confirmed RSV cases}
 #' }
 #' @name plover_data
 #'

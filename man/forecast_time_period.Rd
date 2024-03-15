@@ -26,6 +26,8 @@ forecast_time_period(
 \item{type}{\emph{character} Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"}
 
 \item{algorithm}{argument to control if model fitting and forecasting is done by \code{EpiEstim} or \code{EpiFilter}}
+
+\item{...}{optional arguments to control model fitting process from \code{fit_model_epiestim}}
 }
 \value{
 List of class \code{forecast_time_period}

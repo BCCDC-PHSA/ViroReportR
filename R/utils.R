@@ -191,6 +191,9 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
     confirm = cur_time_period_result$confirm
   )
 
+  model_data <- model_data %>%
+filter(date > date[which.max(date)-20])
+
   aggregate_unit <- cur_time_period_result$quantile_unit
   if (aggregate_unit == "weekly") {
     data_proj <- tibble::tibble(
@@ -433,7 +436,7 @@ common_reliable_estimation_date <- function(plover_list, phrdw_list,
 #' @return Formatted data.table summary table with wide format for coverage
 #'
 summary_ind_quantiles_formatter <- function(time_period_result) {
-  `Confirmed cases` <- `Predicted cases` <- `50 percentile interval` <- `95 percentile interval` <- weekly_date <- NULL
+  `Confirmed cases` <- `Predicted cases` <- `50 percentile interval` <- `95 percentile interval` <- `Weekly date` <-  weekly_date <- NULL
     coverage <- `.` <- `50 and 95 percentile interval` <- `only 95 percentile interval`  <- NULL
   summary_table <- summary(time_period_result, pred_horizon_str = "1 week ahead")
   summary_individual_quantiles <- summary_table$individual_quantiles
@@ -455,9 +458,10 @@ summary_ind_quantiles_formatter <- function(time_period_result) {
     )
 
     ) %>%
-    dplyr::select(weekly_date, `Confirmed cases`, `Predicted cases`, `50 and 95 percentile interval`, `only 95 percentile interval`,
+    dplyr::mutate(EpiWeek = lubridate::epiweek(weekly_date)) %>%
+    dplyr::rename("Weekly date" = weekly_date) %>%
+    dplyr::select(EpiWeek, `Weekly date`, `Confirmed cases`, `Predicted cases`, `50 and 95 percentile interval`, `only 95 percentile interval`,
                   `50 percentile interval`, `95 percentile interval`)
-  summary_individual_quantiles <- DT::datatable(summary_individual_quantiles)
   return(summary_individual_quantiles)
 
 }
@@ -491,9 +495,14 @@ data_proj <- data_proj %>%
 
 Rt_interval = glue::glue("{R_lower}-{R_upper}")
 
-return(list(Rt_mean = Rt_mean, Rt_interval = Rt_interval, prediction = unname(data_proj$p50[1]),
-               interval_90 = data_proj$`95 percentile interval`, interval_50 = data_proj$`50 percentile interval`,
-            forecast_date = unname(data_proj$date[1])))
+return(list(
+  Rt_mean = Rt_mean,
+  Rt_interval = Rt_interval,
+  prediction = unname(data_proj$p50[1]),
+  interval_90 = data_proj$`95 percentile interval`,
+  interval_50 = data_proj$`50 percentile interval`,
+  forecast_date = unname(format(as.Date(data_proj$date[1])))
+))
 }
 
 
@@ -503,14 +512,14 @@ return(list(Rt_mean = Rt_mean, Rt_interval = Rt_interval, prediction = unname(da
 #' @return Lists of dataframes of transformed PLOVER and PHRDW data for each respiratory viral disease with columns `date` and `confirm`
 get_all_vri_data <- function(raw_plover_data, raw_phrdw_data) {
  disease_types <- c("flu_a", "flu_b", "sars_cov2", "rsv")
-  plover_list <- setNames(
+  plover_list <- stats::setNames(
     lapply(disease_types, function(disease_type) {
       get_weekly_plover_by_date_type(plover_data = raw_plover_data, type = disease_type, start_date = "2021-09-01")
     }),
     disease_types
   )
 
-  phrdw_list <- setNames(
+  phrdw_list <- stats::setNames(
     lapply(disease_types, function(disease_type) {
       get_phrdw_by_type_date_age(phrdw_data = raw_phrdw_data, type = disease_type, start_date = "2021-09-01")
     }),
@@ -526,11 +535,11 @@ return(list(plover_list = plover_list, phrdw_list = phrdw_list))
 #' @return current forecast metrics
 current_forecast_text <- function(time_period_result, ...) {
   forecast_metrics <- forecast_metrics(time_period_result, ...)
-  cat("The 1-week ahead forecast value of confirmed cases for", forecast_metrics$forecast_date,
-  "is:", forecast_metrics$prediction, "cases/week \n
-  The 95 % prediction interval for this forecast is", forecast_metrics$interval_90[1],
-  "\n The 50 % prediction interval for this forecast is:", forecast_metrics$interval_50[1],
-  "\n The last estimated Rt value with the 95% confidence interval is:", forecast_metrics$Rt_mean, forecast_metrics$Rt_interval)
+  cat("The 1-week ahead forecast value of confirmed cases for", format(as.Date(forecast_metrics$forecast_date)),
+      "is:", forecast_metrics$prediction, "cases/week \n\n",
+      "The 95 % prediction interval for this forecast is", glue::glue("({forecast_metrics$interval_90[1]})"),
+      "\n\n The 50 % prediction interval for this forecast is", glue::glue("({forecast_metrics$interval_50[1]})"),
+      "\n\n The last estimated Rt value with the 95% confidence interval is:", forecast_metrics$Rt_mean, glue::glue("({forecast_metrics$Rt_interval})"))
 
 }
 
@@ -543,11 +552,11 @@ validation_summary_text <- function(time_period_result) {
   summary_table_quantiles <- summary(time_period_result, pred_horizon_str = "1 week ahead")
   proportion_95 <- summary_table_quantiles$quantile_summary$proportion[2]
   proportion_50 <- summary_table_quantiles$quantile_summary$proportion[1]
-  frac_95 <- glue("({summary_table_quantiles$quantile_summary$counts[2]}/{sum(summary_table_quantiles$quantile_summary$counts)})")
-  frac_50 <- glue("({summary_table_quantiles$quantile_summary$counts[1]}/{sum(summary_table_quantiles$quantile_summary$counts)})")
+  frac_95 <- glue::glue("({summary_table_quantiles$quantile_summary$counts[2]}/{sum(summary_table_quantiles$quantile_summary$counts)})")
+  frac_50 <- glue::glue("({summary_table_quantiles$quantile_summary$counts[1]}/{sum(summary_table_quantiles$quantile_summary$counts)})")
   mspe <- summary_table_quantiles$time_weighted_mspe
-  cat("Previous 1-week ahead forecasts had", proportion_50, "%", frac_50, "of the true confirmed cases within the 50% prediction interval"
-      "and", proportion_95 "%", frac_95, "of the true confirmed cases outside the 95% prediction interval \n
-      The Mean squared percentage error on the validation set is:", mspe)
+  cat("Previous 1-week ahead forecasts had", proportion_50, "%", frac_50, "of the true confirmed cases within the 50% prediction interval",
+      "and", proportion_95, "%", frac_95, "of the true confirmed cases in the 95% prediction interval \n",
+      "\n\n The Mean squared percentage error on the validation set is:", mspe, "\n")
 
 }
