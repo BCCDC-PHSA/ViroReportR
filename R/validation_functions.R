@@ -30,17 +30,21 @@
 #'   start_date = "2022-10-02", n_days = 14, type = "flu_a", algorithm = "EpiFilter"
 #' )
 forecast_time_period <- function(data, start_date, n_days = 7, time_period = "weekly",
-                                          type = NULL, algorithm = "EpiEstim", ...) {
+                                 type = NULL, algorithm = "EpiEstim", ...) {
   stopifnot(
     "Only EpiFilter and EpiEstim are currently supported as forecasting models. Please check input." =
       algorithm %in% c("EpiEstim", "EpiFilter")
   )
   if (algorithm == "EpiEstim") {
-    time_period_result <- forecast_time_period_epiestim(data = data, start_date = start_date, n_days = n_days,
-                                                        time_period = eval(parse(text = "time_period")), type = eval(parse(text = "type")), ...)
+    time_period_result <- forecast_time_period_epiestim(
+      data = data, start_date = start_date, n_days = n_days,
+      time_period = eval(parse(text = "time_period")), type = eval(parse(text = "type")), ...
+    )
   } else if (algorithm == "EpiFilter") {
-    time_period_result <- forecast_time_period_epiestim(data = data, start_date = start_date, n_days = n_days,
-                                                        time_period = eval(parse(text = "time_period")), type = eval(parse(text = "type")))
+    time_period_result <- forecast_time_period_epiestim(
+      data = data, start_date = start_date, n_days = n_days,
+      time_period = eval(parse(text = "time_period")), type = eval(parse(text = "type"))
+    )
   }
   class(time_period_result) <- c("forecast_time_period", class(time_period_result))
   return(time_period_result)
@@ -168,7 +172,7 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
     dplyr::left_join(model_data, by = c("weekly_date" = "date")) %>%
     dplyr::group_by(weekly_date) %>%
     dplyr::mutate(coverage = dplyr::case_when(
-      (p75 < confirm || confirm < p25) && (p025 <= confirm & confirm <= p975)  ~ "only 95 percentile interval",
+      (p75 < confirm || confirm < p25) && (p025 <= confirm & confirm <= p975) ~ "only 95 percentile interval",
       p25 <= confirm && confirm <= p75 ~ "50 and 95 percentile interval",
       p975 < confirm || confirm < p025 ~ "Outside 95 percentile interval"
     )) %>%
@@ -184,12 +188,15 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
   forecast_cases_dat_summ <- forecast_cases_dat %>%
     dplyr::group_by(coverage) %>%
     dplyr::summarise(counts = dplyr::n()) %>%
-    dplyr::mutate(proportion = round(counts/sum(counts)*100, 2))
-forecast_cases_dat_summ$coverage <- factor( forecast_cases_dat_summ$coverage,
-                                            levels = c("50 and 95 percentile interval",
-                                                       "only 95 percentile interval",
-                                                       "Outside 95 percentile interval"))
-forecast_cases_dat_summ <- forecast_cases_dat_summ[order(forecast_cases_dat_summ$coverage),]
+    dplyr::mutate(proportion = round(counts / sum(counts) * 100, 2))
+  forecast_cases_dat_summ$coverage <- factor(forecast_cases_dat_summ$coverage,
+    levels = c(
+      "50 and 95 percentile interval",
+      "only 95 percentile interval",
+      "Outside 95 percentile interval"
+    )
+  )
+  forecast_cases_dat_summ <- forecast_cases_dat_summ[order(forecast_cases_dat_summ$coverage), ]
   time_weighted_mspe <- sqrt(mean(forecast_cases_dat$weighted_diff))
 
   forecast_cases_dat <- forecast_cases_dat %>%
@@ -211,6 +218,6 @@ forecast_cases_dat_summ <- forecast_cases_dat_summ[order(forecast_cases_dat_summ
 #' @examples
 #' plot(daily_time_period_result)
 plot.forecast_time_period <- function(x, ...) {
-    forecast_plot <- plot_all_time_period_forecast_data_helper(x[[length(x)]])
+  forecast_plot <- plot_all_time_period_forecast_data_helper(x[[length(x)]])
   return(forecast_plot)
 }

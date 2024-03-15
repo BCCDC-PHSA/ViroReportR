@@ -107,4 +107,3 @@
 #'
 #' @docType data
 "generic_data"
-

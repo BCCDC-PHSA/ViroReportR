@@ -119,11 +119,11 @@ get_weekly_aggregated_data <- function(generic_data, date_column, number_column,
   if (!is.null(start_date) & !is.null(end_date)) {
     stopifnot("start date is later than the end date" = (start_date < end_date))
 
-    if (start_date != lubridate::floor_date(as.Date(start_date), unit = "week")){
+    if (start_date != lubridate::floor_date(as.Date(start_date), unit = "week")) {
       warning("The input `start_date` doesn't coincide with start of a week, the aggregated data might include partial number of dates in the start week")
     }
 
-    if (end_date != lubridate::floor_date(as.Date(end_date), unit = "week")){
+    if (end_date != lubridate::floor_date(as.Date(end_date), unit = "week")) {
       warning("The input `end_date` doesn't coincide with start of a week, the aggregated data might include partial number of dates in the end week")
     }
 
@@ -136,7 +136,7 @@ get_weekly_aggregated_data <- function(generic_data, date_column, number_column,
   }
 
   if (!is.null(start_date)) {
-    if (start_date != lubridate::floor_date(as.Date(start_date), unit = "week")){
+    if (start_date != lubridate::floor_date(as.Date(start_date), unit = "week")) {
       warning("The input `start_date` doesn't coincide with start of a week, the aggregated data might include partial number of dates in the start week")
     }
 
@@ -148,7 +148,7 @@ get_weekly_aggregated_data <- function(generic_data, date_column, number_column,
   }
 
   if (!is.null(end_date)) {
-    if (end_date != lubridate::floor_date(as.Date(end_date), unit = "week")){
+    if (end_date != lubridate::floor_date(as.Date(end_date), unit = "week")) {
       warning("The input `end_date` doesn't coincide with start of a week, the aggregated data might include partial number of dates in the end week")
     }
 

@@ -43,7 +43,8 @@ get_daily_phrdw <- function(phrdw_flu_daily_count) {
       rsv = sum(rsv),
       flu_a = sum(flu_a),
       flu_b = sum(flu_b),
-      .groups = "keep") %>%
+      .groups = "keep"
+    ) %>%
     dplyr::rename(date = lis_date_collection) %>%
     dplyr::ungroup()
 
@@ -96,7 +97,8 @@ get_weekly_phrdw <- function(phrdw_flu_daily_count) {
       rsv = sum(rsv),
       flu_a = sum(flu_a),
       flu_b = sum(flu_b),
-    .groups = "keep") %>%
+      .groups = "keep"
+    ) %>%
     dplyr::ungroup()
 
   return(agg_phrdw_data_date_type)
@@ -151,10 +153,10 @@ get_weekly_phrdw <- function(phrdw_flu_daily_count) {
 #'   start_age = 0,
 #'   end_age = 10
 #' )
-get_phrdw_by_type_date_age <- function(phrdw_data, time_period="weekly",
-                                      type, start_date = min(phrdw_data$lis_date_collection),
-                                      end_date = max(phrdw_data$lis_date_collection),
-                                      start_age = 0, end_age = 17) {
+get_phrdw_by_type_date_age <- function(phrdw_data, time_period = "weekly",
+                                       type, start_date = min(phrdw_data$lis_date_collection),
+                                       end_date = max(phrdw_data$lis_date_collection),
+                                       start_age = 0, end_age = 17) {
   stopifnot(
     "invalid time period, available options: 'daily', 'weekly'" =
       time_period %in% c("daily", "weekly")
@@ -171,12 +173,9 @@ get_phrdw_by_type_date_age <- function(phrdw_data, time_period="weekly",
 
   temp <- data.frame()
 
-  if (time_period == "daily"){
-
+  if (time_period == "daily") {
     temp <- get_daily_phrdw(phrdw_data)
-
-  }else if (time_period == "weekly"){
-
+  } else if (time_period == "weekly") {
     temp <- get_weekly_phrdw(phrdw_data)
 
     check_temp <- temp %>%
@@ -189,7 +188,8 @@ get_phrdw_by_type_date_age <- function(phrdw_data, time_period="weekly",
       dplyr::group_by(date) %>%
       dplyr::summarize(
         days_in_week = dplyr::n_distinct(date),
-        .groups = "keep") %>%
+        .groups = "keep"
+      ) %>%
       dplyr::ungroup() %>%
       dplyr::filter(days_in_week < 7) %>%
       dplyr::mutate(
@@ -199,7 +199,6 @@ get_phrdw_by_type_date_age <- function(phrdw_data, time_period="weekly",
     if (!purrr::is_empty(check_temp$warning_message)) {
       warning(check_temp$warning_message)
     }
-
   }
 
   filtered_phrdw_data <- temp %>%
@@ -215,7 +214,8 @@ get_phrdw_by_type_date_age <- function(phrdw_data, time_period="weekly",
       rsv = sum(rsv),
       flu_a = sum(flu_a),
       flu_b = sum(flu_b),
-    .groups = "keep") %>%
+      .groups = "keep"
+    ) %>%
     dplyr::select(date, dplyr::all_of(type)) %>%
     dplyr::rename("confirm" = type) %>%
     dplyr::ungroup()

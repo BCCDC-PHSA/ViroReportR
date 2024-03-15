@@ -185,14 +185,14 @@ extract_sim_samples_epiestim <- function(tp, aggregate_unit = NULL) {
 #' @return Plot displaying forecast for one time period
 
 plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
-  p025 <- p975 <- p25 <- p75 <- p50 <- confirm <- incidence <-  NULL
+  p025 <- p975 <- p25 <- p75 <- p50 <- confirm <- incidence <- NULL
   model_data <- tibble::tibble(
     date = cur_time_period_result$model_data_date,
     confirm = cur_time_period_result$confirm
   )
 
   model_data <- model_data %>%
-filter(date > date[which.max(date)-20])
+    filter(date > date[which.max(date) - 20])
 
   aggregate_unit <- cur_time_period_result$quantile_unit
   if (aggregate_unit == "weekly") {
@@ -362,9 +362,9 @@ combine_df_pred_case <- function(forecast_dat, data, pred_horizon_str = NULL) {
 #' @return *numeric* Weighted squared error at each data time-point
 time_weighted_diff <- function(confirm, p50, pred_horizon_str = NULL) {
   future_preds <- as.numeric(substr(pred_horizon_str, 0, 1))
-  squared_diff <- (confirm-p50)^2
-  date_weights <- seq(from = future_preds + 1, to = length(confirm)+future_preds)
-  weighted_squared_diff <- date_weights*squared_diff
+  squared_diff <- (confirm - p50)^2
+  date_weights <- seq(from = future_preds + 1, to = length(confirm) + future_preds)
+  weighted_squared_diff <- date_weights * squared_diff
   return(weighted_squared_diff)
 }
 
@@ -373,10 +373,10 @@ time_weighted_diff <- function(confirm, p50, pred_horizon_str = NULL) {
 #' @param min_cases minimum number of reliable cases for EpiEstim from config file
 filter_dates <- function(data, min_cases) {
   confirm <- NULL
-data <- data %>%
-  dplyr::filter(confirm >= min_cases) %>%
-  dplyr::pull(date)
-return(data)
+  data <- data %>%
+    dplyr::filter(confirm >= min_cases) %>%
+    dplyr::pull(date)
+  return(data)
 }
 
 #' Extract common date that all diseases in PHRDW and PLOVER data can be reliably estimated with in EpiEstim
@@ -397,38 +397,54 @@ common_reliable_estimation_date <- function(plover_list, phrdw_list,
   disease_types <- c("flu_a", "flu_b", "sars_cov2", "rsv")
   min_cases_per_disease <- max(c(flua_min, flub_min, cov_min, rsv_min))
 
-  flu_a <- format(as.Date(filter_dates(plover_list$flu_a,
-                                       min_cases_per_disease)))
-  flu_b <- format(as.Date(filter_dates(plover_list$flu_b,
-                                       min_cases_per_disease)))
-  covid <- format(as.Date(filter_dates(plover_list$sars_cov2,
-                                       min_cases_per_disease)))
-  rsv <- format(as.Date(filter_dates(plover_list$rsv,
-                                       min_cases_per_disease)))
+  flu_a <- format(as.Date(filter_dates(
+    plover_list$flu_a,
+    min_cases_per_disease
+  )))
+  flu_b <- format(as.Date(filter_dates(
+    plover_list$flu_b,
+    min_cases_per_disease
+  )))
+  covid <- format(as.Date(filter_dates(
+    plover_list$sars_cov2,
+    min_cases_per_disease
+  )))
+  rsv <- format(as.Date(filter_dates(
+    plover_list$rsv,
+    min_cases_per_disease
+  )))
 
   common_plover_date <- min(Reduce(intersect, list(flu_a, flu_b, covid, rsv)))
 
-  if(is.na(common_plover_date)) {
+  if (is.na(common_plover_date)) {
     common_plover_date <- c(min(flu_a), min(flu_b), min(covid), min(rsv))
   }
 
 
-  flu_a <- format(as.Date(filter_dates(phrdw_list$flu_a,
-                                       min_cases_per_disease)))
-  flu_b <- format(as.Date(filter_dates(phrdw_list$flu_b,
-                                       min_cases_per_disease)))
-  covid <- format(as.Date(filter_dates(phrdw_list$sars_cov2,
-                                       min_cases_per_disease)))
-  rsv <- format(as.Date(filter_dates(phrdw_list$rsv,
-                                     min_cases_per_disease)))
+  flu_a <- format(as.Date(filter_dates(
+    phrdw_list$flu_a,
+    min_cases_per_disease
+  )))
+  flu_b <- format(as.Date(filter_dates(
+    phrdw_list$flu_b,
+    min_cases_per_disease
+  )))
+  covid <- format(as.Date(filter_dates(
+    phrdw_list$sars_cov2,
+    min_cases_per_disease
+  )))
+  rsv <- format(as.Date(filter_dates(
+    phrdw_list$rsv,
+    min_cases_per_disease
+  )))
 
   common_phrdw_date <- min(Reduce(intersect, list(flu_a, flu_b, covid, rsv)))
 
-  if(is.na(common_phrdw_date)) {
+  if (is.na(common_phrdw_date)) {
     common_phrdw_date <- c(min(flu_a), min(flu_b), min(covid), min(rsv))
   }
 
- return(list(common_phrdw_date = common_phrdw_date, common_plover_date = common_plover_date))
+  return(list(common_phrdw_date = common_phrdw_date, common_plover_date = common_plover_date))
 }
 
 #' Format summary table for vriforecasting report
@@ -436,8 +452,8 @@ common_reliable_estimation_date <- function(plover_list, phrdw_list,
 #' @return Formatted data.table summary table with wide format for coverage
 #'
 summary_ind_quantiles_formatter <- function(time_period_result) {
-  `Confirmed cases` <- `Predicted cases` <- `50 percentile interval` <- `95 percentile interval` <- `Weekly date` <-  weekly_date <- NULL
-    coverage <- `.` <- `50 and 95 percentile interval` <- `only 95 percentile interval` <- EpiWeek <- NULL
+  `Confirmed cases` <- `Predicted cases` <- `50 percentile interval` <- `95 percentile interval` <- `Weekly date` <- weekly_date <- NULL
+  coverage <- `.` <- `50 and 95 percentile interval` <- `only 95 percentile interval` <- EpiWeek <- NULL
   summary_table <- summary(time_period_result, pred_horizon_str = "1 week ahead")
   summary_individual_quantiles <- summary_table$individual_quantiles
   summary_individual_quantiles <- summary_individual_quantiles %>%
@@ -445,25 +461,27 @@ summary_ind_quantiles_formatter <- function(time_period_result) {
     tidyr::pivot_wider(
       names_from = "coverage",
       values_from = "n",
-      id_cols = c("Confirmed cases", "Predicted cases", "50 percentile interval",
-                  "95 percentile interval", "weekly_date")
+      id_cols = c(
+        "Confirmed cases", "Predicted cases", "50 percentile interval",
+        "95 percentile interval", "weekly_date"
+      )
     ) %>%
     replace(is.na(.), 0) %>%
     dplyr::mutate_if(is.numeric, round) %>%
     dplyr::mutate_at(
       dplyr::vars(`50 and 95 percentile interval`, `only 95 percentile interval`),
       dplyr::funs(case_when(
-        . == 0 ~ emojifont::emoji(emojifont::search_emoji('x'))[28],
-        . == 1 ~ emojifont::emoji(emojifont::search_emoji('check'))[1])
-    )
-
+        . == 0 ~ emojifont::emoji(emojifont::search_emoji("x"))[28],
+        . == 1 ~ emojifont::emoji(emojifont::search_emoji("check"))[1]
+      ))
     ) %>%
     dplyr::mutate(EpiWeek = lubridate::epiweek(weekly_date)) %>%
     dplyr::rename("Weekly date" = weekly_date) %>%
-    dplyr::select(EpiWeek, `Weekly date`, `Confirmed cases`, `Predicted cases`, `50 and 95 percentile interval`, `only 95 percentile interval`,
-                  `50 percentile interval`, `95 percentile interval`)
+    dplyr::select(
+      EpiWeek, `Weekly date`, `Confirmed cases`, `Predicted cases`, `50 and 95 percentile interval`, `only 95 percentile interval`,
+      `50 percentile interval`, `95 percentile interval`
+    )
   return(summary_individual_quantiles)
-
 }
 
 
@@ -473,36 +491,36 @@ summary_ind_quantiles_formatter <- function(time_period_result) {
 #' @return dataframe of current forecast metrics
 #'
 forecast_metrics <- function(time_period_result, iter = 10) {
-cur_time_period_result <- time_period_result[[length(time_period_result)]]
+  cur_time_period_result <- time_period_result[[length(time_period_result)]]
 
-Rt_mean = round(cur_time_period_result$R$`Mean(R)`[length(cur_time_period_result$R$`Mean(R)`)], 2)
-Rt_std = cur_time_period_result$R$`Std(R)`[length(cur_time_period_result$R$`Std(R)`)]
-R_lower <- round(Rt_mean - 1.96*Rt_std/sqrt(iter), 2)
-R_upper <- round(Rt_mean + 1.96*Rt_std/sqrt(iter), 2)
+  Rt_mean <- round(cur_time_period_result$R$`Mean(R)`[length(cur_time_period_result$R$`Mean(R)`)], 2)
+  Rt_std <- cur_time_period_result$R$`Std(R)`[length(cur_time_period_result$R$`Std(R)`)]
+  R_lower <- round(Rt_mean - 1.96 * Rt_std / sqrt(iter), 2)
+  R_upper <- round(Rt_mean + 1.96 * Rt_std / sqrt(iter), 2)
 
 
-data_proj <- tibble::tibble(
-  date = cur_time_period_result$week_date,
-  sim = cur_time_period_result$sim,
-  incidence = cur_time_period_result$weekly_incidence,
-)
-data_proj <- data_proj %>%
-  dplyr::mutate(incidence = incidence) %>%
-  create_quantiles(date, variable = "incidence") %>%
-  dplyr::mutate_if(is.numeric, round) %>%
-  dplyr::mutate(`95 percentile interval` = glue::glue("{p025}-{p975}")) %>%
-  dplyr::mutate(`50 percentile interval` = glue::glue("{p25}-{p75}"))
+  data_proj <- tibble::tibble(
+    date = cur_time_period_result$week_date,
+    sim = cur_time_period_result$sim,
+    incidence = cur_time_period_result$weekly_incidence,
+  )
+  data_proj <- data_proj %>%
+    dplyr::mutate(incidence = incidence) %>%
+    create_quantiles(date, variable = "incidence") %>%
+    dplyr::mutate_if(is.numeric, round) %>%
+    dplyr::mutate(`95 percentile interval` = glue::glue("{p025}-{p975}")) %>%
+    dplyr::mutate(`50 percentile interval` = glue::glue("{p25}-{p75}"))
 
-Rt_interval = glue::glue("{R_lower}-{R_upper}")
+  Rt_interval <- glue::glue("{R_lower}-{R_upper}")
 
-return(list(
-  Rt_mean = Rt_mean,
-  Rt_interval = Rt_interval,
-  prediction = unname(data_proj$p50[1]),
-  interval_90 = data_proj$`95 percentile interval`,
-  interval_50 = data_proj$`50 percentile interval`,
-  forecast_date = unname(format(as.Date(data_proj$date[1])))
-))
+  return(list(
+    Rt_mean = Rt_mean,
+    Rt_interval = Rt_interval,
+    prediction = unname(data_proj$p50[1]),
+    interval_90 = data_proj$`95 percentile interval`,
+    interval_50 = data_proj$`50 percentile interval`,
+    forecast_date = unname(format(as.Date(data_proj$date[1])))
+  ))
 }
 
 
@@ -511,7 +529,7 @@ return(list(
 #' @param raw_phrdw_data PHRDW data
 #' @return Lists of dataframes of transformed PLOVER and PHRDW data for each respiratory viral disease with columns `date` and `confirm`
 get_all_vri_data <- function(raw_plover_data, raw_phrdw_data) {
- disease_types <- c("flu_a", "flu_b", "sars_cov2", "rsv")
+  disease_types <- c("flu_a", "flu_b", "sars_cov2", "rsv")
   plover_list <- stats::setNames(
     lapply(disease_types, function(disease_type) {
       get_weekly_plover_by_date_type(plover_data = raw_plover_data, type = disease_type, start_date = "2021-09-01")
@@ -525,7 +543,7 @@ get_all_vri_data <- function(raw_plover_data, raw_phrdw_data) {
     }),
     disease_types
   )
-return(list(plover_list = plover_list, phrdw_list = phrdw_list))
+  return(list(plover_list = plover_list, phrdw_list = phrdw_list))
 }
 
 
@@ -535,12 +553,13 @@ return(list(plover_list = plover_list, phrdw_list = phrdw_list))
 #' @return current forecast metrics
 current_forecast_text <- function(time_period_result, ...) {
   forecast_metrics <- forecast_metrics(time_period_result, ...)
-  cat("The 1-week ahead forecast value of confirmed cases for", format(as.Date(forecast_metrics$forecast_date)),
-      "is:", forecast_metrics$prediction, "cases/week \n\n",
-      "The 95 % prediction interval for this forecast is", glue::glue("({forecast_metrics$interval_90[1]})"),
-      "\n\n The 50 % prediction interval for this forecast is", glue::glue("({forecast_metrics$interval_50[1]})"),
-      "\n\n The last estimated Rt value with the 95% confidence interval is:", forecast_metrics$Rt_mean, glue::glue("({forecast_metrics$Rt_interval})"))
-
+  cat(
+    "The 1-week ahead forecast value of confirmed cases for", format(as.Date(forecast_metrics$forecast_date)),
+    "is:", forecast_metrics$prediction, "cases/week \n\n",
+    "The 95 % prediction interval for this forecast is", glue::glue("({forecast_metrics$interval_90[1]})"),
+    "\n\n The 50 % prediction interval for this forecast is", glue::glue("({forecast_metrics$interval_50[1]})"),
+    "\n\n The last estimated Rt value with the 95% confidence interval is:", forecast_metrics$Rt_mean, glue::glue("({forecast_metrics$Rt_interval})")
+  )
 }
 
 
@@ -555,8 +574,9 @@ validation_summary_text <- function(time_period_result) {
   frac_95 <- glue::glue("({summary_table_quantiles$quantile_summary$counts[2]}/{sum(summary_table_quantiles$quantile_summary$counts)})")
   frac_50 <- glue::glue("({summary_table_quantiles$quantile_summary$counts[1]}/{sum(summary_table_quantiles$quantile_summary$counts)})")
   mspe <- summary_table_quantiles$time_weighted_mspe
-  cat("Previous 1-week ahead forecasts had", proportion_50, "%", frac_50, "of the true confirmed cases within the 50% prediction interval",
-      "and", proportion_95, "%", frac_95, "of the true confirmed cases in the 95% prediction interval \n",
-      "\n\n The Mean squared percentage error on the validation set is:", mspe, "\n")
-
+  cat(
+    "Previous 1-week ahead forecasts had", proportion_50, "%", frac_50, "of the true confirmed cases within the 50% prediction interval",
+    "and", proportion_95, "%", frac_95, "of the true confirmed cases in the 95% prediction interval \n",
+    "\n\n The Mean squared percentage error on the validation set is:", mspe, "\n"
+  )
 }

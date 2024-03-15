@@ -45,26 +45,26 @@
 #' )
 #' fit_epifilter_model(data = phrdw_data, type = "flu_a")
 #'
-
 fit_epifilter_model <- function(data, dt = 1L, type = NULL, mean_si = NULL, std_si = NULL,
                                 grid_size = 200, Rmin = 0.01, Rmax = 3,
-                                  smooth = TRUE, confidence_est = 0.025, eta = 0.1) {
+                                smooth = TRUE, confidence_est = 0.025, eta = 0.1) {
   confirm <- NULL
-  Iday = data$confirm
-  nday = length(data$date); tday = 1:nday
+  Iday <- data$confirm
+  nday <- length(data$date)
+  tday <- 1:nday
 
   if (is.null(mean_si) && is.null(std_si)) {
     if (type == "flu_a") {
-      wdist = stats::dgamma(tday, shape = 3.1, scale = 1.6)
-  } else if (type == "flu_b") {
-      wdist = stats::dgamma(tday, shape = 3.7, scale = 2.1)
+      wdist <- stats::dgamma(tday, shape = 3.1, scale = 1.6)
+    } else if (type == "flu_b") {
+      wdist <- stats::dgamma(tday, shape = 3.7, scale = 2.1)
     } else if (type == "rsv") {
-      wdist = stats::dgamma(tday, shape = 7.5, scale = 2.1)
+      wdist <- stats::dgamma(tday, shape = 7.5, scale = 2.1)
     } else if (type == "sars_cov2") {
-      wdist = stats::dgamma(tday, shape = 2.75, scale = 2.53)
+      wdist <- stats::dgamma(tday, shape = 2.75, scale = 2.53)
     }
   } else {
-    wdist = stats::dgamma(tday, shape = mean_si, scale = std_si)
+    wdist <- stats::dgamma(tday, shape = mean_si, scale = std_si)
   }
   if (data$confirm[1] == 0) {
     min_reliable_date <- data %>%
@@ -75,117 +75,141 @@ fit_epifilter_model <- function(data, dt = 1L, type = NULL, mean_si = NULL, std_
       " for an accurate estimate of the reproduction number with epiFilter"
     )
   }
-  Lday = rep(0, nday)
-  for(i in 2:nday){
-    Lday[i] = sum(Iday[seq(i-1, 1, -1)]*wdist[1:(i-1)])
+  Lday <- rep(0, nday)
+  for (i in 2:nday) {
+    Lday[i] <- sum(Iday[seq(i - 1, 1, -1)] * wdist[1:(i - 1)])
   }
 
-# Setting up R0 grid
-grid_size = grid_size; pR0 = (1/grid_size)*rep(1, grid_size)
+  # Setting up R0 grid
+  grid_size <- grid_size
+  pR0 <- (1 / grid_size) * rep(1, grid_size)
   # Delimited grid defining space of R
-Rgrid = seq(Rmin, Rmax, length.out = grid_size)
+  Rgrid <- seq(Rmin, Rmax, length.out = grid_size)
 
-# Probability vector for R and prior
- pR = matrix(0, nday, grid_size); pRup = pR
- pR[1, ] = pR0; pRup[1, ] = pR0
+  # Probability vector for R and prior
+  pR <- matrix(0, nday, grid_size)
+  pRup <- pR
+  pR[1, ] <- pR0
+  pRup[1, ] <- pR0
 
- # Mean and median estimates
- Rmean = rep(0, nday); Rmed = Rmean
- # 50% and 95% (depends on a) confidence on R
- Rhat = matrix(0, 4, nday)
+  # Mean and median estimates
+  Rmean <- rep(0, nday)
+  Rmed <- Rmean
+  # 50% and 95% (depends on a) confidence on R
+  Rhat <- matrix(0, 4, nday)
 
- # Initialise mean
- Rmean[1] = pR[1, ]%*%Rgrid
- # CDF of prior
- Rcdf0 = cumsum(pR0)
- # Initialise quartiles
- idm = which(Rcdf0 >= 0.5, 1); Rmed[1] = Rgrid[idm[1]]
- id1 = which(Rcdf0 >= confidence_est, 1); id2 = which(Rcdf0 >= 1-confidence_est, 1)
- id3 = which(Rcdf0 >= 0.25, 1); id4 = which(Rcdf0 >= 0.75, 1)
- Rhat[1, 1] = Rgrid[id1[1]]; Rhat[2, 1] = Rgrid[id2[1]]
- Rhat[3, 1] = Rgrid[id3[1]]; Rhat[4, 1] = Rgrid[id4[1]]
+  # Initialise mean
+  Rmean[1] <- pR[1, ] %*% Rgrid
+  # CDF of prior
+  Rcdf0 <- cumsum(pR0)
+  # Initialise quartiles
+  idm <- which(Rcdf0 >= 0.5, 1)
+  Rmed[1] <- Rgrid[idm[1]]
+  id1 <- which(Rcdf0 >= confidence_est, 1)
+  id2 <- which(Rcdf0 >= 1 - confidence_est, 1)
+  id3 <- which(Rcdf0 >= 0.25, 1)
+  id4 <- which(Rcdf0 >= 0.75, 1)
+  Rhat[1, 1] <- Rgrid[id1[1]]
+  Rhat[2, 1] <- Rgrid[id2[1]]
+  Rhat[3, 1] <- Rgrid[id3[1]]
+  Rhat[4, 1] <- Rgrid[id4[1]]
 
- # Precompute state distributions for R transitions
- pstate = matrix(0, grid_size, grid_size);
- for(j in 1:grid_size){
-   pstate[j, ] = stats::dnorm(Rgrid[j], Rgrid, sqrt(Rgrid)*eta)
- }
- # Update prior to posterior sequentially
- for(i in 2:nday){
-   # Compute mean from Poisson renewal (observation model)
-   rate = Lday[i]*Rgrid
-   # Probabilities of observations
-   pI = stats::dpois(Iday[i], rate)
+  # Precompute state distributions for R transitions
+  pstate <- matrix(0, grid_size, grid_size)
+  for (j in 1:grid_size) {
+    pstate[j, ] <- stats::dnorm(Rgrid[j], Rgrid, sqrt(Rgrid) * eta)
+  }
+  # Update prior to posterior sequentially
+  for (i in 2:nday) {
+    # Compute mean from Poisson renewal (observation model)
+    rate <- Lday[i] * Rgrid
+    # Probabilities of observations
+    pI <- stats::dpois(Iday[i], rate)
 
-   # State predictions for R
-   pRup[i, ]  = pR[i-1, ]%*%pstate
-   # Update to posterior over R
-   pR[i, ] = pRup[i, ]*pI
-   pR[i, ] = pR[i, ]/sum(pR[i, ])
+    # State predictions for R
+    pRup[i, ] <- pR[i - 1, ] %*% pstate
+    # Update to posterior over R
+    pR[i, ] <- pRup[i, ] * pI
+    pR[i, ] <- pR[i, ] / sum(pR[i, ])
 
-   # Posterior mean and CDF
-   Rmean[i] = pR[i, ]%*%Rgrid
-   Rcdf = cumsum(pR[i, ])
+    # Posterior mean and CDF
+    Rmean[i] <- pR[i, ] %*% Rgrid
+    Rcdf <- cumsum(pR[i, ])
 
-   # Quantiles for estimates
-   idm = which(Rcdf >= 0.5, 1); Rmed[i] = Rgrid[idm[1]]
-   id1 = which(Rcdf >= confidence_est, 1); id2 = which(Rcdf >= 1-confidence_est, 1)
-   id3 = which(Rcdf >= 0.25, 1); id4 = which(Rcdf >= 0.75, 1)
-   Rhat[1, i] = Rgrid[id1[1]]; Rhat[2, i] = Rgrid[id2[1]]
-   Rhat[3, i] = Rgrid[id3[1]]; Rhat[4, i] = Rgrid[id4[1]]
- }
- # Main outputs: estimates of R and states
- #50% and 95% quantiles of estimates (Rhat),
- # causal posterior over R (pR), pre-update (pRup) and state transition matrix (pstate)
- epiFilter_output = list(Rmedian = Rmed, Rhat_estimates = Rhat, Rmean = Rmean, filtered_posterior = pR,
-                  posterior_pre_filter = pRup, transition_matrix = pstate)
- return(epiFilter_output)
+    # Quantiles for estimates
+    idm <- which(Rcdf >= 0.5, 1)
+    Rmed[i] <- Rgrid[idm[1]]
+    id1 <- which(Rcdf >= confidence_est, 1)
+    id2 <- which(Rcdf >= 1 - confidence_est, 1)
+    id3 <- which(Rcdf >= 0.25, 1)
+    id4 <- which(Rcdf >= 0.75, 1)
+    Rhat[1, i] <- Rgrid[id1[1]]
+    Rhat[2, i] <- Rgrid[id2[1]]
+    Rhat[3, i] <- Rgrid[id3[1]]
+    Rhat[4, i] <- Rgrid[id4[1]]
+  }
+  # Main outputs: estimates of R and states
+  # 50% and 95% quantiles of estimates (Rhat),
+  # causal posterior over R (pR), pre-update (pRup) and state transition matrix (pstate)
+  epiFilter_output <- list(
+    Rmedian = Rmed, Rhat_estimates = Rhat, Rmean = Rmean, filtered_posterior = pR,
+    posterior_pre_filter = pRup, transition_matrix = pstate
+  )
+  return(epiFilter_output)
 
- if (isTRUE(smooth)) {
+  if (isTRUE(smooth)) {
+    # Last smoothed distribution same as filtered
+    qR <- matrix(0, nday, grid_size)
+    qR[nday, ] <- pR[nday, ]
 
-   # Last smoothed distribution same as filtered
-   qR = matrix(0, nday, grid_size); qR[nday, ] = pR[nday, ]
+    # Main smoothing equation iteratively computed
+    for (i in seq(nday - 1, 1)) {
+      # Remove zeros
+      pRup[i + 1, pRup[i + 1, ] == 0] <- 10^-8
 
-   # Main smoothing equation iteratively computed
-   for(i in seq(nday-1, 1)){
-     # Remove zeros
-     pRup[i+1, pRup[i+1, ] == 0] = 10^-8
+      # Integral term in smoother
+      integ <- qR[i + 1, ] / pRup[i + 1, ]
+      integ <- integ %*% pstate
 
-     # Integral term in smoother
-     integ = qR[i+1, ]/pRup[i+1, ]
-     integ = integ%*%pstate
+      # Smoothed posterior over Rgrid
+      qR[i, ] <- pR[i, ] * integ
+      # Force a normalisation
+      qR[i, ] <- qR[i, ] / sum(qR[i, ])
+    }
 
-     # Smoothed posterior over Rgrid
-     qR[i, ] = pR[i, ]*integ
-     # Force a normalisation
-     qR[i, ] = qR[i, ]/sum(qR[i, ]);
-   }
+    # Mean, median estimats of R
+    Rmean <- rep(0, nday)
+    Rmed <- Rmean
+    # 50% and 95% (depends on a) confidence on R
+    Rhat <- matrix(0, 4, nday)
 
-   # Mean, median estimats of R
-   Rmean = rep(0, nday); Rmed = Rmean
-   # 50% and 95% (depends on a) confidence on R
-   Rhat = matrix(0, 4, nday)
+    # Compute at every time point
+    for (i in 1:nday) {
+      # Posterior mean and CDF
+      Rmean[i] <- qR[i, ] %*% Rgrid
+      Rcdf <- cumsum(qR[i, ])
 
-   # Compute at every time point
-   for (i in 1:nday) {
-     # Posterior mean and CDF
-     Rmean[i] = qR[i, ]%*%Rgrid
-     Rcdf = cumsum(qR[i, ])
+      # Quantiles for estimates
+      idm <- which(Rcdf >= 0.5)
+      Rmed[i] <- Rgrid[idm[1]]
+      id1 <- which(Rcdf >= confidence_est, 1)
+      id2 <- which(Rcdf >= 1 - confidence_est, 1)
+      id3 <- which(Rcdf >= 0.25, 1)
+      id4 <- which(Rcdf >= 0.75, 1)
+      Rhat[1, i] <- Rgrid[id1[1]]
+      Rhat[2, i] <- Rgrid[id2[1]]
+      Rhat[3, i] <- Rgrid[id3[1]]
+      Rhat[4, i] <- Rgrid[id4[1]]
+    }
 
-     # Quantiles for estimates
-     idm = which(Rcdf >= 0.5); Rmed[i] = Rgrid[idm[1]]
-     id1 = which(Rcdf >= confidence_est, 1); id2 = which(Rcdf >= 1-confidence_est, 1)
-     id3 = which(Rcdf >= 0.25, 1); id4 = which(Rcdf >= 0.75, 1)
-     Rhat[1, i] = Rgrid[id1[1]]; Rhat[2, i] = Rgrid[id2[1]]
-     Rhat[3, i] = Rgrid[id3[1]]; Rhat[4, i] = Rgrid[id4[1]]
-   }
+    # Main outputs: estimates of R and states
 
-   # Main outputs: estimates of R and states
-
-   epiSmoother_output = list(Rmedian = Rmed, Rhat_estimates = Rhat, Rmean = Rmean,
-                             smooth_filtered_posterior = qR)
-   return(epiSmoother_output)
- }
+    epiSmoother_output <- list(
+      Rmedian = Rmed, Rhat_estimates = Rhat, Rmean = Rmean,
+      smooth_filtered_posterior = qR
+    )
+    return(epiSmoother_output)
+  }
 }
 
 ###################### Prediction function for EpiFilter (adapted from MatLab code written by Kris Parag) #############################
@@ -226,72 +250,79 @@ Rgrid = seq(Rmin, Rmax, length.out = grid_size)
 #' fit_epifilter_model(data = plover_data, type = "flu_a")
 #'
 epifilter_project <- function(Rgrid, grid_size, eta, n_days, smooth_filtered_posterior, Lam, Iday, pR0, nday) {
-  pstate = matrix(NA_real_, nrow = grid_size, ncol = grid_size)
+  pstate <- matrix(NA_real_, nrow = grid_size, ncol = grid_size)
   for (j in 1:grid_size) {
-    pstate[j, ] = dnorm(Rgrid[j], Rgrid, sqrt(Rgrid)*eta)
+    pstate[j, ] <- dnorm(Rgrid[j], Rgrid, sqrt(Rgrid) * eta)
   }
   # Mean and CIs over R
-  Rmed = rep(0, n_days); Rlow = Rmed; Rhigh = Rmed
+  Rmed <- rep(0, n_days)
+  Rlow <- Rmed
+  Rhigh <- Rmed
   # Distribution of R over Rgrid
-  Rdist = matrix(NA_real_, nrow = n_days, ncol = grid_size)
+  Rdist <- matrix(NA_real_, nrow = n_days, ncol = grid_size)
   # Initialise with last distribution-based prediction
-  Rdist[1, ] = smooth_filtered_posterior[nrow(smooth_filtered_posterior),] %*% pstate
-  Rdist[1, ] = Rdist[1, ]/sum(Rdist[1, ])
+  Rdist[1, ] <- smooth_filtered_posterior[nrow(smooth_filtered_posterior), ] %*% pstate
+  Rdist[1, ] <- Rdist[1, ] / sum(Rdist[1, ])
 
   # Update this distribution over time period horizon
   for (i in 2:n_days) {
-    Rdist[i, ] = Rdist[i-1, ] %*% pstate
+    Rdist[i, ] <- Rdist[i - 1, ] %*% pstate
     # Normalise over grid
-    Rdist[i, ] = Rdist[i, ]/sum(Rdist[i, ])
+    Rdist[i, ] <- Rdist[i, ] / sum(Rdist[i, ])
   }
   for (i in 1:n_days) {
     # CDF and quantiles
-    Rcdf = cumsum(Rdist[i, ])
-    id1 = which(Rcdf >= 0.5, 1); id2 = which(Rcdf >= 0.025, 1)
-    id3 = which(Rcdf >= 0.975, 1)
-    Rmed[i] = Rgrid[id1[1]]
-    Rlow[i] = Rgrid[id2[[1]]]; Rhigh[i] = Rgrid[id3[[1]]]
+    Rcdf <- cumsum(Rdist[i, ])
+    id1 <- which(Rcdf >= 0.5, 1)
+    id2 <- which(Rcdf >= 0.025, 1)
+    id3 <- which(Rcdf >= 0.975, 1)
+    Rmed[i] <- Rgrid[id1[1]]
+    Rlow[i] <- Rgrid[id2[[1]]]
+    Rhigh[i] <- Rgrid[id3[[1]]]
   }
   # Mean and variance of distributions
-  Rmean = Rdist*Rgrid; Rvar = Rdist*Rgrid^2 - Rmean^2
+  Rmean <- Rdist * Rgrid
+  Rvar <- Rdist * Rgrid^2 - Rmean^2
   # Prior variance
-  Rvar0 = pR0*t(Rgrid^2) - (pR0*t(Rgrid))^2
+  Rvar0 <- pR0 * t(Rgrid^2) - (pR0 * t(Rgrid))^2
   # Extract R statistics
-  Rstats.mean = Rmean; Rstats.var = Rvar; Rstats.var0 = Rvar0
+  Rstats.mean <- Rmean
+  Rstats.var <- Rvar
+  Rstats.var0 <- Rvar0
   # Quantiles over R
-  Rhoriz = c(Rlow, Rmed, Rhigh)
+  Rhoriz <- c(Rlow, Rmed, Rhigh)
 
   # Prediction of I across time
   # Sample size for drawing incidence predictions
-  nsamp = 5000; Isamp = matrix(NA_real_, nrow = n_days, ncol = nsamp)
+  nsamp <- 5000
+  Isamp <- matrix(NA_real_, nrow = n_days, ncol = nsamp)
 
   # First case has exact Lam and computed directly
-  Rsamp = sample(Rgrid, size = nsamp, prob = Rdist[1, ], replace = TRUE)
-  Isamp[1, ] = rpois(nsamp, Rsamp*Lam[length(Lam)])
+  Rsamp <- sample(Rgrid, size = nsamp, prob = Rdist[1, ], replace = TRUE)
+  Isamp[1, ] <- rpois(nsamp, Rsamp * Lam[length(Lam)])
 
   # Sample total infectiousness and hence incidence
   for (i in 2:n_days) {
     # Sample from R distribution
-    Rsamp = sample(Rgrid, size = nsamp, prob = Rdist[i, ], replace = TRUE)
+    Rsamp <- sample(Rgrid, size = nsamp, prob = Rdist[i, ], replace = TRUE)
     # Relevant part of serial distribution
-    wdist = wdist[1:(nday+i-1)]
+    wdist <- wdist[1:(nday + i - 1)]
 
     # Non sampled part of total infectiousness
-    Lsamp = wdist*Iday[seq(i-1, 1, -1)]; Lsamp = Lsamp*rep(1, nsamp)
-    wdistRem = wdist[1:i-1]
+    Lsamp <- wdist * Iday[seq(i - 1, 1, -1)]
+    Lsamp <- Lsamp * rep(1, nsamp)
+    wdistRem <- wdist[1:i - 1]
 
     # Sample total infectiousness
-    for (j in 1:i-1) {
-      Lsamp = Lsamp + wdistRem[i-j]*Isamp[j, ]
+    for (j in 1:i - 1) {
+      Lsamp <- Lsamp + wdistRem[i - j] * Isamp[j, ]
     }
     # Project to incidence distribution
-    Isamp[i, ] = rpois(Rsamp, Lsamp)
-
+    Isamp[i, ] <- rpois(Rsamp, Lsamp)
   }
   # Statistics of predictions
-  Istats.mean = mean(Isamp, 2); Istats.var = stats::var(Isamp);
+  Istats.mean <- mean(Isamp, 2)
+  Istats.var <- stats::var(Isamp)
   # Quantiles of incidence
-  Ihoriz = quantile(Isamp);
+  Ihoriz <- quantile(Isamp)
 }
-
-

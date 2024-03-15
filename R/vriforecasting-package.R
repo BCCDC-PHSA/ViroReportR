@@ -18,5 +18,6 @@
 #' @importFrom here here
 #' @importFrom DT datatable
 #' @importFrom emojifont emoji
+#' @importFrom htmltools tagList
 ## usethis namespace: end
 NULL

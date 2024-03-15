@@ -26,9 +26,9 @@
 #'
 get_weekly_plover <- function(plover_data) {
   stopifnot(c("epiWeek_date", "epiWeek_year", "Epiweek", "flu_a", "flu_b", "rsv", "sars_cov2")
-            %in% colnames(plover_data))
+  %in% colnames(plover_data))
 
-  epiWeek_date <- epiWeek_year <- Epiweek <- type <- vri_cases <-  NULL
+  epiWeek_date <- epiWeek_year <- Epiweek <- type <- vri_cases <- NULL
 
   agg_plover_data_date_type <- plover_data %>%
     tidyr::pivot_longer(

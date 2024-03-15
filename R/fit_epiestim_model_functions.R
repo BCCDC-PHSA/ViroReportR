@@ -27,7 +27,6 @@
 #'
 fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
                                method = "parametric_si", mean_prior = NULL, std_prior = NULL, ...) {
-
   confirm <- NULL
   incid <- data$confirm
   if (!is.data.frame(data) || !all(colnames(data) %in% c("date", "confirm"))) {
@@ -50,38 +49,50 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
   }
 
   # 6. Providing default values
-  if (is.null(mean_si)) mean_si <- switch(type,
-                                          "flu_a" = 3.1,
-                                          "flu_b" = 3.7,
-                                          "rsv" = 7.5,
-                                          "sars_cov2" = 2.75,
-                                          "custom" = NULL)
-  if (is.null(std_si)) std_si <- switch(type,
-                                        "flu_a" = 1.6,
-                                        "flu_b" = 2.1,
-                                        "rsv" = 2.1,
-                                        "sars_cov2" = 2.53,
-                                        "custom" = NULL)
-  if (is.null(mean_prior)) mean_prior <- switch(type,
-                                                "flu_a" = 1,
-                                                "flu_b" = 1,
-                                                "rsv" = 1,
-                                                "sars_cov2" = 2,
-                                                "custom" = NULL)
-  if (is.null(std_prior)) std_prior <- switch(type,
-                                              "flu_a" = 1,
-                                              "flu_b" = 1,
-                                              "rsv" = 1,
-                                              "sars_cov2" = 1,
-                                              "custom" = NULL)
+  if (is.null(mean_si)) {
+    mean_si <- switch(type,
+      "flu_a" = 3.1,
+      "flu_b" = 3.7,
+      "rsv" = 7.5,
+      "sars_cov2" = 2.75,
+      "custom" = NULL
+    )
+  }
+  if (is.null(std_si)) {
+    std_si <- switch(type,
+      "flu_a" = 1.6,
+      "flu_b" = 2.1,
+      "rsv" = 2.1,
+      "sars_cov2" = 2.53,
+      "custom" = NULL
+    )
+  }
+  if (is.null(mean_prior)) {
+    mean_prior <- switch(type,
+      "flu_a" = 1,
+      "flu_b" = 1,
+      "rsv" = 1,
+      "sars_cov2" = 2,
+      "custom" = NULL
+    )
+  }
+  if (is.null(std_prior)) {
+    std_prior <- switch(type,
+      "flu_a" = 1,
+      "flu_b" = 1,
+      "rsv" = 1,
+      "sars_cov2" = 1,
+      "custom" = NULL
+    )
+  }
 
   # 7. Configuring based on type
   config <- EpiEstim::make_config(list(
-                     mean_si = mean_si,
-                     std_si = std_si,
-                     mean_prior = mean_prior,
-                     std_prior = std_prior
-                   ))
+    mean_si = mean_si,
+    std_si = std_si,
+    mean_prior = mean_prior,
+    std_prior = std_prior
+  ))
 
   epiestim_estimates <- NULL
   epiestim_estimates <- suppressWarnings(EpiEstim::estimate_R(
@@ -143,45 +154,43 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
   time_length <- nrow(data) - start_index
   time_index <- seq_len(time_length)
 
- time_period_result <- lapply(time_index, function(tp) {
-  model_data <- extend_rows_model_data(
-  data = data, min_model_date_str = start_date,
-  extension_interval = tp
-  )
-  if (isTRUE(verbose)) {
-  print(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
-  }
- cur_model <- fit_epiestim_model(model_data, type = type, ...)
+  time_period_result <- lapply(time_index, function(tp) {
+    model_data <- extend_rows_model_data(
+      data = data, min_model_date_str = start_date,
+      extension_interval = tp
+    )
+    if (isTRUE(verbose)) {
+      print(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
+    }
+    cur_model <- fit_epiestim_model(model_data, type = type, ...)
     cur_daily_samples <- extract_daily_samples_epiestim_fit(data = model_data, model_fit = cur_model, n_days = n_days)
     cur_daily_samples <- cur_daily_samples %>%
-    rename(daily_date = date, sim = sim, daily_incidence = incidence)
+      rename(daily_date = date, sim = sim, daily_incidence = incidence)
 
-model_data <- model_data %>%
-  dplyr::rename(model_data_date = date)
+    model_data <- model_data %>%
+      dplyr::rename(model_data_date = date)
 
 
-   if (time_period == "weekly") {
-  if (isFALSE(n_days %% 7 == 0)) {
-    stop("n_days must be a multiple of 7 to aggregate by week")
+    if (time_period == "weekly") {
+      if (isFALSE(n_days %% 7 == 0)) {
+        stop("n_days must be a multiple of 7 to aggregate by week")
+      }
+      cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
+      message("Note: Weekly quantiles were calculated across simulated epicurves")
+      cur_samples_agg_quantiles <- cur_samples %>%
+        create_quantiles(week_date, variable = "weekly_incidence") %>%
+        dplyr::rename(quantile_date = week_date)
+      quantile_unit <- "weekly"
+      row <- c(cur_model, tp, model_data, cur_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
+    } else if (time_period == "daily") {
+      message("Note: Daily quantiles were calculated across simulated epicurves")
+      cur_samples_agg_quantiles <- cur_daily_samples %>%
+        create_quantiles(daily_date, variable = "daily_incidence") %>%
+        dplyr::rename(quantile_date = daily_date)
+      quantile_unit <- "daily"
+      row <- c(cur_model, tp, model_data, cur_daily_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
     }
- cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
-  message("Note: Weekly quantiles were calculated across simulated epicurves")
-  cur_samples_agg_quantiles <- cur_samples %>%
-    create_quantiles(week_date, variable = "weekly_incidence") %>%
-    dplyr::rename(quantile_date = week_date)
-  quantile_unit <- "weekly"
-  row <- c(cur_model, tp, model_data, cur_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
-} else if (time_period == "daily") {
-  message("Note: Daily quantiles were calculated across simulated epicurves")
- cur_samples_agg_quantiles <- cur_daily_samples %>%
- create_quantiles(daily_date, variable = "daily_incidence") %>%
- dplyr::rename(quantile_date = daily_date)
- quantile_unit <- "daily"
- row <- c(cur_model, tp, model_data, cur_daily_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
+
+    return(row)
+  })
 }
-
-   return(row)
- })
-}
-
-
