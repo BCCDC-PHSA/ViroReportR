@@ -437,7 +437,7 @@ common_reliable_estimation_date <- function(plover_list, phrdw_list,
 #'
 summary_ind_quantiles_formatter <- function(time_period_result) {
   `Confirmed cases` <- `Predicted cases` <- `50 percentile interval` <- `95 percentile interval` <- `Weekly date` <-  weekly_date <- NULL
-    coverage <- `.` <- `50 and 95 percentile interval` <- `only 95 percentile interval`  <- NULL
+    coverage <- `.` <- `50 and 95 percentile interval` <- `only 95 percentile interval` <- EpiWeek <- NULL
   summary_table <- summary(time_period_result, pred_horizon_str = "1 week ahead")
   summary_individual_quantiles <- summary_table$individual_quantiles
   summary_individual_quantiles <- summary_individual_quantiles %>%

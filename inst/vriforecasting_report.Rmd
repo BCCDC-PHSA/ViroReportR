@@ -92,6 +92,9 @@ This section presents the 1-week ahead model forecast for the current season for
 ## PLOVER {.tabset .tabset-fade}
 
 ```{r results = "asis", out.width = '80%'}
+# Open a file connection to write warnings
+sink("warnings.log", append = TRUE)
+
 for(vri in disease_dict){
     cat(glue::glue("### {vri} {{.tabset}}"))
     cat("\n\n\n")
@@ -182,4 +185,5 @@ for(vri in disease_dict_phrdw){
     vriforecasting:::validation_summary_text(phrdw_forecasts$forecasts[[vri]])
     cat("\n\n\n")
 }
+sink()
 ```
