@@ -159,9 +159,11 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
       data = data, min_model_date_str = start_date,
       extension_interval = tp
     )
+ cutoff_prop <- forecast_quality_precheck(data = model_data)
     if (isTRUE(verbose)) {
       print(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
     }
+ if (cutoff_prop < config$zero_threshold) {
     cur_model <- fit_epiestim_model(model_data, type = type, ...)
     cur_daily_samples <- extract_daily_samples_epiestim_fit(data = model_data, model_fit = cur_model, n_days = n_days)
     cur_daily_samples <- cur_daily_samples %>%
@@ -192,5 +194,8 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
     }
 
     return(row)
+ } else {
+   return(cat("Insufficient data in this rolling window to generate reliable forecast"))
+ }
   })
 }

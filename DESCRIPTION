@@ -13,7 +13,7 @@ Authors@R:
            family = "Tamvada",
            role = "aut"))
 Description: BCCDC R package for forecasting viral respiratory infection cases and outcomes.
-License: MIT + file LICENSE
+License: GPL (>= 3)
 Suggests: 
     knitr,
     rmarkdown,
