@@ -172,9 +172,9 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
     dplyr::left_join(model_data, by = c("weekly_date" = "date")) %>%
     dplyr::group_by(weekly_date) %>%
     dplyr::mutate(coverage = dplyr::case_when(
-      (p75 < confirm || confirm < p25) && (p025 <= confirm & confirm <= p975) ~ "only 95 percentile interval",
+      p975 < confirm || confirm < p025 ~ "Outside 95 percentile interval",
       p25 <= confirm && confirm <= p75 ~ "50 and 95 percentile interval",
-      p975 < confirm || confirm < p025 ~ "Outside 95 percentile interval"
+      p025 <= confirm & confirm <= p975 ~ "only 95 percentile interval",
     )) %>%
     dplyr::mutate(weighted_diff = time_weighted_diff(confirm, p50, pred_horizon_str = eval(parse(text = "pred_horizon_str")))) %>%
     dplyr::mutate_if(is.numeric, round) %>%

@@ -468,6 +468,8 @@ summary_ind_quantiles_formatter <- function(time_period_result) {
     ) %>%
     replace(is.na(.), 0) %>%
     dplyr::mutate_if(is.numeric, round) %>%
+    dplyr::mutate(`only 95 percentile interval` = ifelse(`50 and 95 percentile interval` == 1, 1,
+                                                         `only 95 percentile interval`)) %>%
     dplyr::mutate_at(
       dplyr::vars(`50 and 95 percentile interval`, `only 95 percentile interval`),
       dplyr::funs(case_when(
@@ -580,3 +582,12 @@ validation_summary_text <- function(time_period_result) {
     "\n\n The Mean squared percentage error on the validation set is:", mspe, "\n"
   )
 }
+
+#' Get proportion of cases below minimum in confirmed case data numbers as deterministic check for forecast quality
+#' @param data *data frame* containing two columns: date and confirm (number of cases per day)
+#' @return numeric proportion of zeroes
+
+forecast_quality_precheck <- function(data, cutoff = config$min_nb_cases_covid) {
+return(sum(data$confirm < cutoff)/nrow(data))
+}
+

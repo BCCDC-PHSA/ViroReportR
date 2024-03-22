@@ -6,9 +6,11 @@ PHRDW:
   temp_path: "~/Desktop/bccdc/vriforecasting/dat_test/phrdw_flu_daily_count_vpp_only.rData"
   bccdc_path: "O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/phrdw_flu_daily_count_vpp_only.rData"
 
-
+zero_threshold: 0.50
 
 min_nb_cases_flua: 11
 min_nb_cases_flub: 11
 min_nb_cases_rsv: 11
 min_nb_cases_covid: 8
+
+vri_names: ['Influenza-A', 'Influenza-B', "SARS-CoV-2", "RSV"]

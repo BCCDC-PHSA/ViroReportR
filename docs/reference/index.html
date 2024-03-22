@@ -58,6 +58,11 @@
         <dd>Extract combined dataframe with forecast quantiles and weekly case data for summary function</dd>
       </dl><dl><dt>
           
+          <code><a href="common_reliable_estimation_date.html">common_reliable_estimation_date()</a></code> 
+        </dt>
+        <dd>Extract common date that all diseases in PHRDW and PLOVER data can be reliably estimated with in EpiEstim</dd>
+      </dl><dl><dt>
+          
           <code><a href="create_forecast_df.html">create_forecast_df()</a></code> 
         </dt>
         <dd>Extract data-frame with forecasts for validation violin plot</dd>
@@ -66,6 +71,11 @@
           <code><a href="create_quantiles.html">create_quantiles()</a></code> 
         </dt>
         <dd>summarise a data frame <code>d</code> by groups along a <code>variable</code></dd>
+      </dl><dl><dt>
+          
+          <code><a href="current_forecast_text.html">current_forecast_text()</a></code> 
+        </dt>
+        <dd>Print out text output for vriforecasting report detailing current number of case visits, last value of Rt and corresponding intervals</dd>
       </dl><dl><dt>
           
           <code><a href="daily_time_period_result.html">daily_time_period_result</a></code> 
@@ -98,9 +108,19 @@
         <dd>Extract simulated samples ideally 1000 samples per date</dd>
       </dl><dl><dt>
           
+          <code><a href="filter_dates.html">filter_dates()</a></code> 
+        </dt>
+        <dd>Helper function to filter and extract first reliable date</dd>
+      </dl><dl><dt>
+          
           <code><a href="fit_epiestim_model.html">fit_epiestim_model()</a></code> 
         </dt>
         <dd>fit_epiestim_model - Function to estimate the reproduction number of an epidemic</dd>
+      </dl><dl><dt>
+          
+          <code><a href="forecast_metrics.html">forecast_metrics()</a></code> 
+        </dt>
+        <dd>Extract current forecast metrics: forecast prediction, percentile interval and Rt value</dd>
       </dl><dl><dt>
           
           <code><a href="forecast_time_period.html">forecast_time_period()</a></code> 
@@ -121,6 +141,11 @@
           <code><a href="generic_data.html">generic_data</a></code> 
         </dt>
         <dd>Generic Data with Date &amp; Number of Cases Column</dd>
+      </dl><dl><dt>
+          
+          <code><a href="get_all_vri_data.html">get_all_vri_data()</a></code> 
+        </dt>
+        <dd>Process PLOVER and PHRDW data for all respiratory diseases supported by vriforecasting</dd>
       </dl><dl><dt>
           
           <code><a href="get_daily_phrdw.html">get_daily_phrdw()</a></code> 
@@ -160,7 +185,7 @@
           
           <code><a href="plot.forecast_time_period.html">plot(<i>&lt;forecast_time_period&gt;</i>)</a></code> 
         </dt>
-        <dd>Plot forecasts at each iteration with uncertainty quantile ranges</dd>
+        <dd>Plot current forecast at last chaining iteration with uncertainty quantile ranges</dd>
       </dl><dl><dt>
           
           <code><a href="plot_all_time_period_forecast_data_helper.html">plot_all_time_period_forecast_data_helper()</a></code> 
@@ -193,9 +218,19 @@
         <dd>Generate a summary of model validation</dd>
       </dl><dl><dt>
           
+          <code><a href="summary_ind_quantiles_formatter.html">summary_ind_quantiles_formatter()</a></code> 
+        </dt>
+        <dd>Format summary table for vriforecasting report</dd>
+      </dl><dl><dt>
+          
           <code><a href="time_weighted_diff.html">time_weighted_diff()</a></code> 
         </dt>
         <dd>Extract squared error between predicted and confirmed case values weighted by number of time-points used to make prediction</dd>
+      </dl><dl><dt>
+          
+          <code><a href="validation_summary_text.html">validation_summary_text()</a></code> 
+        </dt>
+        <dd>Print out text output for vriforecasting report detailing validation information including proportion of predictions in 50% and 95% intervals</dd>
       </dl><dl><dt>
           
           <code><a href="weekly_time_period_result.html">weekly_time_period_result</a></code> 

@@ -28,10 +28,16 @@
     <loc>/reference/combine_df_pred_case.html</loc>
   </url>
   <url>
+    <loc>/reference/common_reliable_estimation_date.html</loc>
+  </url>
+  <url>
     <loc>/reference/create_forecast_df.html</loc>
   </url>
   <url>
     <loc>/reference/create_quantiles.html</loc>
+  </url>
+  <url>
+    <loc>/reference/current_forecast_text.html</loc>
   </url>
   <url>
     <loc>/reference/daily_time_period_result.html</loc>
@@ -52,7 +58,13 @@
     <loc>/reference/extract_sim_samples_epiestim.html</loc>
   </url>
   <url>
+    <loc>/reference/filter_dates.html</loc>
+  </url>
+  <url>
     <loc>/reference/fit_epiestim_model.html</loc>
+  </url>
+  <url>
+    <loc>/reference/forecast_metrics.html</loc>
   </url>
   <url>
     <loc>/reference/forecast_time_period.html</loc>
@@ -65,6 +77,9 @@
   </url>
   <url>
     <loc>/reference/generic_data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_all_vri_data.html</loc>
   </url>
   <url>
     <loc>/reference/get_daily_phrdw.html</loc>
@@ -124,7 +139,13 @@
     <loc>/reference/summary.forecast_time_period_epiestim.html</loc>
   </url>
   <url>
+    <loc>/reference/summary_ind_quantiles_formatter.html</loc>
+  </url>
+  <url>
     <loc>/reference/time_weighted_diff.html</loc>
+  </url>
+  <url>
+    <loc>/reference/validation_summary_text.html</loc>
   </url>
   <url>
     <loc>/reference/vriforecasting-package.html</loc>
