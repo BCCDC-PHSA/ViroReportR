@@ -452,26 +452,26 @@ common_reliable_estimation_date <- function(plover_list, phrdw_list,
 #' @return Formatted data.table summary table with wide format for coverage
 #'
 summary_ind_quantiles_formatter <- function(time_period_result) {
-  `Confirmed cases` <- `Predicted cases` <- `50 percentile interval` <- `95 percentile interval` <- `Weekly date` <- weekly_date <- NULL
-  coverage <- `.` <- `50 and 95 percentile interval` <- `only 95 percentile interval` <- EpiWeek <- NULL
+  `Confirmed cases` <- `Predicted cases` <- `50 percentile interval bounds` <- `95 percentile interval bounds` <- `Weekly date` <- weekly_date <- NULL
+  coverage <- `.` <- `50 percentile interval` <- `95 percentile interval` <- EpiWeek <- NULL
   summary_table <- summary(time_period_result, pred_horizon_str = "1 week ahead")
   summary_individual_quantiles <- summary_table$individual_quantiles
   summary_individual_quantiles <- summary_individual_quantiles %>%
-    dplyr::count(`Confirmed cases`, `Predicted cases`, `50 percentile interval`, `95 percentile interval`, coverage) %>%
+    dplyr::count(`Confirmed cases`, `Predicted cases`, `50 percentile interval bounds`, `95 percentile interval bounds`, coverage) %>%
     tidyr::pivot_wider(
       names_from = "coverage",
       values_from = "n",
       id_cols = c(
-        "Confirmed cases", "Predicted cases", "50 percentile interval",
-        "95 percentile interval", "weekly_date"
+        "Confirmed cases", "Predicted cases", "50 percentile interval bounds",
+        "95 percentile interval bounds", "weekly_date"
       )
     ) %>%
     replace(is.na(.), 0) %>%
     dplyr::mutate_if(is.numeric, round) %>%
-    dplyr::mutate(`only 95 percentile interval` = ifelse(`50 and 95 percentile interval` == 1, 1,
-                                                         `only 95 percentile interval`)) %>%
+    dplyr::mutate(`95 percentile interval` = ifelse(`50 percentile interval` == 1, 1,
+                                                         `95 percentile interval`)) %>%
     dplyr::mutate_at(
-      dplyr::vars(`50 and 95 percentile interval`, `only 95 percentile interval`),
+      dplyr::vars(`50 percentile interval`, `95 percentile interval`),
       dplyr::funs(case_when(
         . == 0 ~ emojifont::emoji(emojifont::search_emoji("x"))[28],
         . == 1 ~ emojifont::emoji(emojifont::search_emoji("check"))[1]
@@ -480,8 +480,8 @@ summary_ind_quantiles_formatter <- function(time_period_result) {
     dplyr::mutate(EpiWeek = lubridate::epiweek(weekly_date)) %>%
     dplyr::rename("Weekly date" = weekly_date) %>%
     dplyr::select(
-      EpiWeek, `Weekly date`, `Confirmed cases`, `Predicted cases`, `50 and 95 percentile interval`, `only 95 percentile interval`,
-      `50 percentile interval`, `95 percentile interval`
+      EpiWeek, `Weekly date`, `Confirmed cases`, `Predicted cases`, `50 percentile interval`, `95 percentile interval`,
+      `50 percentile interval bounds`, `95 percentile interval bounds`
     )
   return(summary_individual_quantiles)
 }

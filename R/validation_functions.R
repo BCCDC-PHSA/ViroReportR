@@ -63,7 +63,7 @@ forecast_time_period <- function(data, start_date, n_days = 7, time_period = "we
 plot_validation <- function(time_period_result, pred_horizon_str = NULL, pred_plot = "violin") {
   p025 <- p975 <- p25 <- p75 <- NULL
   confirm <- p50 <- point_type <- pred_horizon <- sim_draws <- weekly_date <- NULL
-  aggregate_unit <- time_period_result[[1]][["quantile_unit"]]
+  aggregate_unit <- time_period_result[[length(time_period_result)]][["quantile_unit"]]
   if (is.null(pred_horizon_str)) {
     stop("Must specify prediction time horizon for validation plot")
   }
@@ -143,7 +143,7 @@ plot_validation <- function(time_period_result, pred_horizon_str = NULL, pred_pl
 #' @examples
 #' summary(weekly_time_period_result, pred_horizon_str = "1 week ahead")
 summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
-  confirm <- p50 <- weighted_diff <- `50 percentile interval` <- `95 percentile interval` <- counts <- median.prediction <- NULL
+  confirm <- p50 <- weighted_diff <- `50 percentile interval bounds` <- `95 percentile interval bounds` <- counts <- median.prediction <- NULL
   pred_horizon <- weekly_date <- coverage <- NULL
   if (class(object)[1] != "forecast_time_period") {
     stop("input must be object of class forecast_time_period")
@@ -173,14 +173,14 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
     dplyr::group_by(weekly_date) %>%
     dplyr::mutate(coverage = dplyr::case_when(
       p975 < confirm || confirm < p025 ~ "Outside 95 percentile interval",
-      p25 <= confirm && confirm <= p75 ~ "50 and 95 percentile interval",
-      p025 <= confirm & confirm <= p975 ~ "only 95 percentile interval",
+      p25 <= confirm && confirm <= p75 ~ "50 percentile interval",
+      p025 <= confirm && confirm <= p975 ~ "95 percentile interval",
     )) %>%
     dplyr::mutate(weighted_diff = time_weighted_diff(confirm, p50, pred_horizon_str = eval(parse(text = "pred_horizon_str")))) %>%
     dplyr::mutate_if(is.numeric, round) %>%
-    dplyr::mutate(`50 percentile interval` = glue::glue("({p25}-{p75})")) %>%
-    dplyr::mutate(`95 percentile interval` = glue::glue("({p025}-{p975})")) %>%
-    dplyr::select(weekly_date, coverage, weighted_diff, confirm, median.prediction = p50, `50 percentile interval`, `95 percentile interval`) %>%
+    dplyr::mutate(`50 percentile interval bounds` = glue::glue("({p25}-{p75})")) %>%
+    dplyr::mutate(`95 percentile interval bounds` = glue::glue("({p025}-{p975})")) %>%
+    dplyr::select(weekly_date, coverage, weighted_diff, confirm, median.prediction = p50, `50 percentile interval bounds`, `95 percentile interval bounds`) %>%
     dplyr::rename("Confirmed cases" = confirm, "Predicted cases" = median.prediction)
   if ((any(forecast_cases_dat$coverage %in% "Outside 95 percentile interval"))) {
     warning("Prediction percentile intervals do not cover some data-points in validation fits. Some forecasts may not be reliable")
@@ -188,14 +188,18 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
   forecast_cases_dat_summ <- forecast_cases_dat %>%
     dplyr::group_by(coverage) %>%
     dplyr::summarise(counts = dplyr::n()) %>%
-    dplyr::mutate(proportion = round(counts / sum(counts) * 100, 2))
+    dplyr::mutate(proportion = round(counts / sum(counts) * 100, 2)) %>%
+    dplyr::mutate(proportion = ifelse(coverage == "95 percentile interval",
+                                sum(proportion[coverage == "50 percentile interval"]) + proportion,
+                                proportion))
   forecast_cases_dat_summ$coverage <- factor(forecast_cases_dat_summ$coverage,
     levels = c(
-      "50 and 95 percentile interval",
-      "only 95 percentile interval",
+      "50 percentile interval",
+      "95 percentile interval",
       "Outside 95 percentile interval"
     )
   )
+
   forecast_cases_dat_summ <- forecast_cases_dat_summ[order(forecast_cases_dat_summ$coverage), ]
   time_weighted_mspe <- sqrt(mean(forecast_cases_dat$weighted_diff))
 

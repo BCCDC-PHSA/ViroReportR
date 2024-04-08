@@ -140,7 +140,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #'   data = weekly_transformed_plover_data,
 #'   start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "weekly"
 #' )
-forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "daily",
+forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "weekly",
                                           type = NULL, verbose = FALSE, ...) {
   sim <- week_date <- daily_date <- NULL
   if (!(lubridate::ymd(start_date) %in% data$date)) {
@@ -159,11 +159,11 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
       data = data, min_model_date_str = start_date,
       extension_interval = tp
     )
- cutoff_prop <- forecast_quality_precheck(data = model_data)
+ cutoff_prop <- forecast_quality_precheck(data = model_data, cutoff = 8)
     if (isTRUE(verbose)) {
       print(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
     }
- if (cutoff_prop < config$zero_threshold) {
+ if (cutoff_prop < 0.65) {
     cur_model <- fit_epiestim_model(model_data, type = type, ...)
     cur_daily_samples <- extract_daily_samples_epiestim_fit(data = model_data, model_fit = cur_model, n_days = n_days)
     cur_daily_samples <- cur_daily_samples %>%
@@ -195,7 +195,9 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
 
     return(row)
  } else {
-   return(cat("Insufficient data in this rolling window to generate reliable forecast"))
+   cat("Insufficient data in this rolling window to generate reliable forecast")
  }
   })
+  time_period_result <- time_period_result[lapply(time_period_result,length)>0]
+  return(time_period_result)
 }
