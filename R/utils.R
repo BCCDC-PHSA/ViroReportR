@@ -583,11 +583,122 @@ validation_summary_text <- function(time_period_result) {
   )
 }
 
+
+
+#' Print out text output for vriforecasting report detailing validation information including proportion of predictions in 50% and 95% intervals
+#' @param time_period_result output from  \code{forecast_time_period}
+#' @param year_input *numeric* indicating the year to generate the validation summary
+#' @return current forecast metrics
+validation_summary_text_season <- function(time_period_result, year_input = 2021) {
+  summary_table_quantiles <- summary_season(time_period_result, pred_horizon_str = "1 week ahead", year = year_input)
+  proportion_95 <- summary_table_quantiles$quantile_summary$proportion[2]
+  proportion_50 <- summary_table_quantiles$quantile_summary$proportion[1]
+  frac_95 <- glue::glue("({summary_table_quantiles$quantile_summary$counts[2]}/{sum(summary_table_quantiles$quantile_summary$counts)})")
+  frac_50 <- glue::glue("({summary_table_quantiles$quantile_summary$counts[1]}/{sum(summary_table_quantiles$quantile_summary$counts)})")
+  mspe <- summary_table_quantiles$time_weighted_mspe
+  cat(
+    "In the", year_input, "season,", "Previous 1-week ahead forecasts had", proportion_50, "%", frac_50, "of the true confirmed cases within the 50% prediction interval",
+    "and", proportion_95, "%", frac_95, "of the true confirmed cases in the 95% prediction interval \n",
+    "\n\n The Mean squared percentage error on the validation set is:", mspe, "\n"
+  )
+}
+
 #' Get proportion of cases below minimum in confirmed case data numbers as deterministic check for forecast quality
-#' @param data *data frame* containing two columns: date and confirm (number of cases per day)
+#' @param data *data frame* at each time-step containing two columns: date and confirm (number of cases per day)
+#' @param model_data input dataframe containing two columns: date and confirm (number of cases per day)
 #' @return numeric proportion of zeroes
 
-forecast_quality_precheck <- function(data, cutoff = config$min_nb_cases_covid) {
-return(sum(data$confirm < cutoff)/nrow(data))
+forecast_quality_precheck <- function(data, model_data) {
+  data <- tail(data)
+return(sum(data$confirm > median(model_data$confirm))/nrow(data))
+}
+
+#' Plot Mean Rt with time index (dates)
+#' @param time_period_result output from  \code{forecast_time_period}
+#' @return Mean Rt with time index plot
+
+plot_rt <- function(time_period_result) {
+  last_time_period <- time_period_result[[length(time_period_result)]]
+  model_data_dates <- last_time_period$model_data_date
+  rt_dat <- last_time_period[["R"]]
+  rt_start_date <- model_data_dates[1]
+  rt_date_seq <- seq(rt_start_date, by = "day", length.out = length(rt_dat$t_start))
+  rt_dat$date <-  rt_date_seq
+  rt_dat <- rt_dat %>% dplyr::mutate(
+    weekly_date = lubridate::floor_date(date, unit = "week")
+  ) %>%
+    dplyr::group_by(weekly_date) %>%
+    dplyr::summarise(weekly_rt = mean(`Mean(R)`), weekly_ymin = mean(`Quantile.0.025(R)`),
+                     weekly_ymax = mean(`Quantile.0.975(R)`))
+p <- ggplot(rt_dat, aes(x = weekly_date)) +
+  ggplot2::geom_ribbon(ggplot2::aes(ymin = weekly_ymin, ymax = weekly_ymax), fill = "#08519C", alpha = 0.25) +
+  ggplot2::geom_line(ggplot2::aes(y = weekly_rt), color = "#08519C") + theme_bw() + labs(x = "Time", y = "Mean(Rt)")
+ return(p)
+}
+
+#' Calculate bootstrapped standard smoothing error
+#' @param time_period_result output from  \code{forecast_time_period}
+#' @param data *data frame* at each time-step containing two columns: date and confirm (number of cases per day)
+#' @return bootstrapped smoothing error for each sliding window
+boot_smoothing_error <- function(time_period_result, data) {
+  start_date <- time_period_result[[1]]$model_data_date[1]
+  start_index <- which(data$date == lubridate::ymd(start_date))
+  time_length <- nrow(data) - start_index
+  time_index <- seq_len(time_length)
+  time_period_original <- lapply(time_index, function(tp) {
+    model_data <- extend_rows_model_data(
+      data = data, min_model_date_str = start_date,
+      extension_interval = tp)
+    model_data$smoothed_confirm <- time_period_result[[tp]]$smoothed_confirm
+    model_data$resid <- model_data$confirm- model_data$smoothed_confirm
+    model_data$se_estimate <- mean(bootstrap::bootstrap(model_data$resid,
+                  nboot = 1000, sd)$thetastar)
+     })
+  sd_dat <- do.call(rbind.data.frame, time_period_original)
+  names(sd_dat) <- "smoothing_error"
+  filtered_data <- data %>%
+    dplyr::arrange(date) %>%
+    dplyr::filter(date > start_date) %>%
+    dplyr::filter(date > date[1])
+
+  next_date <- filtered_data %>%
+    dplyr::arrange(date) %>%
+    dplyr::mutate(new_date = date + 7)
+  next_date <- next_date$new_date[nrow(next_date)]
+
+   sd_dat_date <- c(filtered_data$date, next_date)
+   sd_dat$weekly_date <- sd_dat_date
+   return(sd_dat)
+}
+
+
+
+#' Calculate 95% prediction interval bounds for smoothed predictions
+#' @param time_period_result output from  \code{forecast_time_period}
+#' @param data original input *data frame* at each time-step containing two columns: date and confirm (number of cases per day)
+#' @return upper and lower bounds for 95% prediction interval for smoothed predictions
+pred_interval_forecast <- function(time_period_result, data) {
+  smoothing_error_dat <- boot_smoothing_error(time_period_result, data)
+  forecast_dat <- create_forecast_df(time_period_result)
+  smoothing_error_dat_copy <- forecast_dat %>%
+    dplyr::group_by(weekly_date) %>%
+    dplyr::summarise(n = n())
+  smoothing_error_dat_copy  <- smoothing_error_dat_copy   %>%
+    left_join(smoothing_error_dat, by = c("weekly_date")) %>%
+    mutate(smoothing_error = ifelse(is.na(smoothing_error),
+                                    smoothing_error[nrow(smoothing_error_dat_copy)-1],
+                                    smoothing_error))
+
+ forecast_dat <- forecast_dat %>%
+   dplyr::left_join(smoothing_error_dat_copy, by = "weekly_date") %>%
+   dplyr::group_by(weekly_date) %>%
+   dplyr::mutate(mean_sim = mean(sim_draws)) %>%
+   dplyr::mutate(upper_bound90 = mean_sim + qnorm(1-0.025)*(sd(sim_draws)/sqrt(n()) + smoothing_error)) %>%
+   dplyr::mutate(lower_bound90 = mean_sim - qnorm(1-0.025)*(sd(sim_draws)/sqrt(n()) + smoothing_error)) %>%
+   dplyr::mutate(upper_bound50 = mean_sim + qnorm(1-0.25)*(sd(sim_draws)/sqrt(n()) + smoothing_error)) %>%
+   dplyr::mutate(lower_bound50 = mean_sim - qnorm(1-0.25)*(sd(sim_draws)/sqrt(n()) + smoothing_error)) %>%
+   dplyr::mutate(lower_bound90 = ifelse(lower_bound90 < 0, 0, lower_bound90)) %>%
+   dplyr::mutate(lower_bound50 = ifelse(lower_bound50 < 0, 0, lower_bound50))
+ return(forecast_dat)
 }
 

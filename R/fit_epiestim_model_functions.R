@@ -119,6 +119,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"
 #' @param time_period time period string (e.g. 'daily', 'weekly'). Default is daily
 #' @param verbose set to true to display progress output
+#' @param smoothing_cutoff number of time periods windows after to start smoothing
 #' @param ... Pass on optional arguments from \code{fit_epiestim_model}
 #'
 #'
@@ -141,7 +142,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #'   start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "weekly"
 #' )
 forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "weekly",
-                                          type = NULL, verbose = FALSE, ...) {
+                                          type = NULL, verbose = FALSE, smoothing_cutoff = 10, ...) {
   sim <- week_date <- daily_date <- NULL
   if (!(lubridate::ymd(start_date) %in% data$date)) {
     stop("Start date not present in dataset. Please check your input")
@@ -159,15 +160,30 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
       data = data, min_model_date_str = start_date,
       extension_interval = tp
     )
- cutoff_prop <- forecast_quality_precheck(data = model_data, cutoff = 8)
-    if (isTRUE(verbose)) {
+ #cutoff_prop <- forecast_quality_precheck(data = model_data, model_data = data)
+  if (isTRUE(verbose)) {
       print(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
     }
- if (cutoff_prop < 0.65) {
-    cur_model <- fit_epiestim_model(model_data, type = type, ...)
-    cur_daily_samples <- extract_daily_samples_epiestim_fit(data = model_data, model_fit = cur_model, n_days = n_days)
+# if (cutoff_prop > 0) {
+
+   ##### Add in P-spline smoothing with GAM at each time-step ###################
+  smoothed_model_data <- model_data
+   if (nrow(model_data) >= smoothing_cutoff) {
+index <- seq_len(nrow(model_data))
+  model_smooth <- mgcv::gam(model_data$confirm ~s(index, bs = 'ps', k = round(nrow(model_data)/2, 0)))
+  smoothed_estimates <- predict(model_smooth, type = "response")
+  smoothed_model_data$confirm <- round(smoothed_estimates, 0)
+  smoothed_model_data <- smoothed_model_data %>%
+  mutate(confirm = ifelse(confirm < 0, 0, confirm))
+  }
+   #############################################################
+    cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, ...)
+    cur_daily_samples <- extract_daily_samples_epiestim_fit(data = smoothed_model_data, model_fit = cur_model, n_days = n_days)
     cur_daily_samples <- cur_daily_samples %>%
-      rename(daily_date = date, sim = sim, daily_incidence = incidence)
+      dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
+
+    smoothed_model_data <- smoothed_model_data %>%
+      dplyr::rename(smoothed_date = date, smoothed_confirm = confirm)
 
     model_data <- model_data %>%
       dplyr::rename(model_data_date = date)
@@ -183,21 +199,18 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
         create_quantiles(week_date, variable = "weekly_incidence") %>%
         dplyr::rename(quantile_date = week_date)
       quantile_unit <- "weekly"
-      row <- c(cur_model, tp, model_data, cur_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
+      row <- c(cur_model, tp,  model_data, smoothed_model_data, cur_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
     } else if (time_period == "daily") {
       message("Note: Daily quantiles were calculated across simulated epicurves")
       cur_samples_agg_quantiles <- cur_daily_samples %>%
         create_quantiles(daily_date, variable = "daily_incidence") %>%
         dplyr::rename(quantile_date = daily_date)
       quantile_unit <- "daily"
-      row <- c(cur_model, tp, model_data, cur_daily_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
+      row <- c(cur_model, tp, model_data,
+               smoothed_model_data, cur_daily_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
     }
 
     return(row)
- } else {
-   cat("Insufficient data in this rolling window to generate reliable forecast")
- }
   })
-  time_period_result <- time_period_result[lapply(time_period_result,length)>0]
   return(time_period_result)
 }

@@ -35,47 +35,15 @@ vri_data <- vriforecasting:::get_all_vri_data(
 )
 
 # Reliable common estimation date
-cred <- vriforecasting:::common_reliable_estimation_date(vri_data$plover_list, vri_data$phrdw_list)
+cred <- suppressWarnings(vriforecasting:::common_reliable_estimation_date(vri_data$plover_list, vri_data$phrdw_list))
 
 # VRI names dictionary
 disease_dict <- c(config$vri_names)
 names(disease_dict) <- names(vri_data$plover_list)
-
-# Check for cutoff proportion
-plover_check <- tibble(plover_list = vri_data$plover_list,
-                  vri = names(vri_data$plover_list),
-  zero_prop = purrr::map(plover_list,
-    ~ vriforecasting:::forecast_quality_precheck( data = .x, cutoff = 1)
-  )
-)
-
-plover_check <- plover_check %>%
-  dplyr::filter(zero_prop <  config$zero_threshold) %>%
-  pull(vri)
-
-phrdw_check <- tibble(phrdw_list = vri_data$phrdw_list,
-                  vri = names(vri_data$phrdw_list),
-  zero_prop = purrr::map(phrdw_list,
-    ~ vriforecasting:::forecast_quality_precheck(data = .x, cutoff = 1)
-  )
-)
-
-phrdw_check <- phrdw_check %>%
-  dplyr::filter(zero_prop < config$zero_threshold) %>%
-  pull(vri)
-
-# Filter lists 
-vri_data$plover_list <- vri_data$plover_list[names(vri_data$plover_list) %in% plover_check]
-vri_data$phrdw_list <- vri_data$phrdw_list[names(vri_data$phrdw_list) %in% phrdw_check]
-
-# Filter VRI name dictionary
-disease_dict_plover <- unname(disease_dict[intersect(names(disease_dict), names(vri_data$plover_list))])
-
-disease_dict_phrdw <- unname(disease_dict[intersect(names(disease_dict), names(vri_data$phrdw_list))])
 ```
 
 ```{r load RDS for demo run}
-load("~/Desktop/updated_forecasts.RData")
+load("~/Desktop/bccdc/smoothed_forecasts.RData")
 ```
 
 ```{r generate forecasts, eval = FALSE}
@@ -110,14 +78,17 @@ phrdw_forecasts <- tibble(
   )
 )
 
-phrdw_forecasts[["forecasts"]] <- phrdw_forecasts$forecasts[ - which(names(phrdw_forecasts$forecasts) == "flu_b")]
+#phrdw_forecasts[["forecasts"]] <- phrdw_forecasts$forecasts[ - which(names(phrdw_forecasts$forecasts) == "flu_b")]
 ```
 
 
 ```{r assign pretty dict names}
 # Fix names
-names(plover_forecasts$forecasts) <- disease_dict_plover
-names(phrdw_forecasts$forecasts) <- disease_dict_phrdw
+names(plover_forecasts$forecasts) <- disease_dict
+names(phrdw_forecasts$forecasts) <- disease_dict
+
+names(plover_forecasts$plover_list) <- disease_dict
+names(phrdw_forecasts$phrdw_list) <- disease_dict
 ```
 
 
@@ -130,10 +101,12 @@ This section presents the 1-week ahead model forecast for the current season for
 ## PLOVER {.tabset .tabset-fade}
 
 ```{r PLOVER forecast plots and info, results = "asis", out.width = '80%'}
-for (vri in disease_dict_plover) {
+for (vri in disease_dict) {
   cat(glue::glue("### {vri} {{.tabset}}"))
   cat("\n\n\n")
-  print(plot(plover_forecasts$forecasts[[vri]]))
+ print(plot(plover_forecasts$forecasts[[vri]]))
+  cat("\n\n\n")
+ print(vriforecasting:::plot_rt(phrdw_forecasts$forecasts[[vri]]))
   cat("\n\n\n")
   vriforecasting:::current_forecast_text(plover_forecasts$forecasts[[vri]])
   cat("\n\n\n")
@@ -144,10 +117,12 @@ for (vri in disease_dict_plover) {
 ## PHRDW (pediatric population only) {.tabset .tabset-fade}
 
 ```{r PHRDW forecast plots and info, results = "asis", out.width = '80%'}
-for (vri in disease_dict_phrdw) {
+for (vri in disease_dict) {
   cat(glue::glue("### {vri} {{.tabset}}"))
   cat("\n\n\n")
   print(plot(phrdw_forecasts$forecasts[[vri]]))
+  cat("\n\n\n")
+  print(vriforecasting:::plot_rt(phrdw_forecasts$forecasts[[vri]]))
   cat("\n\n\n")
   vriforecasting:::current_forecast_text(phrdw_forecasts$forecasts[[vri]])
   cat("\n\n\n")
@@ -161,26 +136,25 @@ for (vri in disease_dict_phrdw) {
 
 This section presents validation plots for the 1-week ahead model forecasts for the current season for both PHRDW and PLOVER data. The forecasting model is trained by fitting to historical data, which is used to then make the prediction 1-week ahead. Here, the fit of the model to the known historical data can be visualized. Overlap between the prediction interval and the historical cases indicates the performance of the model to forecast new cases over a 1 week time horizon
 
-
 ## PLOVER {.tabset .tabset-fade}
 
 ```{r PLOVER forecast validation plots, results = "asis", out.width = '90%'}
-for (vri in disease_dict_plover) {
+for (vri in disease_dict) {
   cat("\n\n\n")
   cat(glue::glue("### {vri} {{.tabset}}"))
   cat("\n\n\n")
-  print(plot_validation(plover_forecasts$forecasts[[vri]], pred_horizon_str = "1 week ahead", pred_plot = "ribbon"))
+  print(plot_validation(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], pred_horizon_str = "1 week ahead", pred_plot = "violin"))
 }
 ```
 
 ## PHRDW (pediatric population only) {.tabset .tabset-fade}
 
 ```{r PHRDW forecast validation plots, results = "asis", out.width = '90%'}
-for (vri in disease_dict_phrdw) {
+for (vri in disease_dict) {
   cat("\n\n\n")
   cat(glue::glue("### {vri} {{.tabset}}"))
   cat("\n\n\n")
-  print(plot_validation(phrdw_forecasts$forecasts[[vri]], pred_horizon_str = "1 week ahead", pred_plot = "ribbon"))
+  print(plot_validation(phrdw_forecasts$forecasts[[vri]], data = phrdw_forecasts$phrdw_list[[vri]], pred_horizon_str = "1 week ahead", pred_plot = "violin"))
 }
 ```
 
@@ -190,34 +164,47 @@ for (vri in disease_dict_phrdw) {
 ### Description 
 
 This section presents validation metrics for the 1-week ahead model forecasts for the current season for both PHRDW and PLOVER data. The forecasting model is trained by fitting to historical data, which is used to then make the prediction 1-week ahead. Here, the fit of the model to the known historical data is summarized. For each of the weekly historical forecasts, the metrics output whether the forecasted confirmed cases lie in the 50 or 95% percentile interval as well as the mean-squared percentage error. A higher mean squared percentage error and a relatively larger proportion of forecasts outside the 95% percentile interval are indicative of poor quality historical (and thus likely current) forecasts. 
+
 ```{r DT initialization, include=FALSE}
-htmltools::tagList(datatable(vriforecasting:::summary_ind_quantiles_formatter(plover_forecasts$forecasts$`Influenza-A`)))
+htmltools::tagList(datatable(vriforecasting:::summary_ind_quantiles_formatter(time_period_result = plover_forecasts$forecasts$`Influenza-A`, data = plover_forecasts$plover_list$`Influenza-A`)))
 ```
 
 ## PLOVER {.tabset .tabset-fade}
 
 ```{r PLOVER forecast validation metrics, results = "asis"}
-for (vri in disease_dict_plover) {
+for (vri in disease_dict) {
   cat("\n\n\n")
   cat(glue::glue("### {vri} {{.tabset}}"))
   cat("\n\n\n")
-  print(htmltools::tagList(datatable(vriforecasting:::summary_ind_quantiles_formatter(plover_forecasts$forecasts[[vri]]))))
+  print(htmltools::tagList(datatable(vriforecasting:::summary_ind_quantiles_formatter(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]]))))
   cat("\n\n\n")
-  vriforecasting:::validation_summary_text(plover_forecasts$forecasts[[vri]])
+  vriforecasting:::validation_summary_text(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]])
   cat("\n\n\n")
+   vriforecasting:::validation_summary_text_season(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], year = 2021)
+  cat("\n\n\n")
+    vriforecasting:::validation_summary_text_season(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], year = 2022)
+  cat("\n\n\n")
+   vriforecasting:::validation_summary_text_season(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], year = 2023)
 }
 ```
 
 ## PHRDW (pediatric population only) {.tabset .tabset-fade}
 
 ```{r PHRDW forecast validation metrics, results = "asis"}
-for (vri in disease_dict_phrdw) {
+for (vri in disease_dict) {
   cat("\n\n\n")
   cat(glue::glue("### {vri} {{.tabset}}"))
   cat("\n\n\n")
-  print(htmltools::tagList(datatable(vriforecasting:::summary_ind_quantiles_formatter(phrdw_forecasts$forecasts[[vri]]))))
+print(htmltools::tagList(datatable(vriforecasting:::summary_ind_quantiles_formatter(phrdw_forecasts$forecasts[[vri]], data = phrdw_forecasts$phrdw_list[[vri]]))))
   cat("\n\n\n")
-  vriforecasting:::validation_summary_text(phrdw_forecasts$forecasts[[vri]])
+  vriforecasting:::validation_summary_text(phrdw_forecasts$forecasts[[vri]], data = phrdw_forecasts$phrdw_list[[vri]])
   cat("\n\n\n")
+   vriforecasting:::validation_summary_text_season(time_period_result = phrdw_forecasts$forecasts[[vri]], data = phrdw_forecasts$phrdw_list[[vri]], year = 2021)
+  cat("\n\n\n")
+    vriforecasting:::validation_summary_text_season(time_period_result = phrdw_forecasts$forecasts[[vri]], data = phrdw_forecasts$phrdw_list[[vri]], year = 2022)
+  cat("\n\n\n")
+   vriforecasting:::validation_summary_text_season(time_period_result = phrdw_forecasts$forecasts[[vri]], data = phrdw_forecasts$phrdw_list[[vri]], year = 2023)
 }
 ```
+
+

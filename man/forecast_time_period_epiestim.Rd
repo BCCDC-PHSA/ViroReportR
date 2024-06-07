@@ -8,9 +8,10 @@ forecast_time_period_epiestim(
   data,
   start_date,
   n_days = 7,
-  time_period = "daily",
+  time_period = "weekly",
   type = NULL,
   verbose = FALSE,
+  smoothing_cutoff = 10,
   ...
 )
 }
@@ -26,6 +27,8 @@ forecast_time_period_epiestim(
 \item{type}{\emph{character} Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"}
 
 \item{verbose}{set to true to display progress output}
+
+\item{smoothing_cutoff}{number of time periods windows after to start smoothing}
 
 \item{...}{Pass on optional arguments from \code{fit_epiestim_model}}
 }
