@@ -26,9 +26,8 @@
 #' fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a")
 #'
 fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
-                               method = "parametric_si", mean_prior = NULL, std_prior = NULL, ...) {
+                               method = "parametric_si", mean_prior = NULL, std_prior = NULL, iter = 20L, ...) {
   confirm <- NULL
-  incid <- data$confirm
   if (!is.data.frame(data) || !all(colnames(data) %in% c("date", "confirm"))) {
     stop("Must pass a data frame with two columns: date and confirm")
   }
@@ -44,8 +43,8 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
   }
 
   data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
-  if (data_lag != 7 && dt == 7L) {
-    warning("Your data may not be weekly data. Please check input. We recommend only weekly data be input into EpiEstim for optimal performance")
+  if (data_lag <= 7 && dt == 7L) {
+    warning("Your data may not be weekly data. Please set dt to 1L for daily data")
   }
 
   # 6. Providing default values
@@ -87,12 +86,29 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
   }
 
   # 7. Configuring based on type
+  if (dt == 1L) {
+  incid <- data.frame(I = data$confirm, dates = data$date)
+  incid <- incid %>%
+     dplyr::arrange(dates)
+ t_start <- seq(2, nrow(incid))
+ t_end <- t_start
   config <- EpiEstim::make_config(list(
     mean_si = mean_si,
     std_si = std_si,
     mean_prior = mean_prior,
-    std_prior = std_prior
+    std_prior = std_prior,
+    t_start = t_start,
+    t_end = t_end
   ))
+  } else if (dt > 1L) {
+    incid <- data$confirm
+    config <- EpiEstim::make_config(list(
+      mean_si = mean_si,
+      std_si = std_si,
+      mean_prior = mean_prior,
+      std_prior = std_prior
+    ))
+  }
 
   epiestim_estimates <- NULL
   epiestim_estimates <- suppressWarnings(EpiEstim::estimate_R(
@@ -100,7 +116,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
     dt = dt,
     recon_opt = recon_opt,
     method = method,
-    config = config, ...
+    config = config, iter = iter, ...
   ))
 
 
@@ -143,6 +159,14 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #' )
 forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "weekly",
                                           type = NULL, verbose = FALSE, smoothing_cutoff = 10, ...) {
+<<<<<<< HEAD
+
+  data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
+  if (data_lag <= 7 && time_period == "weekly") {
+    warning("Your data may not be weekly data. Please set time_period = daily for daily data")
+  }
+=======
+>>>>>>> a419c0413360a491032112d6adcb12d37ccb8282
   sim <- week_date <- daily_date <- NULL
   if (!(lubridate::ymd(start_date) %in% data$date)) {
     stop("Start date not present in dataset. Please check your input")
@@ -165,6 +189,8 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
       print(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
     }
 # if (cutoff_prop > 0) {
+<<<<<<< HEAD
+=======
 
    ##### Add in P-spline smoothing with GAM at each time-step ###################
   smoothed_model_data <- model_data
@@ -188,20 +214,56 @@ index <- seq_len(nrow(model_data))
     model_data <- model_data %>%
       dplyr::rename(model_data_date = date)
 
+>>>>>>> a419c0413360a491032112d6adcb12d37ccb8282
 
+   ##### Add in P-spline smoothing with GAM at each time-step ###################
+  smoothed_model_data <- model_data
+   if (nrow(model_data) >= smoothing_cutoff) {
+index <- seq_len(nrow(model_data))
+  model_smooth <- mgcv::gam(model_data$confirm ~s(index, bs = 'ps', k = round(nrow(model_data)/2, 0)))
+  smoothed_estimates <- predict(model_smooth, type = "response")
+  smoothed_model_data$confirm <- round(smoothed_estimates, 0)
+  smoothed_model_data <- smoothed_model_data %>%
+  mutate(confirm = ifelse(confirm < 0, 0, confirm))
+  }
+   #############################################################
     if (time_period == "weekly") {
+      cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, ...)
+      cur_daily_samples <- extract_daily_samples_epiestim_fit(data = smoothed_model_data, model_fit = cur_model, n_days = n_days)
+      cur_daily_samples <- cur_daily_samples %>%
+        dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
+
+      smoothed_model_data <- smoothed_model_data %>%
+        dplyr::rename(smoothed_date = date, smoothed_confirm = confirm)
+
+      model_data <- model_data %>%
+        dplyr::rename(model_data_date = date)
       if (isFALSE(n_days %% 7 == 0)) {
         stop("n_days must be a multiple of 7 to aggregate by week")
       }
       cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
+      if (isTRUE(verbose)) {
       message("Note: Weekly quantiles were calculated across simulated epicurves")
+      }
       cur_samples_agg_quantiles <- cur_samples %>%
         create_quantiles(week_date, variable = "weekly_incidence") %>%
         dplyr::rename(quantile_date = week_date)
       quantile_unit <- "weekly"
       row <- c(cur_model, tp,  model_data, smoothed_model_data, cur_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
     } else if (time_period == "daily") {
+      cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, dt = 1L, ...)
+      cur_daily_samples <- extract_daily_samples_epiestim_fit(data = smoothed_model_data, dt = 1L, model_fit = cur_model, n_days = n_days)
+      cur_daily_samples <- cur_daily_samples %>%
+        dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
+
+      smoothed_model_data <- smoothed_model_data %>%
+        dplyr::rename(smoothed_date = date, smoothed_confirm = confirm)
+
+      model_data <- model_data %>%
+        dplyr::rename(model_data_date = date)
+      if (isTRUE(verbose)) {
       message("Note: Daily quantiles were calculated across simulated epicurves")
+      }
       cur_samples_agg_quantiles <- cur_daily_samples %>%
         create_quantiles(daily_date, variable = "daily_incidence") %>%
         dplyr::rename(quantile_date = daily_date)

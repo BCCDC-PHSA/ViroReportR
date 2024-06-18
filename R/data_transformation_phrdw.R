@@ -157,6 +157,7 @@ get_phrdw_by_type_date_age <- function(phrdw_data, time_period = "weekly",
                                        type, start_date = min(phrdw_data$lis_date_collection),
                                        end_date = max(phrdw_data$lis_date_collection),
                                        start_age = 0, end_age = 17) {
+
   stopifnot(
     "invalid time period, available options: 'daily', 'weekly'" =
       time_period %in% c("daily", "weekly")
@@ -219,7 +220,16 @@ get_phrdw_by_type_date_age <- function(phrdw_data, time_period = "weekly",
     dplyr::select(date, dplyr::all_of(type)) %>%
     dplyr::rename("confirm" = type) %>%
     dplyr::ungroup()
-
+if (time_period == "daily") {
+  date_range <- seq(min(filtered_phrdw_data$date),
+                    max(filtered_phrdw_data$date), by = 1)
+  date_range <- date_range[!date_range %in% filtered_phrdw_data$date]
+ missing_dates <- data.frame(date = date_range, confirm = 0)
+ filtered_phrdw_data <- full_join(filtered_phrdw_data, missing_dates, by = c("date", "confirm"))
+  if(length(date_range) >= 1) {
+   warning("Imputed 0 for missing date values")
+  }
+}
 
   return(filtered_phrdw_data)
 }

@@ -24,6 +24,7 @@ extract_daily_samples_epiestim_fit <- function(data, model_fit, dt = 7L, n_days 
     stop("Must pass a data frame with two columns: date and confirm")
   }
   confirm <- NULL
+  if (dt > 1L) {
   model_data_linelist <-
     tibble::tibble(
       date = seq(min(data$date),
@@ -34,11 +35,17 @@ extract_daily_samples_epiestim_fit <- function(data, model_fit, dt = 7L, n_days 
     ) %>%
     dplyr::group_by(date) %>%
     dplyr::reframe(case_index = seq(1:confirm))
-
+  } else if (dt == 1L) {
+    model_data_linelist <-
+    tibble::tibble(
+      date = model_fit$dates,
+      confirm = model_fit$I
+    )
+  }
   incidence_obj <- incidence::incidence(model_data_linelist$date)
 
   r_vals <- utils::tail(model_fit$R, n = 1)
-  r_dist <- rtrunc_norm(100, mean = r_vals$`Mean(R)`, sd = r_vals$`Std(R)`, lower_lim = 0)
+  r_dist <- rtrunc_norm(1000, mean = r_vals$`Mean(R)`, sd = r_vals$`Std(R)`, lower_lim = 0)
 
   # Use the project function
   proj <- projections::project(incidence_obj,
@@ -113,6 +120,8 @@ extract_agg_samples_epiestim_fit <- function(samples) {
 
 extend_rows_model_data <- function(data, min_model_date_str,
                                    extension_interval = 1) {
+  data <- data %>%
+    dplyr::arrange(date)
   min_model_date <- lubridate::ymd(min_model_date_str)
 
   if (extension_interval > 0) {
@@ -223,7 +232,7 @@ plot_all_time_period_forecast_data_helper <- function(cur_time_period_result) {
       incidence = cur_time_period_result$daily_incidence
     )
     p <- data_proj %>%
-      dplyr::mutate(incidence = 7 * incidence) %>%
+      dplyr::mutate(incidence = incidence) %>%
       create_quantiles(date, variable = "incidence") %>%
       ggplot2::ggplot(ggplot2::aes(x = date)) +
       ggplot2::theme_bw() +
@@ -632,7 +641,11 @@ plot_rt <- function(time_period_result) {
                      weekly_ymax = mean(`Quantile.0.975(R)`))
 p <- ggplot(rt_dat, aes(x = weekly_date)) +
   ggplot2::geom_ribbon(ggplot2::aes(ymin = weekly_ymin, ymax = weekly_ymax), fill = "#08519C", alpha = 0.25) +
+<<<<<<< HEAD
+  ggplot2::geom_line(ggplot2::aes(y = weekly_rt), color = "#08519C") + theme_bw() + labs(x = "Time", y = "mean(expression(R[t]))")
+=======
   ggplot2::geom_line(ggplot2::aes(y = weekly_rt), color = "#08519C") + theme_bw() + labs(x = "Time", y = "Mean(Rt)")
+>>>>>>> a419c0413360a491032112d6adcb12d37ccb8282
  return(p)
 }
 

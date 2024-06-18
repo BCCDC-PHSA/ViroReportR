@@ -67,13 +67,20 @@ plot_validation <- function(time_period_result, pred_horizon_str = NULL, pred_pl
   if (class(time_period_result)[1] != "forecast_time_period") {
     stop("time_period_result input must be object of class forecast_time_period")
   }
+<<<<<<< HEAD
+=======
   if (aggregate_unit == "daily") {
     stop("Only weekly aggregated data suitable for validation plot. Please re-run forecast_time_period_epiestim with time_period = weekly")
   }
+>>>>>>> a419c0413360a491032112d6adcb12d37ccb8282
   model_data <- data.frame(
     date = time_period_result[[length(time_period_result)]]$model_data_date,
     confirm = time_period_result[[length(time_period_result)]]$confirm
   )
+<<<<<<< HEAD
+  forecast_dat <- create_forecast_df(time_period_result)
+=======
+>>>>>>> a419c0413360a491032112d6adcb12d37ccb8282
   forecast_dat <- pred_interval_forecast(time_period_result, model_data)
   if (!(pred_horizon_str %in% forecast_dat$pred_horizon)) {
     stop("Prediction horizon not found in time_period_result, please check input")
@@ -342,4 +349,7 @@ summary_season.forecast_time_period  <- function(object, pred_horizon_str = NULL
     quantile_summary = forecast_cases_dat_summ, time_weighted_mspe = round(time_weighted_mspe, 3)
   ))
 }
+<<<<<<< HEAD
+=======
 
+>>>>>>> a419c0413360a491032112d6adcb12d37ccb8282
