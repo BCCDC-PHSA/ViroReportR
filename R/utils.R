@@ -40,12 +40,16 @@ extract_daily_samples_epiestim_fit <- function(data, model_fit, dt = 7L, n_days 
     tibble::tibble(
       date = model_fit$dates,
       confirm = model_fit$I
-    )
+    ) %>%
+      dplyr::group_by(date) %>%
+      dplyr::reframe(case_index = seq(1:confirm))
   }
   incidence_obj <- incidence::incidence(model_data_linelist$date)
 
   r_vals <- utils::tail(model_fit$R, n = 1)
   r_dist <- rtrunc_norm(1000, mean = r_vals$`Mean(R)`, sd = r_vals$`Std(R)`, lower_lim = 0)
+  #shapescale <- epitrix::gamma_mucv2shapescale(mu = r_vals$`Mean(R)`, cv = r_vals$`Std(R)`/r_vals$`Mean(R)`)
+  #plausible_r <- stats::rgamma(1000, shape = shapescale$shape, scale = shapescale$scale)
 
   # Use the project function
   proj <- projections::project(incidence_obj,
@@ -300,7 +304,7 @@ pred_samples_with_quantile_helper <- function(tp, aggregate_unit = NULL) {
     cur_samples_with_daily_date <- extract_sim_samples_epiestim(tp, aggregate_unit = eval(parse(text = "aggregate_unit")))
     cur_samples_with_quantile <- cur_samples_with_quantile %>%
       dplyr::left_join(cur_samples_with_daily_date, by = "quantile_date") %>%
-      dplyr::rename(sim_draws = daily_value, daily_date = quantile_date)
+      dplyr::rename(sim_draws = value, daily_date = quantile_date)
   }
 
   return(cur_samples_with_quantile)
@@ -641,11 +645,8 @@ plot_rt <- function(time_period_result) {
                      weekly_ymax = mean(`Quantile.0.975(R)`))
 p <- ggplot(rt_dat, aes(x = weekly_date)) +
   ggplot2::geom_ribbon(ggplot2::aes(ymin = weekly_ymin, ymax = weekly_ymax), fill = "#08519C", alpha = 0.25) +
-<<<<<<< HEAD
-  ggplot2::geom_line(ggplot2::aes(y = weekly_rt), color = "#08519C") + theme_bw() + labs(x = "Time", y = "mean(expression(R[t]))")
-=======
+  ggplot2::geom_line(ggplot2::aes(y = weekly_rt), color = "#08519C") + theme_bw() + labs(x = "Time", y = "mean(expression(R[t]))") +
   ggplot2::geom_line(ggplot2::aes(y = weekly_rt), color = "#08519C") + theme_bw() + labs(x = "Time", y = "Mean(Rt)")
->>>>>>> a419c0413360a491032112d6adcb12d37ccb8282
  return(p)
 }
 
@@ -688,22 +689,44 @@ boot_smoothing_error <- function(time_period_result, data) {
 
 #' Calculate 95% prediction interval bounds for smoothed predictions
 #' @param time_period_result output from  \code{forecast_time_period}
-#' @param data original input *data frame* at each time-step containing two columns: date and confirm (number of cases per day)
 #' @return upper and lower bounds for 95% prediction interval for smoothed predictions
-pred_interval_forecast <- function(time_period_result, data) {
-  smoothing_error_dat <- boot_smoothing_error(time_period_result, data)
+pred_interval_forecast <- function(time_period_result) {
   forecast_dat <- create_forecast_df(time_period_result)
-  smoothing_error_dat_copy <- forecast_dat %>%
-    dplyr::group_by(weekly_date) %>%
-    dplyr::summarise(n = n())
-  smoothing_error_dat_copy  <- smoothing_error_dat_copy   %>%
-    left_join(smoothing_error_dat, by = c("weekly_date")) %>%
-    mutate(smoothing_error = ifelse(is.na(smoothing_error),
-                                    smoothing_error[nrow(smoothing_error_dat_copy)-1],
-                                    smoothing_error))
+  aggregate_unit <- time_period_result[[1]][["quantile_unit"]]
+   dates <- c()
+   sd_smooth <- c()
+  for (i in seq_along(time_period_result)) {
+    sd_smooth[i] <- sqrt(mean(time_period_result[[i]]$smoothed_error))
+  }
+   sd_smooth <- sd_smooth[-1]
 
- forecast_dat <- forecast_dat %>%
-   dplyr::left_join(smoothing_error_dat_copy, by = "weekly_date") %>%
+   smoothing_error_dat <- data.frame(sd_smooth = sd_smooth)
+
+
+   if (aggregate_unit == "daily") {
+     forecast_dat <- forecast_dat %>% dplyr::group_by(daily_date) %>%
+       dplyr::summarise(agg_p50 = mean(p50), agg_p25 = mean(p25), agg_p75 = mean(p75),
+                        agg_p025 = mean(p025), agg_p975 = mean(p975), agg_value = mean(sim_draws),
+                        agg_sd_sim = sd(sim_draws)/sqrt(n()))
+   }
+
+   forecast_period <- time_period_result[[length(time_period_result)]]$quantile_date
+   forecast_dat <- forecast_dat %>%
+     filter(!(daily_date %in% forecast_period))
+
+forecast_dat <- cbind(forecast_dat, smoothing_error_dat)
+
+forecast_dat <- forecast_dat %>%
+  dplyr::mutate(upper_bound90 = agg_value + qnorm(1-0.025)*(agg_sd_sim + sd_smooth)) %>%
+  dplyr::mutate(lower_bound90 = agg_value - qnorm(1-0.025)*(agg_sd_sim + sd_smooth)) %>%
+  dplyr::mutate(upper_bound50 = agg_value + qnorm(1-0.25)*(agg_sd_sim + sd_smooth)) %>%
+  dplyr::mutate(lower_bound50 = agg_value - qnorm(1-0.25)*(agg_sd_sim + sd_smooth)) %>%
+  dplyr::mutate(lower_bound90 = ifelse(lower_bound90 < 0, 0, lower_bound90)) %>%
+  dplyr::mutate(lower_bound50 = ifelse(lower_bound50 < 0, 0, lower_bound50))
+
+
+
+   dplyr::left_join(smoothing_error_dat, by = "weekly_date") %>%
    dplyr::group_by(weekly_date) %>%
    dplyr::mutate(mean_sim = mean(sim_draws)) %>%
    dplyr::mutate(upper_bound90 = mean_sim + qnorm(1-0.025)*(sd(sim_draws)/sqrt(n()) + smoothing_error)) %>%

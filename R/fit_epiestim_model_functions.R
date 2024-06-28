@@ -50,7 +50,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
   # 6. Providing default values
   if (is.null(mean_si)) {
     mean_si <- switch(type,
-      "flu_a" = 3.1,
+      "flu_a" = 7.5,
       "flu_b" = 3.7,
       "rsv" = 7.5,
       "sars_cov2" = 2.75,
@@ -59,7 +59,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
   }
   if (is.null(std_si)) {
     std_si <- switch(type,
-      "flu_a" = 1.6,
+      "flu_a" = 2.1,
       "flu_b" = 2.1,
       "rsv" = 2.1,
       "sars_cov2" = 2.53,
@@ -159,14 +159,11 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #' )
 forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "weekly",
                                           type = NULL, verbose = FALSE, smoothing_cutoff = 10, ...) {
-<<<<<<< HEAD
 
   data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
   if (data_lag <= 7 && time_period == "weekly") {
     warning("Your data may not be weekly data. Please set time_period = daily for daily data")
   }
-=======
->>>>>>> a419c0413360a491032112d6adcb12d37ccb8282
   sim <- week_date <- daily_date <- NULL
   if (!(lubridate::ymd(start_date) %in% data$date)) {
     stop("Start date not present in dataset. Please check your input")
@@ -177,7 +174,11 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
   }
   start_index <- which(data$date == lubridate::ymd(start_date))
   time_length <- nrow(data) - start_index
-  time_index <- seq_len(time_length)
+  if (start_index < 20) {
+  time_index <- seq(from = start_index + (20-start_index), to = time_length)
+  } else {
+    time_index <- seq(from = start_index, to = time_length)
+  }
 
   time_period_result <- lapply(time_index, function(tp) {
     model_data <- extend_rows_model_data(
@@ -189,44 +190,19 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
       print(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
     }
 # if (cutoff_prop > 0) {
-<<<<<<< HEAD
-=======
 
    ##### Add in P-spline smoothing with GAM at each time-step ###################
   smoothed_model_data <- model_data
    if (nrow(model_data) >= smoothing_cutoff) {
 index <- seq_len(nrow(model_data))
   model_smooth <- mgcv::gam(model_data$confirm ~s(index, bs = 'ps', k = round(nrow(model_data)/2, 0)))
-  smoothed_estimates <- predict(model_smooth, type = "response")
-  smoothed_model_data$confirm <- round(smoothed_estimates, 0)
+  smoothed_estimates <- predict(model_smooth, type = "response", se.fit = TRUE)
+  smoothed_model_data$confirm <- round(smoothed_estimates$fit, 0)
   smoothed_model_data <- smoothed_model_data %>%
   mutate(confirm = ifelse(confirm < 0, 0, confirm))
+  smoothed_error <- data.frame(smoothed_error = smoothed_estimates$se.fit)
   }
-   #############################################################
-    cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, ...)
-    cur_daily_samples <- extract_daily_samples_epiestim_fit(data = smoothed_model_data, model_fit = cur_model, n_days = n_days)
-    cur_daily_samples <- cur_daily_samples %>%
-      dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
-
-    smoothed_model_data <- smoothed_model_data %>%
-      dplyr::rename(smoothed_date = date, smoothed_confirm = confirm)
-
-    model_data <- model_data %>%
-      dplyr::rename(model_data_date = date)
-
->>>>>>> a419c0413360a491032112d6adcb12d37ccb8282
-
-   ##### Add in P-spline smoothing with GAM at each time-step ###################
-  smoothed_model_data <- model_data
-   if (nrow(model_data) >= smoothing_cutoff) {
-index <- seq_len(nrow(model_data))
-  model_smooth <- mgcv::gam(model_data$confirm ~s(index, bs = 'ps', k = round(nrow(model_data)/2, 0)))
-  smoothed_estimates <- predict(model_smooth, type = "response")
-  smoothed_model_data$confirm <- round(smoothed_estimates, 0)
-  smoothed_model_data <- smoothed_model_data %>%
-  mutate(confirm = ifelse(confirm < 0, 0, confirm))
-  }
-   #############################################################
+  #############################################################
     if (time_period == "weekly") {
       cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, ...)
       cur_daily_samples <- extract_daily_samples_epiestim_fit(data = smoothed_model_data, model_fit = cur_model, n_days = n_days)
@@ -242,14 +218,12 @@ index <- seq_len(nrow(model_data))
         stop("n_days must be a multiple of 7 to aggregate by week")
       }
       cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
-      if (isTRUE(verbose)) {
-      message("Note: Weekly quantiles were calculated across simulated epicurves")
-      }
       cur_samples_agg_quantiles <- cur_samples %>%
         create_quantiles(week_date, variable = "weekly_incidence") %>%
         dplyr::rename(quantile_date = week_date)
       quantile_unit <- "weekly"
-      row <- c(cur_model, tp,  model_data, smoothed_model_data, cur_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
+      row <- c(cur_model, tp,  model_data, smoothed_model_data, cur_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit,
+               smoothed_error)
     } else if (time_period == "daily") {
       cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, dt = 1L, ...)
       cur_daily_samples <- extract_daily_samples_epiestim_fit(data = smoothed_model_data, dt = 1L, model_fit = cur_model, n_days = n_days)
@@ -261,15 +235,13 @@ index <- seq_len(nrow(model_data))
 
       model_data <- model_data %>%
         dplyr::rename(model_data_date = date)
-      if (isTRUE(verbose)) {
-      message("Note: Daily quantiles were calculated across simulated epicurves")
-      }
       cur_samples_agg_quantiles <- cur_daily_samples %>%
         create_quantiles(daily_date, variable = "daily_incidence") %>%
         dplyr::rename(quantile_date = daily_date)
       quantile_unit <- "daily"
       row <- c(cur_model, tp, model_data,
-               smoothed_model_data, cur_daily_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit)
+               smoothed_model_data, cur_daily_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit,
+               smoothed_error)
     }
 
     return(row)
