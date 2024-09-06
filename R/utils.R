@@ -48,9 +48,6 @@ extract_daily_samples_epiestim_fit <- function(data, model_fit, dt = 7L, n_days 
 
   r_vals <- utils::tail(model_fit$R, n = 1)
   r_dist <- rtrunc_norm(1000, mean = r_vals$`Mean(R)`, sd = r_vals$`Std(R)`, lower_lim = 0)
-  #shapescale <- epitrix::gamma_mucv2shapescale(mu = r_vals$`Mean(R)`, cv = r_vals$`Std(R)`/r_vals$`Mean(R)`)
-  #plausible_r <- stats::rgamma(1000, shape = shapescale$shape, scale = shapescale$scale)
-
   # Use the project function
   proj <- projections::project(incidence_obj,
     R = r_dist,
@@ -399,7 +396,7 @@ filter_dates <- function(data, min_cases) {
 #' @param flub_min Minimum number of Flu-B cases required for reliable estimation by EpiEstim
 #' @param cov_min Minimum number of SARS-CoV2 cases required for reliable estimation by EpiEstim
 #' @param rsv_min Minimum number of RSV cases required for reliable estimation by EpiEstim
-#' @return *numeric* Weighted squared error at each data time-point
+#' @return *numeric* Minimum reliable common date
 #'
 common_reliable_estimation_date <- function(plover_list, phrdw_list,
                                             flua_min = config$min_nb_cases_flua,
@@ -655,75 +652,51 @@ p <- ggplot(rt_dat, aes(x = weekly_date)) +
 #' @param data *data frame* at each time-step containing two columns: date and confirm (number of cases per day)
 #' @return bootstrapped smoothing error for each sliding window
 boot_smoothing_error <- function(time_period_result, data) {
-  start_date <- time_period_result[[1]]$model_data_date[1]
-  start_index <- which(data$date == lubridate::ymd(start_date))
-  time_length <- nrow(data) - start_index
-  time_index <- seq_len(time_length)
+time_index <- seq(from = 1, to = length(time_period_result))
   time_period_original <- lapply(time_index, function(tp) {
-    model_data <- extend_rows_model_data(
-      data = data, min_model_date_str = start_date,
-      extension_interval = tp)
-    model_data$smoothed_confirm <- time_period_result[[tp]]$smoothed_confirm
-    model_data$resid <- model_data$confirm- model_data$smoothed_confirm
-    model_data$se_estimate <- mean(bootstrap::bootstrap(model_data$resid,
+    confirm <- time_period_result[[tp]]$confirm
+    smoothed_confirm <- time_period_result[[tp]]$smoothed_confirm
+    resid <- confirm - smoothed_confirm
+    se_estimate <- mean(bootstrap::bootstrap(resid,
                   nboot = 1000, sd)$thetastar)
      })
   sd_dat <- do.call(rbind.data.frame, time_period_original)
-  names(sd_dat) <- "smoothing_error"
-  filtered_data <- data %>%
-    dplyr::arrange(date) %>%
-    dplyr::filter(date > start_date) %>%
-    dplyr::filter(date > date[1])
-
-  next_date <- filtered_data %>%
-    dplyr::arrange(date) %>%
-    dplyr::mutate(new_date = date + 7)
-  next_date <- next_date$new_date[nrow(next_date)]
-
-   sd_dat_date <- c(filtered_data$date, next_date)
-   sd_dat$weekly_date <- sd_dat_date
    return(sd_dat)
+}
+
+
+#' Calculate GAM prediction error
+#' @param time_period_result output from  \code{forecast_time_period}
+gam_prediction_error <- function(time_period_result) {
+
 }
 
 
 
 #' Calculate 95% prediction interval bounds for smoothed predictions
 #' @param time_period_result output from  \code{forecast_time_period}
+#' @param pred_horizon_str A *string* indicating the prediction horizon time period to plot
 #' @return upper and lower bounds for 95% prediction interval for smoothed predictions
-pred_interval_forecast <- function(time_period_result) {
+pred_interval_forecast <- function(time_period_result, pred_horizon_str = NULL) {
   forecast_dat <- create_forecast_df(time_period_result)
+  forecast_dat <- forecast_dat %>%
+    dplyr::filter(pred_horizon == pred_horizon_str)
   aggregate_unit <- time_period_result[[1]][["quantile_unit"]]
    dates <- c()
    sd_smooth <- c()
   for (i in seq_along(time_period_result)) {
     sd_smooth[i] <- sqrt(mean(time_period_result[[i]]$smoothed_error))
   }
-   sd_smooth <- sd_smooth[-1]
 
-   smoothing_error_dat <- data.frame(sd_smooth = sd_smooth)
-
-
-   if (aggregate_unit == "daily") {
+  smoothing_error_dat <- data.frame(sd_smooth = sd_smooth)
+  if (aggregate_unit == "daily") {
      forecast_dat <- forecast_dat %>% dplyr::group_by(daily_date) %>%
        dplyr::summarise(agg_p50 = mean(p50), agg_p25 = mean(p25), agg_p75 = mean(p75),
                         agg_p025 = mean(p025), agg_p975 = mean(p975), agg_value = mean(sim_draws),
                         agg_sd_sim = sd(sim_draws)/sqrt(n()))
    }
 
-   forecast_period <- time_period_result[[length(time_period_result)]]$quantile_date
-   forecast_dat <- forecast_dat %>%
-     filter(!(daily_date %in% forecast_period))
-
 forecast_dat <- cbind(forecast_dat, smoothing_error_dat)
-
-forecast_dat <- forecast_dat %>%
-  dplyr::mutate(upper_bound90 = agg_value + qnorm(1-0.025)*(agg_sd_sim + sd_smooth)) %>%
-  dplyr::mutate(lower_bound90 = agg_value - qnorm(1-0.025)*(agg_sd_sim + sd_smooth)) %>%
-  dplyr::mutate(upper_bound50 = agg_value + qnorm(1-0.25)*(agg_sd_sim + sd_smooth)) %>%
-  dplyr::mutate(lower_bound50 = agg_value - qnorm(1-0.25)*(agg_sd_sim + sd_smooth)) %>%
-  dplyr::mutate(lower_bound90 = ifelse(lower_bound90 < 0, 0, lower_bound90)) %>%
-  dplyr::mutate(lower_bound50 = ifelse(lower_bound50 < 0, 0, lower_bound50))
-
 
 
    dplyr::left_join(smoothing_error_dat, by = "weekly_date") %>%

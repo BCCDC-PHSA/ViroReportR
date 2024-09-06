@@ -3,11 +3,11 @@ title: "Summary report of short-term forecasts for viral respiratory diseases by
 output: html_document
 editor_options: 
   chunk_output_type: console
+params:
+  filepath:
+    value: x
 ---
 
-## Description
-
-This report provides the forecast of 1-week ahead confirmed cases for the 4 prevalent respiratory viral cases in BC (Flu-A, Flu-B, RSV and SARS-CoV-2). Forecast reports were generated using both the weekly-aggregated data population (PLOVER) and the weekly-aggregated pediatric only population data (PHRDW). `vriforecasting` uses `EpiEstim` as the backend to forecast weekly confirmed cases, which forecasts cases by estimating the instantaneous reproduction number using the [Cori method](https://academic.oup.com/aje/article/178/9/1505/89262) and then simulating the number of new cases using fixed exponential growth over a given time period.. The report is divided into two sections: 1-week forecast for the current season of respiratory cases as well as validation plots and metrics for the performance of the forecasting model on historical data to help in the assessment of model performance. 
 
 ```{r setup, include=FALSE, echo = FALSE,  message = FALSE, warning = FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
@@ -26,20 +26,14 @@ config <- yaml::yaml.load_file(here::here("inst/config.yml"))
 
 
 ```{r load data}
-load(config$PHRDW$temp_path)
-
 # Data setup and cleaning code
-vri_data <- vriforecasting:::get_all_vri_data(
-  raw_plover_data = readRDS(config$PLOVER$temp_path),
-  raw_phrdw_data = phrdw_flu_daily_count
-)
-
-# Reliable common estimation date
-cred <- suppressWarnings(vriforecasting:::common_reliable_estimation_date(vri_data$plover_list, vri_data$phrdw_list))
-
+vri_data <- read.csv(file.path(params$filepath))
 # VRI names dictionary
-disease_dict <- c(config$vri_names)
-names(disease_dict) <- names(vri_data$plover_list)
+disease_dict <- vri_data$disease_types
+
+# Drop disease types column
+vri_data <- vri_data %>%
+  select(-disease_types)
 ```
 
 ```{r load RDS for demo run}
@@ -47,15 +41,11 @@ load("~/Desktop/bccdc/smoothed_forecasts.RData")
 ```
 
 ```{r generate forecasts, eval = FALSE}
-plover_disease_types <- names(vri_data$plover_list)
-
-phrdw_disease_types <- names(vri_data$phrdw_list)
-
-plover_forecasts <- tibble(
-  plover_list = vri_data$plover_list,
+forecasts <- tibble(
+  plover_list = vri_data,
   forecasts = map2(
     plover_list,
-    plover_disease_types,
+    disease_dict,
     ~ forecast_time_period(.x,
       type = .y,
       n_days = 14,
@@ -63,22 +53,6 @@ plover_forecasts <- tibble(
     )
   )
 )
-
-
-phrdw_forecasts <- tibble(
-  phrdw_list = vri_data$phrdw_list,
-  forecasts = map2(
-    phrdw_list,
-    phrdw_disease_types,
-    ~ forecast_time_period(.x,
-      type = .y,
-      n_days = 14,
-      start_date = cred$common_phrdw_date
-    )
-  )
-)
-
-#phrdw_forecasts[["forecasts"]] <- phrdw_forecasts$forecasts[ - which(names(phrdw_forecasts$forecasts) == "flu_b")]
 ```
 
 
@@ -98,8 +72,6 @@ names(phrdw_forecasts$phrdw_list) <- disease_dict
 
 This section presents the 1-week ahead model forecast for the current season for both PHRDW and PLOVER data. The 1-week ahead forecasted confirmed cases is reported with the 95% and 50% prediction interval. The last estimated reproduction number is also reported with the 95% confidence interval. 
 
-## PLOVER {.tabset .tabset-fade}
-
 ```{r PLOVER forecast plots and info, results = "asis", out.width = '80%'}
 for (vri in disease_dict) {
   cat(glue::glue("### {vri} {{.tabset}}"))
@@ -114,29 +86,11 @@ for (vri in disease_dict) {
 ```
 
 
-## PHRDW (pediatric population only) {.tabset .tabset-fade}
-
-```{r PHRDW forecast plots and info, results = "asis", out.width = '80%'}
-for (vri in disease_dict) {
-  cat(glue::glue("### {vri} {{.tabset}}"))
-  cat("\n\n\n")
-  print(plot(phrdw_forecasts$forecasts[[vri]]))
-  cat("\n\n\n")
-  print(vriforecasting:::plot_rt(phrdw_forecasts$forecasts[[vri]]))
-  cat("\n\n\n")
-  vriforecasting:::current_forecast_text(phrdw_forecasts$forecasts[[vri]])
-  cat("\n\n\n")
-}
-```
-
-
 # 1-week ahead Model Forecast Validation {.tabset}
 
 ### Description 
 
-This section presents validation plots for the 1-week ahead model forecasts for the current season for both PHRDW and PLOVER data. The forecasting model is trained by fitting to historical data, which is used to then make the prediction 1-week ahead. Here, the fit of the model to the known historical data can be visualized. Overlap between the prediction interval and the historical cases indicates the performance of the model to forecast new cases over a 1 week time horizon
-
-## PLOVER {.tabset .tabset-fade}
+ The forecasting model is trained by fitting to historical data, which is used to then make the prediction 1-week ahead. Here, the fit of the model to the known historical data can be visualized. Overlap between the prediction interval and the historical cases indicates the performance of the model to forecast new cases over a 1 week time horizon
 
 ```{r PLOVER forecast validation plots, results = "asis", out.width = '90%'}
 for (vri in disease_dict) {
@@ -147,29 +101,15 @@ for (vri in disease_dict) {
 }
 ```
 
-## PHRDW (pediatric population only) {.tabset .tabset-fade}
-
-```{r PHRDW forecast validation plots, results = "asis", out.width = '90%'}
-for (vri in disease_dict) {
-  cat("\n\n\n")
-  cat(glue::glue("### {vri} {{.tabset}}"))
-  cat("\n\n\n")
-  print(plot_validation(phrdw_forecasts$forecasts[[vri]], data = phrdw_forecasts$phrdw_list[[vri]], pred_horizon_str = "1 week ahead", pred_plot = "violin"))
-}
-```
-
-
 # Forecast validation metrics {.tabset}
 
 ### Description 
 
-This section presents validation metrics for the 1-week ahead model forecasts for the current season for both PHRDW and PLOVER data. The forecasting model is trained by fitting to historical data, which is used to then make the prediction 1-week ahead. Here, the fit of the model to the known historical data is summarized. For each of the weekly historical forecasts, the metrics output whether the forecasted confirmed cases lie in the 50 or 95% percentile interval as well as the mean-squared percentage error. A higher mean squared percentage error and a relatively larger proportion of forecasts outside the 95% percentile interval are indicative of poor quality historical (and thus likely current) forecasts. 
+ The forecasting model is trained by fitting to historical data, which is used to then make the prediction 1-week ahead. Here, the fit of the model to the known historical data is summarized. For each of the weekly historical forecasts, the metrics output whether the forecasted confirmed cases lie in the 50 or 95% percentile interval as well as the mean-squared percentage error. A higher mean squared percentage error and a relatively larger proportion of forecasts outside the 95% percentile interval are indicative of poor quality historical (and thus likely current) forecasts. 
 
 ```{r DT initialization, include=FALSE}
 htmltools::tagList(datatable(vriforecasting:::summary_ind_quantiles_formatter(time_period_result = plover_forecasts$forecasts$`Influenza-A`, data = plover_forecasts$plover_list$`Influenza-A`)))
 ```
-
-## PLOVER {.tabset .tabset-fade}
 
 ```{r PLOVER forecast validation metrics, results = "asis"}
 for (vri in disease_dict) {
@@ -185,25 +125,6 @@ for (vri in disease_dict) {
     vriforecasting:::validation_summary_text_season(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], year = 2022)
   cat("\n\n\n")
    vriforecasting:::validation_summary_text_season(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], year = 2023)
-}
-```
-
-## PHRDW (pediatric population only) {.tabset .tabset-fade}
-
-```{r PHRDW forecast validation metrics, results = "asis"}
-for (vri in disease_dict) {
-  cat("\n\n\n")
-  cat(glue::glue("### {vri} {{.tabset}}"))
-  cat("\n\n\n")
-print(htmltools::tagList(datatable(vriforecasting:::summary_ind_quantiles_formatter(phrdw_forecasts$forecasts[[vri]], data = phrdw_forecasts$phrdw_list[[vri]]))))
-  cat("\n\n\n")
-  vriforecasting:::validation_summary_text(phrdw_forecasts$forecasts[[vri]], data = phrdw_forecasts$phrdw_list[[vri]])
-  cat("\n\n\n")
-   vriforecasting:::validation_summary_text_season(time_period_result = phrdw_forecasts$forecasts[[vri]], data = phrdw_forecasts$phrdw_list[[vri]], year = 2021)
-  cat("\n\n\n")
-    vriforecasting:::validation_summary_text_season(time_period_result = phrdw_forecasts$forecasts[[vri]], data = phrdw_forecasts$phrdw_list[[vri]], year = 2022)
-  cat("\n\n\n")
-   vriforecasting:::validation_summary_text_season(time_period_result = phrdw_forecasts$forecasts[[vri]], data = phrdw_forecasts$phrdw_list[[vri]], year = 2023)
 }
 ```
 

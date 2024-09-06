@@ -24,7 +24,7 @@ This vignette provides a short demonstration of the model fitting functions in `
 
 ## Loading in data
 
-For this short demonstration, we will use the PLOVER weekly data for Influenza A, which is provided with the `vriforecasting` package. *Note that it is recommended to use weekly aggregated data for optimal performance with `EpiEstim`*. We then can use the `get_weekly_plover_by_date_type` function to transform the PLOVER data into a dataset with two columns: `date` and `confirm` in accordance to format accepted by the model fitting functions. When working with PHRDW data with `EpiEstim`, it is recommended to be aggregated to weekly data as well using the `get_phrdw_by_type_date_age` function and setting the time period argument to `time_period = "daily"`
+For this short demonstration, we will use weekly data for Influenza A, which is provided with the `vriforecasting` package. The input dataset must have two columns: `date` and `confirm` in accordance to format accepted by the model fitting functions.
 
 ```{r }
 disease_type <- "flu_a"

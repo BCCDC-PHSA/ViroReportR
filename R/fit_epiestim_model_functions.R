@@ -50,7 +50,7 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
   # 6. Providing default values
   if (is.null(mean_si)) {
     mean_si <- switch(type,
-      "flu_a" = 7.5,
+      "flu_a" = 3.1,
       "flu_b" = 3.7,
       "rsv" = 7.5,
       "sars_cov2" = 2.75,
@@ -165,27 +165,33 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
     warning("Your data may not be weekly data. Please set time_period = daily for daily data")
   }
   sim <- week_date <- daily_date <- NULL
-  if (!(lubridate::ymd(start_date) %in% data$date)) {
-    stop("Start date not present in dataset. Please check your input")
-  }
+  #if (!(lubridate::ymd(start_date) %in% data$date)) {
+ #   stop("Start date not present in dataset. Please check your input")
+ # }
 
-  if (lubridate::ymd(start_date) >= max(data$date)) {
-    stop("Start date greater than max date in dataset! Please check your input")
-  }
-  start_index <- which(data$date == lubridate::ymd(start_date))
+ # if (lubridate::ymd(start_date) >= max(data$date)) {
+  #  stop("Start date greater than max date in dataset! Please check your input")
+#  }
+
+  model_non_zero_data <- data %>%
+    dplyr::filter(confirm > 0) %>%
+    pull(date)
+
+  data <- data %>%
+    dplyr::filter(date >= model_non_zero_data[1])
+
+
+  start_index <- which(data$date == min(data$date))
   time_length <- nrow(data) - start_index
-  if (start_index < 20) {
-  time_index <- seq(from = start_index + (20-start_index), to = time_length)
-  } else {
-    time_index <- seq(from = start_index, to = time_length)
-  }
+  time_index <- seq(from = start_index, to = time_length)
 
   time_period_result <- lapply(time_index, function(tp) {
     model_data <- extend_rows_model_data(
-      data = data, min_model_date_str = start_date,
+      data = data, min_model_date_str = min(data$date),
       extension_interval = tp
     )
- #cutoff_prop <- forecast_quality_precheck(data = model_data, model_data = data)
+
+
   if (isTRUE(verbose)) {
       print(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
     }
@@ -193,14 +199,32 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
 
    ##### Add in P-spline smoothing with GAM at each time-step ###################
   smoothed_model_data <- model_data
-   if (nrow(model_data) >= smoothing_cutoff) {
-index <- seq_len(nrow(model_data))
-  model_smooth <- mgcv::gam(model_data$confirm ~s(index, bs = 'ps', k = round(nrow(model_data)/2, 0)))
+  if (nrow(model_data) >= smoothing_cutoff) {
+  index <- seq_len(nrow(model_data))
+  model_data$index <- index
+  print(model_data)
+  model_smooth <- mgcv::gam(confirm ~s(index, bs = 'ps', k = round(length(index)/2, 0)), data = model_data)
+  beta <- coef(model_smooth); Vb <- vcov(model_smooth)
+  Cv <- chol(Vb)
+  n.rep <- 10000
+  nb <- length(beta)
+  br <- t(Cv) %*% matrix(rnorm(n.rep * nb), nb, n.rep) + beta
+  xp <- seq(0, 1, length.out = length(index))
+  Xp <- suppressWarnings(predict(model_smooth, newdata = data.frame(x = xp), type = "lpmatrix"))
+  lp <- Xp %*% br
+  fv <- lp
+  yr <- matrix(rnorm(nrow(fv) * ncol(fv), mean = fv, sd = model_smooth$sig2), nrow = nrow(fv), ncol = ncol(fv))
+  conf_int <- apply(yr,1,quantile,prob=c(0.025,0.975))
+  diff <-  conf_int[2, ] - conf_int[1, ]
+  uncertainity_se <- diff/(qnorm(1-0.05/2)*2)
   smoothed_estimates <- predict(model_smooth, type = "response", se.fit = TRUE)
+  print(smoothed_estimates$se.fit)
   smoothed_model_data$confirm <- round(smoothed_estimates$fit, 0)
   smoothed_model_data <- smoothed_model_data %>%
   mutate(confirm = ifelse(confirm < 0, 0, confirm))
-  smoothed_error <- data.frame(smoothed_error = smoothed_estimates$se.fit)
+  smoothed_error <-  data.frame(smoothed_error = smoothed_estimates$se.fit + uncertainity_se)
+  } else {
+    smoothed_error <- 0
   }
   #############################################################
     if (time_period == "weekly") {
