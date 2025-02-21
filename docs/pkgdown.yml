@@ -1,7 +1,0 @@
-pandoc: 2.19.2
-pkgdown: 2.0.3
-pkgdown_sha: ~
-articles:
-  vriforecasting-model-fitting-epiestim: vriforecasting-model-fitting-epiestim.html
-last_built: 2024-03-15T17:41Z
-
