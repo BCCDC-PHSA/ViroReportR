@@ -457,7 +457,7 @@ common_reliable_estimation_date <- function(plover_list, phrdw_list,
   return(list(common_phrdw_date = common_phrdw_date, common_plover_date = common_plover_date))
 }
 
-#' Format summary table for vriforecasting report
+#' Format summary table for ViroReportR report
 #' @param time_period_result output from  \code{forecast_time_period}
 #' @return Formatted data.table summary table with wide format for coverage
 #'
@@ -536,7 +536,7 @@ forecast_metrics <- function(time_period_result, iter = 10) {
 }
 
 
-#' Process PLOVER and PHRDW data for all respiratory diseases supported by vriforecasting
+#' Process PLOVER and PHRDW data for all respiratory diseases supported by ViroReportR
 #' @param raw_plover_data PLOVER data
 #' @param raw_phrdw_data PHRDW data
 #' @return Lists of dataframes of transformed PLOVER and PHRDW data for each respiratory viral disease with columns `date` and `confirm`
@@ -559,7 +559,7 @@ get_all_vri_data <- function(raw_plover_data, raw_phrdw_data) {
 }
 
 
-#' Print out text output for vriforecasting report detailing current number of case visits, last value of Rt and corresponding intervals
+#' Print out text output for ViroReportR report detailing current number of case visits, last value of Rt and corresponding intervals
 #' @param time_period_result output from  \code{forecast_time_period}
 #' @param ... optional arguments to be passed on to \code{forecast_metrics}
 #' @return current forecast metrics
@@ -576,7 +576,7 @@ current_forecast_text <- function(time_period_result, ...) {
 
 
 
-#' Print out text output for vriforecasting report detailing validation information including proportion of predictions in 50% and 95% intervals
+#' Print out text output for ViroReportR report detailing validation information including proportion of predictions in 50% and 95% intervals
 #' @param time_period_result output from  \code{forecast_time_period}
 #' @return current forecast metrics
 validation_summary_text <- function(time_period_result) {
@@ -595,7 +595,7 @@ validation_summary_text <- function(time_period_result) {
 
 
 
-#' Print out text output for vriforecasting report detailing validation information including proportion of predictions in 50% and 95% intervals
+#' Print out text output for ViroReportR report detailing validation information including proportion of predictions in 50% and 95% intervals
 #' @param time_period_result output from  \code{forecast_time_period}
 #' @param year_input *numeric* indicating the year to generate the validation summary
 #' @return current forecast metrics

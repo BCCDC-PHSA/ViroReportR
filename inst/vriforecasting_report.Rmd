@@ -1,5 +1,5 @@
 ---
-title: "Summary report of short-term forecasts for viral respiratory diseases by `vriforecasting`"
+title: "Summary report of short-term forecasts for viral respiratory diseases by `ViroReportR`"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -13,7 +13,7 @@ params:
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 # setup -------------------------------------------------------------------
 library(dplyr)
-library(vriforecasting)
+library(ViroReportR)
 library(ggplot2)
 library(here)
 library(DT)
@@ -78,9 +78,9 @@ for (vri in disease_dict) {
   cat("\n\n\n")
  print(plot(plover_forecasts$forecasts[[vri]]))
   cat("\n\n\n")
- print(vriforecasting:::plot_rt(phrdw_forecasts$forecasts[[vri]]))
+ print(ViroReportR:::plot_rt(phrdw_forecasts$forecasts[[vri]]))
   cat("\n\n\n")
-  vriforecasting:::current_forecast_text(plover_forecasts$forecasts[[vri]])
+  ViroReportR:::current_forecast_text(plover_forecasts$forecasts[[vri]])
   cat("\n\n\n")
 }
 ```
@@ -108,7 +108,7 @@ for (vri in disease_dict) {
  The forecasting model is trained by fitting to historical data, which is used to then make the prediction 1-week ahead. Here, the fit of the model to the known historical data is summarized. For each of the weekly historical forecasts, the metrics output whether the forecasted confirmed cases lie in the 50 or 95% percentile interval as well as the mean-squared percentage error. A higher mean squared percentage error and a relatively larger proportion of forecasts outside the 95% percentile interval are indicative of poor quality historical (and thus likely current) forecasts. 
 
 ```{r DT initialization, include=FALSE}
-htmltools::tagList(datatable(vriforecasting:::summary_ind_quantiles_formatter(time_period_result = plover_forecasts$forecasts$`Influenza-A`, data = plover_forecasts$plover_list$`Influenza-A`)))
+htmltools::tagList(datatable(ViroReportR:::summary_ind_quantiles_formatter(time_period_result = plover_forecasts$forecasts$`Influenza-A`, data = plover_forecasts$plover_list$`Influenza-A`)))
 ```
 
 ```{r PLOVER forecast validation metrics, results = "asis"}
@@ -116,15 +116,15 @@ for (vri in disease_dict) {
   cat("\n\n\n")
   cat(glue::glue("### {vri} {{.tabset}}"))
   cat("\n\n\n")
-  print(htmltools::tagList(datatable(vriforecasting:::summary_ind_quantiles_formatter(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]]))))
+  print(htmltools::tagList(datatable(ViroReportR:::summary_ind_quantiles_formatter(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]]))))
   cat("\n\n\n")
-  vriforecasting:::validation_summary_text(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]])
+  ViroReportR:::validation_summary_text(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]])
   cat("\n\n\n")
-   vriforecasting:::validation_summary_text_season(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], year = 2021)
+   ViroReportR:::validation_summary_text_season(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], year = 2021)
   cat("\n\n\n")
-    vriforecasting:::validation_summary_text_season(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], year = 2022)
+    ViroReportR:::validation_summary_text_season(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], year = 2022)
   cat("\n\n\n")
-   vriforecasting:::validation_summary_text_season(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], year = 2023)
+   ViroReportR:::validation_summary_text_season(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], year = 2023)
 }
 ```
 

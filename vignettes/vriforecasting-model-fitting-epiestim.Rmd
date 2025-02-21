@@ -15,16 +15,16 @@ knitr::opts_chunk$set(
 ```
 
 ```{r}
-library(vriforecasting)
+library(ViroReportR)
 ```
 
 ## Overview 
 
-This vignette provides a short demonstration of the model fitting functions in `vriforecasting` which extend the functionality and wrap the `estimate_R` function from the `EpiEstim` package to produce short-term forecasts. 
+This vignette provides a short demonstration of the model fitting functions in `ViroReportR` which extend the functionality and wrap the `estimate_R` function from the `EpiEstim` package to produce short-term forecasts. 
 
 ## Loading in data
 
-For this short demonstration, we will use weekly data for Influenza A, which is provided with the `vriforecasting` package. The input dataset must have two columns: `date` and `confirm` in accordance to format accepted by the model fitting functions.
+For this short demonstration, we will use weekly data for Influenza A, which is provided with the `ViroReportR` package. The input dataset must have two columns: `date` and `confirm` in accordance to format accepted by the model fitting functions.
 
 ```{r }
 disease_type <- "flu_a"
@@ -90,7 +90,7 @@ The object of class `forecast_time_period` produced by the `forecast_time_period
 summary(time_period_result_weekly, pred_horizon_str = "1 week ahead")
 ```
 
-Finally, the `vriforecasting` package can conveniently generate an automated report for the current season for all supported viral respiratory diseases (Influenza-A, Influenza-B, RSV and SARS-CoV2) using the `generate_forecast_report` function, which renders an HTML report.
+Finally, the `ViroReportR` package can conveniently generate an automated report for the current season for all supported viral respiratory diseases (Influenza-A, Influenza-B, RSV and SARS-CoV2) using the `generate_forecast_report` function, which renders an HTML report.
 
 ```{r eval = FALSE}
 generate_forecast_report(output_dir = "PATH OF DIRECTORY")

@@ -1,10 +1,10 @@
 PLOVER:
-  temp_path: "~/Desktop/bccdc/vriforecasting/dat_test/plover_weekly_resp.rds"
-  bccdc_path: "O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/plover_weekly_resp.rds"
-  
+  temp_path: "~/Desktop/bccdc/ViroReportR/dat_test/plover_weekly_resp.rds"
+  bccdc_path: ""
+
 PHRDW:
-  temp_path: "~/Desktop/bccdc/vriforecasting/dat_test/phrdw_flu_daily_count_vpp_only.rData"
-  bccdc_path: "O:/BCCDC/Groups/Analytics/Projects/covid_modeling/06 Projects/RSV Flu Modelling/Data/phrdw_flu_daily_count_vpp_only.rData"
+  temp_path: "~/Desktop/bccdc/ViroReportR/dat_test/phrdw_flu_daily_count_vpp_only.rData"
+  bccdc_path: ""
 
 zero_threshold: 0.50
 

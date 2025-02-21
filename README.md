@@ -1,59 +1,59 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# vriforecasting
+# ViroReportR
 
 <!-- badges: start -->
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![CRAN
-status](https://www.r-pkg.org/badges/version/vriforecasting)](https://CRAN.R-project.org/package=vriforecasting)
+status](https://www.r-pkg.org/badges/version/ViroReportR)](https://CRAN.R-project.org/package=ViroReportR)
 <!-- badges: end -->
 
 <img src="man/figures/vri_forecasting_hexSticker.png" width="40%" />
 
-The goal of `vriforecasting` is to provide a toolbox to conveniently
+The goal of `ViroReportR` is to provide a toolbox to conveniently
 generate short-term forecasts (with accompanied diagnostics) for viral
 respiratory diseases.
 
 ## Installation
 
-`vriforecasting` depends on the latest version of the `EpiEstim` package
+`ViroReportR` depends on the latest version of the `EpiEstim` package
 (2.4). Thus, this version of the package must be installed from GitHub
-prior to installing the `vriforecasting` package using:
+prior to installing the `ViroReportR` package using:
 
 ``` r
 # install.packages("devtools")
 install.packages('EpiEstim', repos = c('https://mrc-ide.r-universe.dev', 'https://cloud.r-project.org'))
 ```
 
-You can then install the development version of `vriforecasting` from
+You can then install the development version of `ViroReportR` from
 [GitHub](https://github.com/) with:
 
 ``` r
 
-devtools::install_github("sempwn/vriforecasting")
+devtools::install_github("BCCDC-PHSA/ViroReportR")
 ```
 
 ## Quick Start
 
-`vriforecasting` can be used to generate short-term forecasts with
+`ViroReportR` can be used to generate short-term forecasts with
 accompanied diagnostics in a few lines of code. We go through an example
 here where the `EpiEstim` backend is used to generate forecasts of
 Influenza-A.
 
 ``` r
-library(vriforecasting)
+library(ViroReportR)
 #> ================================================
-#> Welcome to vriforecasting! 
+#> Welcome to ViroReportR! 
 #> Please run `pkgdown::build_site(lazy = TRUE)` in your console 
 #> to access documentation on the package website 
 #> ================================================
 ```
 
 We will use the PLOVER weekly data for Influenza A, which is included
-with the `vriforecasting` package. We then use the `get_weekly_plover`
+with the `ViroReportR` package. We then use the `get_weekly_plover`
 and `get_weekly_plover_by_date_type` functions to transform the PLOVER
 data into a dataset with two columns: `date` and `confirm` in accordance
 to format accepted by the model fitting functions.
@@ -152,7 +152,7 @@ summary(time_period_result_weekly, pred_horizon_str = "2 week ahead")
 #> [1] 98.12747
 ```
 
-Finally, the `vriforecasting` package can conveniently generate an
+Finally, the `ViroReportR` package can conveniently generate an
 automated report for the current season for all supported viral
 respiratory diseases (Influenza-A, Influenza-B, RSV and SARS-CoV2) using
 the `generate_forecast_report` function, which renders an HTML report.
