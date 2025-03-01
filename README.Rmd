@@ -13,16 +13,13 @@ knitr::opts_chunk$set(
 )
 ```
 
-# ViroReportR
+# ViroReportR <img src="man/figures/logo.png" align="right" height="139" alt="" />
+
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![CRAN status](https://www.r-pkg.org/badges/version/ViroReportR)](https://CRAN.R-project.org/package=ViroReportR)
 <!-- badges: end -->
-
-```{r, out.width = "40%", echo = FALSE}
-knitr::include_graphics(path = "man/figures/vri_forecasting_hexSticker.png")
-```
 
 The goal of `ViroReportR` is to provide a toolbox to conveniently generate short-term forecasts (with accompanied diagnostics) for viral respiratory diseases.
 
@@ -54,14 +51,8 @@ library(ViroReportR)
 We will use the PLOVER weekly data for Influenza A, which is included with the `ViroReportR` package. We then use the `get_weekly_plover` and `get_weekly_plover_by_date_type` functions to transform the PLOVER data into a dataset with two columns: `date` and `confirm` in accordance to format accepted by the model fitting functions. 
 
 ```{r }
-disease_type <- "flu_a"
-weekly_plover_date_type <- get_weekly_plover_by_date_type(
-  plover_data = plover_data,
-  type = disease_type,
-  start_date = "2022-10-01",
-  end_date = "2022-12-01")
 
-head(weekly_plover_date_type)
+head(weekly_data)
 ```
 
 ## Model fitting and forecasting over sliding windows 
@@ -71,8 +62,11 @@ The `forecast_time_period_epiestim` can be used to produce both daily and weekly
 We can produce forecasts aggregated by week by setting `time_period = weekly`. For the functionality, `n_days` must be a multiple of 7. Thus, specifying `n_days = 14` when `time_period = weekly` produces 14/7 i.e. 2-week ahead forecasts. 
 
 ```{r message = FALSE}
-time_period_result_weekly <- forecast_time_period(data = weekly_plover_date_type, 
-start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "weekly" , algorithm = "EpiEstim")
+time_period_result_weekly <- forecast_time_period(
+  data = weekly_data, 
+start_date = "2022-10-02", n_days = 14, type = "flu_a", 
+time_period = "weekly" , algorithm = "EpiEstim"
+)
 ```
 
 Finally, we can plot a validation plot using the `plot_validation` function. We can plot 2 week ahead forecasts for example by setting the `pred_horizon` argument. 

@@ -94,7 +94,7 @@ get_weekly_aggregated_data <- function(generic_data, date_column, number_column,
                                        start_date = NULL, end_date = NULL) {
   confirm <- NULL
 
-  weekly_data <- get_weekly_data(generic_data, "date_of_report", "flu_a")
+  weekly_data <- get_weekly_data(generic_data, date_column, number_column)
 
   # Unquote the quosures
   date_column <- dplyr::quo_name(dplyr::enquo(date_column))
