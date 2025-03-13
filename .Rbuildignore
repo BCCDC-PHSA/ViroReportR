@@ -8,4 +8,4 @@
 ^docs$
 ^pkgdown$
 ^package_logo$
-^settings\.json$
+^\.vscode/$
