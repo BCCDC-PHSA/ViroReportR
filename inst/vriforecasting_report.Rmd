@@ -4,8 +4,7 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 params:
-  filepath:
-    value: x
+  filepath: "O:\\BCCDC\\Groups\\Data_Linked\\Archive\\PANDA\\nb0077\\New_Data/all_disease_data.csv"
   start_date: NULL
   n_days: 7
 ---
@@ -27,11 +26,13 @@ library(purrr)
 # Data setup and cleaning code
 vri_data <- read.csv(file.path(params$filepath))
 # VRI names dictionary
-disease_dict <- vri_data$disease_types
+disease_dict <- vri_data$disease_type
+vri_data$date <- lubridate::ymd(vri_data$date)
+
 
 # Drop disease types column
 vri_data <- vri_data %>%
-  select(-disease_types)
+  select(-disease_type)
 
 start_date <- params$start_date
 if(is.null(start_date)){

@@ -48,3 +48,6 @@ rsconnect/
 .Rproj.user
 inst/doc
 docs
+
+# manual output
+man/
