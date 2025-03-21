@@ -6,6 +6,8 @@ editor_options:
 params:
   filepath:
     value: x
+  start_date: NULL
+  n_days: 7
 ---
 
 
@@ -30,13 +32,19 @@ disease_dict <- vri_data$disease_types
 # Drop disease types column
 vri_data <- vri_data %>%
   select(-disease_types)
+
+start_date <- params$start_date
+if(is.null(start_date)){
+  start_date <- min(vri_data$date)
+}
+
+forecast_horizon <- params$n_days
+
 ```
 
-```{r load RDS for demo run}
-load("~/Desktop/bccdc/smoothed_forecasts.RData")
-```
 
-```{r generate forecasts, eval = FALSE}
+
+```{r generate forecasts}
 forecasts <- tibble(
   plover_list = vri_data,
   forecasts = map2(
@@ -44,8 +52,8 @@ forecasts <- tibble(
     disease_dict,
     ~ forecast_time_period(.x,
       type = .y,
-      n_days = 14,
-      start_date = cred$common_plover_date
+      n_days = forecast_horizon,
+      start_date = start_date
     )
   )
 )
@@ -61,6 +69,10 @@ names(plover_forecasts$plover_list) <- disease_dict
 names(phrdw_forecasts$phrdw_list) <- disease_dict
 ```
 
+
+## Description
+
+This report provides the forecast of `r forecast_horizon`-days ahead confirmed cases for the 3 prevalent respiratory viral cases in BC (Flu-A, RSV and SARS-CoV-2). Forecast reports were generated using the Provincial Lab (PLIS) data. `vriforecasting` uses `EpiEstim` as the backend to forecast weekly confirmed cases, which forecasts cases by estimating the instantaneous reproduction number using the [Cori method](https://academic.oup.com/aje/article/178/9/1505/89262) and then simulating the number of new cases using fixed exponential growth over a given time period. This is a short term prediction model, meaning that an increase in the time-period horizon over an optimal horizon of 1 or 2-weeks ahead results in a decline of prediction performance. The report is divided into two sections: `r forecast_horizon`-days forecast for the current season of respiratory cases as well as validation plots and metrics for the performance of the forecasting model on historical data to help in the assessment of model performance. 
 
 # Current season forecast {.tabset}
 
