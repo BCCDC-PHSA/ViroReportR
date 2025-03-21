@@ -87,19 +87,19 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 
   # 7. Configuring based on type
   if (dt == 1L) {
-  incid <- data.frame(I = data$confirm, dates = data$date)
-  incid <- incid %>%
-     dplyr::arrange(dates)
- t_start <- seq(2, nrow(incid))
- t_end <- t_start
-  config <- EpiEstim::make_config(list(
-    mean_si = mean_si,
-    std_si = std_si,
-    mean_prior = mean_prior,
-    std_prior = std_prior,
-    t_start = t_start,
-    t_end = t_end
-  ))
+    incid <- data.frame(I = data$confirm, dates = data$date)
+    incid <- incid %>%
+      dplyr::arrange(dates)
+    t_start <- seq(2, nrow(incid))
+    t_end <- t_start
+    config <- EpiEstim::make_config(list(
+      mean_si = mean_si,
+      std_si = std_si,
+      mean_prior = mean_prior,
+      std_prior = std_prior,
+      t_start = t_start,
+      t_end = t_end
+    ))
   } else if (dt > 1L) {
     incid <- data$confirm
     config <- EpiEstim::make_config(list(
@@ -159,19 +159,12 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #' )
 forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "weekly",
                                           type = NULL, verbose = FALSE, smoothing_cutoff = 10, ...) {
-
   data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
   if (data_lag <= 7 && time_period == "weekly") {
     warning("Your data may not be weekly data. Please set time_period = daily for daily data")
   }
   sim <- week_date <- daily_date <- NULL
-  #if (!(lubridate::ymd(start_date) %in% data$date)) {
- #   stop("Start date not present in dataset. Please check your input")
- # }
 
- # if (lubridate::ymd(start_date) >= max(data$date)) {
-  #  stop("Start date greater than max date in dataset! Please check your input")
-#  }
 
   model_non_zero_data <- data %>%
     dplyr::filter(confirm > 0) %>%
@@ -192,83 +185,202 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
     )
 
 
-  if (isTRUE(verbose)) {
-      print(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
+    if (verbose) {
+      message(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
     }
-# if (cutoff_prop > 0) {
 
-   ##### Add in P-spline smoothing with GAM at each time-step ###################
-  smoothed_model_data <- model_data
-  if (nrow(model_data) >= smoothing_cutoff) {
-  index <- seq_len(nrow(model_data))
-  model_data$index <- index
-  print(model_data)
-  model_smooth <- mgcv::gam(confirm ~s(index, bs = 'ps', k = round(length(index)/2, 0)), data = model_data)
-  beta <- coef(model_smooth); Vb <- vcov(model_smooth)
-  Cv <- chol(Vb)
-  n.rep <- 10000
-  nb <- length(beta)
-  br <- t(Cv) %*% matrix(rnorm(n.rep * nb), nb, n.rep) + beta
-  xp <- seq(0, 1, length.out = length(index))
-  Xp <- suppressWarnings(predict(model_smooth, newdata = data.frame(x = xp), type = "lpmatrix"))
-  lp <- Xp %*% br
-  fv <- lp
-  yr <- matrix(rnorm(nrow(fv) * ncol(fv), mean = fv, sd = model_smooth$sig2), nrow = nrow(fv), ncol = ncol(fv))
-  conf_int <- apply(yr,1,quantile,prob=c(0.025,0.975))
-  diff <-  conf_int[2, ] - conf_int[1, ]
-  uncertainity_se <- diff/(qnorm(1-0.05/2)*2)
-  smoothed_estimates <- predict(model_smooth, type = "response", se.fit = TRUE)
-  print(smoothed_estimates$se.fit)
-  smoothed_model_data$confirm <- round(smoothed_estimates$fit, 0)
-  smoothed_model_data <- smoothed_model_data %>%
-  mutate(confirm = ifelse(confirm < 0, 0, confirm))
-  smoothed_error <-  data.frame(smoothed_error = smoothed_estimates$se.fit + uncertainity_se)
-  } else {
-    smoothed_error <- 0
-  }
-  #############################################################
+
+
+    smoothed_output <- smooth_model_data(model_data, smoothing_cutoff = smoothing_cutoff)
+
     if (time_period == "weekly") {
-      cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, ...)
-      cur_daily_samples <- extract_daily_samples_epiestim_fit(data = smoothed_model_data, model_fit = cur_model, n_days = n_days)
-      cur_daily_samples <- cur_daily_samples %>%
-        dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
-
-      smoothed_model_data <- smoothed_model_data %>%
-        dplyr::rename(smoothed_date = date, smoothed_confirm = confirm)
-
-      model_data <- model_data %>%
-        dplyr::rename(model_data_date = date)
-      if (isFALSE(n_days %% 7 == 0)) {
-        stop("n_days must be a multiple of 7 to aggregate by week")
-      }
-      cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
-      cur_samples_agg_quantiles <- cur_samples %>%
-        create_quantiles(week_date, variable = "weekly_incidence") %>%
-        dplyr::rename(quantile_date = week_date)
-      quantile_unit <- "weekly"
-      row <- c(cur_model, tp,  model_data, smoothed_model_data, cur_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit,
-               smoothed_error)
+      row <- calculate_weekly_fit_row(
+        smoothed_output,
+        tp,
+        type = type, n_days = n_days, ...
+      )
     } else if (time_period == "daily") {
-      cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, dt = 1L, ...)
-      cur_daily_samples <- extract_daily_samples_epiestim_fit(data = smoothed_model_data, dt = 1L, model_fit = cur_model, n_days = n_days)
-      cur_daily_samples <- cur_daily_samples %>%
-        dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
-
-      smoothed_model_data <- smoothed_model_data %>%
-        dplyr::rename(smoothed_date = date, smoothed_confirm = confirm)
-
-      model_data <- model_data %>%
-        dplyr::rename(model_data_date = date)
-      cur_samples_agg_quantiles <- cur_daily_samples %>%
-        create_quantiles(daily_date, variable = "daily_incidence") %>%
-        dplyr::rename(quantile_date = daily_date)
-      quantile_unit <- "daily"
-      row <- c(cur_model, tp, model_data,
-               smoothed_model_data, cur_daily_samples, cur_samples_agg_quantiles, quantile_unit = quantile_unit,
-               smoothed_error)
+      row <- calculate_daily_fit_row(
+        smoothed_output,
+        tp,
+        type = type, n_days = n_days, ...
+      )
     }
 
     return(row)
   })
   return(time_period_result)
+}
+
+
+#' Smooth Model Data Using P-Spline GAM
+#'
+#' Applies P-spline smoothing using a Generalized Additive Model (GAM) to the input model data.
+#' If the number of rows in `model_data` is greater than or equal to `smoothing_cutoff`,
+#' the function fits a GAM, estimates confidence intervals, and computes uncertainty.
+#'
+#' @param model_data A data frame containing the model data, including a column `confirm` representing observed values.
+#' @param smoothing_cutoff minimum number of rows required to smooth
+#' @param n_reps Number of replicates to calculate error
+#'
+#' @return A list with two elements:
+#'  - `original_data`: A copy of `model_data`
+#' 	- `data`: A data frame with smoothed `confirm` values.
+#' 	- `error`: Estimated uncertainty of the smoothing process.
+#'
+#' @importFrom mgcv gam predict vcov
+#' @importFrom stats coef qnorm rnorm quantile
+#' @importFrom dplyr mutate
+#' @noRd
+smooth_model_data <- function(model_data, smoothing_cutoff = 10, n_reps = 10000) {
+  ##### Add in P-spline smoothing with GAM at each time-step ###################
+  smoothed_model_data <- model_data
+  if (nrow(model_data) >= smoothing_cutoff) {
+    index <- seq_len(nrow(model_data))
+    model_data$index <- index
+    model_smooth <- mgcv::gam(confirm ~ s(index, bs = "ps", k = round(length(index) / 2, 0)), data = model_data)
+    beta <- coef(model_smooth)
+    Vb <- vcov(model_smooth)
+    Cv <- chol(Vb)
+
+    nb <- length(beta)
+    br <- t(Cv) %*% matrix(rnorm(n_reps * nb), nb, n_reps) + beta
+    xp <- seq(0, 1, length.out = length(index))
+    Xp <- suppressWarnings(predict(model_smooth, newdata = data.frame(index = index), type = "lpmatrix"))
+    lp <- Xp %*% br
+    fv <- lp
+    yr <- matrix(rnorm(nrow(fv) * ncol(fv), mean = fv, sd = model_smooth$sig2), nrow = nrow(fv), ncol = ncol(fv))
+    conf_int <- apply(yr, 1, quantile, prob = c(0.025, 0.975))
+    diff <- conf_int[2, ] - conf_int[1, ]
+    uncertainity_se <- diff / (qnorm(1 - 0.05 / 2) * 2)
+    smoothed_estimates <- predict(model_smooth, type = "response", se.fit = TRUE)
+    smoothed_model_data$confirm <- round(smoothed_estimates$fit, 0)
+    smoothed_model_data <- smoothed_model_data %>%
+      mutate(confirm = ifelse(confirm < 0, 0, confirm))
+    smoothed_error <- data.frame(smoothed_error = smoothed_estimates$se.fit + uncertainity_se)
+  } else {
+    smoothed_error <- 0
+  }
+
+  return(list(original_data = model_data, data = smoothed_model_data, error = smoothed_error))
+}
+
+#' Calculate Weekly Fit Row from Smoothed Output
+#'
+#' Processes smoothed model data to fit an EpiEstim model, extract daily samples, aggregate them weekly,
+#' and return a structured output containing relevant model and quantile information.
+#'
+#' @param smoothed_output A list containing:
+#' 	- `data`: A data frame with smoothed model data, including a `date` and `confirm` column.
+#' 	- `error`: The estimated smoothing error.
+#' @param tp time period
+#' @param type type of disease
+#' @param n_days Number of days to forecast ahead. Defaults to 7
+#' @param ... Additional arguments passed to `fit_epiestim_model()`.
+#'
+#' @return A named list containing:
+#' 	- Fitted model results.
+#' 	- Time period information.
+#' 	- Original, smoothed, and aggregated model data.
+#' 	- Weekly quantile estimates.
+#' 	- Smoothed error values.
+#'
+#' @details The function fits an EpiEstim model using `fit_epiestim_model()`, extracts daily samples with `extract_daily_samples_epiestim_fit()`,
+#' and renames key columns for consistency. It ensures `n_days` is a multiple of 7 before aggregating data to weekly intervals.
+#'
+#' @importFrom dplyr rename
+#' @noRd
+calculate_weekly_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
+                                     n_days = 7, ...) {
+  smoothed_model_data <- smoothed_output$data
+  smoothed_error <- smoothed_output$error
+  quantile_unit <- "weekly"
+
+  cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, ...)
+  cur_daily_samples <- extract_daily_samples_epiestim_fit(
+    data = smoothed_model_data,
+    model_fit = cur_model,
+    n_days = n_days
+  )
+  cur_daily_samples <- cur_daily_samples %>%
+    dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
+
+  smoothed_model_data <- smoothed_model_data %>%
+    dplyr::rename(smoothed_date = date, smoothed_confirm = confirm)
+
+  model_data <- smoothed_output$original_data %>%
+    dplyr::rename(model_data_date = date)
+  if (!(n_days %% 7 == 0)) {
+    stop("n_days must be a multiple of 7 to aggregate by week")
+  }
+  cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
+  cur_samples_agg_quantiles <- cur_samples %>%
+    create_quantiles(week_date, variable = "weekly_incidence") %>%
+    dplyr::rename(quantile_date = week_date)
+
+  row <- c(cur_model, tp, model_data, smoothed_model_data, cur_samples, cur_samples_agg_quantiles,
+    quantile_unit = quantile_unit,
+    smoothed_error
+  )
+
+  return(row)
+}
+
+#' Calculate Daily Fit Row from Smoothed Output
+#'
+#' Processes smoothed model data to fit an EpiEstim model, extract daily samples,
+#' and return a structured output containing relevant model and quantile information.
+#'
+#' @param smoothed_output A list containing:
+#' 	- `data`: A data frame with smoothed model data, including a `date` and `confirm` column.
+#' 	- `error`: The estimated smoothing error.
+#' @param tp time period
+#' @param type type of disease
+#' @param n_days Number of days to forecast ahead. Defaults to 7
+#' @param ... Additional arguments passed to `fit_epiestim_model()`.
+#'
+#' @return A named list containing:
+#' 	- Fitted model results.
+#' 	- Time period information.
+#' 	- Original, smoothed, and daily model data.
+#' 	- Daily quantile estimates.
+#' 	- Smoothed error values.
+#'
+#' @details The function fits an EpiEstim model using `fit_epiestim_model()`, extracts daily samples with `extract_daily_samples_epiestim_fit()`,
+#' and renames key columns for consistency. It also generates daily quantile estimates using `create_quantiles()`.
+#'
+#' @importFrom dplyr rename
+#' @noRd
+calculate_daily_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
+                                    n_days = 7, ...) {
+  smoothed_model_data <- smoothed_output$data
+  smoothed_error <- smoothed_output$error
+  quantile_unit <- "daily"
+
+  cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, dt = 1L, ...)
+  cur_daily_samples <- extract_daily_samples_epiestim_fit(
+    data = smoothed_model_data,
+    dt = 1L,
+    model_fit = cur_model,
+    n_days = n_days
+  )
+  cur_daily_samples <- cur_daily_samples %>%
+    dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
+
+  smoothed_model_data <- smoothed_model_data %>%
+    dplyr::rename(smoothed_date = date, smoothed_confirm = confirm)
+
+  model_data <- smoothed_output$original_data %>%
+    dplyr::rename(model_data_date = date)
+  cur_samples_agg_quantiles <- cur_daily_samples %>%
+    create_quantiles(daily_date, variable = "daily_incidence") %>%
+    dplyr::rename(quantile_date = daily_date)
+
+  row <- c(cur_model, tp, model_data,
+    smoothed_model_data, cur_daily_samples, cur_samples_agg_quantiles,
+    quantile_unit = quantile_unit,
+    smoothed_error
+  )
+
+  return(row)
 }
