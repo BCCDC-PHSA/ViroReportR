@@ -23,17 +23,21 @@ library(purrr)
 
 
 ```{r load data}
-# Data setup and cleaning code
+# Load data
 vri_data <- read.csv(file.path(params$filepath))
-# VRI names dictionary
-disease_dict <- vri_data$disease_type
 vri_data$date <- lubridate::ymd(vri_data$date)
 
+# VRI data set-up
+disease_dict <- vri_data %>% 
+    dplyr::group_by(disease_type) %>% 
+  dplyr::group_keys() %>% pull()
 
-# Drop disease types column
-vri_data <- vri_data %>%
-  select(-disease_type)
 
+vri_list <- vri_data %>% 
+  dplyr::group_by(disease_type) %>% 
+  dplyr::group_map(~.x)
+
+# document parameters set-up
 start_date <- params$start_date
 if(is.null(start_date)){
   start_date <- min(vri_data$date)
@@ -47,9 +51,9 @@ forecast_horizon <- params$n_days
 
 ```{r generate forecasts}
 forecasts <- tibble(
-  plover_list = vri_data,
+  plover_list = vri_list,
   forecasts = map2(
-    plover_list,
+    vri_list,
     disease_dict,
     ~ forecast_time_period(.x,
       type = .y,
