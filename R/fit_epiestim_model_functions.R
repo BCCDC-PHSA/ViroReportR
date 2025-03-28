@@ -245,11 +245,10 @@ smooth_model_data <- function(model_data, smoothing_cutoff = 10, n_reps = 10000)
 
     nb <- length(beta)
     br <- t(Cv) %*% matrix(rnorm(n_reps * nb), nb, n_reps) + beta
-    xp <- seq(0, 1, length.out = length(index))
     Xp <- suppressWarnings(predict(model_smooth, newdata = data.frame(index = index), type = "lpmatrix"))
-    lp <- Xp %*% br
-    fv <- lp
-    yr <- matrix(rnorm(nrow(fv) * ncol(fv), mean = fv, sd = model_smooth$sig2), nrow = nrow(fv), ncol = ncol(fv))
+    fv <- Xp %*% br
+    yr <- matrix(rnorm(nrow(fv) * ncol(fv), mean = fv, sd = model_smooth$sig2),
+                 nrow = nrow(fv), ncol = ncol(fv))
     conf_int <- apply(yr, 1, quantile, prob = c(0.025, 0.975))
     diff <- conf_int[2, ] - conf_int[1, ]
     uncertainity_se <- diff / (qnorm(1 - 0.05 / 2) * 2)

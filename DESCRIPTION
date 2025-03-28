@@ -11,6 +11,9 @@ Authors@R:
            role = "aut"),
     person(given = "Nirupama",
            family = "Tamvada",
+           role = "aut"),
+    person(given = "Rebeca",
+           family = "Falcao",
            role = "aut"))
 Description: BCCDC R package for forecasting viral respiratory infection cases and outcomes.
 License: GPL (>= 3)
@@ -25,7 +28,7 @@ RoxygenNote: 7.2.3
 Imports: 
     data.table,
     dplyr,
-    EpiEstim (>= 2.4),
+    EpiEstim,
     ggplot2,
     incidence,
     lubridate,
