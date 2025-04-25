@@ -8,4 +8,5 @@
 ^docs$
 ^pkgdown$
 ^package_logo$
+^\.vscode/$
 ^\.github$
