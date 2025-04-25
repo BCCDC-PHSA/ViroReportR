@@ -2,4 +2,4 @@
 *.R
 *.log
 
-/figure-latex
+*/figure-latex/
