@@ -75,7 +75,7 @@ plot_validation <- function(time_period_result, pred_horizon_str = NULL, pred_pl
     date = time_period_result[[length(time_period_result)]]$model_data_date,
     confirm = time_period_result[[length(time_period_result)]]$confirm
   )
-  forecast_dat <- pred_interval_forecast(time_period_result, model_data)
+  forecast_dat <- pred_interval_forecast(time_period_result,  pred_horizon = pred_horizon_str)
   if (!(pred_horizon_str %in% forecast_dat$pred_horizon)) {
     stop("Prediction horizon not found in time_period_result, please check input")
   }
@@ -170,7 +170,7 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
     date = object[[length(object)]]$model_data_date,
     confirm = object[[length(object)]]$confirm
   )
-  forecast_dat <- pred_interval_forecast(time_period_result = object, model_data)
+  forecast_dat <- pred_interval_forecast(time_period_result = object,  pred_horizon = pred_horizon_str)
   forecast_dat <- forecast_dat %>%
     dplyr::filter(pred_horizon == pred_horizon_str)
   if (!(pred_horizon_str %in% forecast_dat$pred_horizon)) {
@@ -282,7 +282,7 @@ summary_season.forecast_time_period  <- function(object, pred_horizon_str = NULL
     date = object[[length(object)]]$model_data_date,
     confirm = object[[length(object)]]$confirm
   )
-  forecast_dat <- pred_interval_forecast(time_period_result = object, data = model_data)
+  forecast_dat <- pred_interval_forecast(time_period_result = object,  pred_horizon = pred_horizon_str)
   forecast_dat <- forecast_dat %>%
     dplyr::filter(pred_horizon == pred_horizon_str)
   if (!(pred_horizon_str %in% forecast_dat$pred_horizon)) {
