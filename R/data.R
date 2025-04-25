@@ -23,21 +23,17 @@
 
 #' Daily/Weekly flu, RSV, sars_cov2 Cases
 #'
-#' A dataset containing the flu, RSV, sars_cov2 Cases for different
-#' labs & ages
+#' A simulated dataset containing COVID, flu A and RSV cases
 #' The variables are as follows:
 #'
-#' @format A data frame with over 8000 rows and 7 variables:
+#' @format A data frame with over 366 rows and 4 variables:
 #' \describe{
-#'   \item{lis_date_collection}{the date of that epiweek (2021-08-31 -- 2023-10-17)}
-#'   \item{result_lab_name}{the year of that epiweek (e.g. "A" or "B")}
-#'   \item{age_years}{the epiweek number (0 -- 103)}
-#'   \item{sars_cov2}{number of confirmed sars_cov2 cases}
+#'   \item{date}{YMD format}
 #'   \item{rsv}{number of confirmed RSV cases}
-#'   \item{flu_a}{number of confirmed flu A cases}
-#'   \item{flu_b}{number of confirmed flu B cases}
+#'   \item{flua}{number of confirmed flu A cases}
+#'   \item{covid}{number of confirmed COVID-19 cases}
 #' }
-#' @name phrdw_data
+#' @name daily_data
 #'
 #'
 #' @docType data
