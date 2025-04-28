@@ -54,7 +54,7 @@ simulate_data <- function(days=365,
 #' @return Throws an error if name mismatches are found; otherwise, returns nothing.
 #' @keywords internal
 check_match_names <- function(...){
-  vector_list <- as.list(...)
+  vector_list <- list(...)
   name_list <- names(vector_list[[1]])
   for(vector in vector_list){
     missing_names <- setdiff(name_list,names(vector))
