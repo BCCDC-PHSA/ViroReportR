@@ -11,6 +11,10 @@
 #' (e.g., `c("flua"=50,"rsv"=40,"covid"=20)`).
 #' @param scales Named numeric vector. Scale controlling spread of the peak
 #' for each virus (e.g., `c("flua"=-0.004,"rsv"=-0.005,"covid"=-0.001)`).
+#' @param time_offset Integer. Number of days to offset start of the simulation.
+#' useful if want to test data with larger values in the middle of a respiratory
+#' season.
+#' @param start_date string
 #'
 #' @return A data frame with daily simulated incidence counts for each virus,
 #' including a `date` column.
@@ -22,15 +26,17 @@
 simulate_data <- function(days=365,
                           peaks = c("flua"=90,"rsv"=110,"covid"=160),
                           amplitudes=c("flua"=50,"rsv"=40,"covid"=20),
-                          scales = c("flua"=-0.004,"rsv"=-0.005,"covid"=-0.001)
+                          scales = c("flua"=-0.004,"rsv"=-0.005,"covid"=-0.001),
+                          time_offset = 0,
+                          start_date = "2024-01-01"
                           ){
   check_match_names(peaks,amplitudes,scales)
   # Define start date
-  start_date <- as.Date("2024-01-01")  # Change if needed
+  start_date <- as.Date(start_date)
 
   # Create a sequence of dates
   dates <- seq(start_date, by = "day", length.out = days + 1)
-  time <- seq(0, days, by = 1)
+  time <- time_offset + seq(0, days, by = 1)
   daily_data <- data.frame(date = dates)
 
   for(virus in names(peaks)){

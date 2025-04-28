@@ -160,21 +160,25 @@ fit_epiestim_model <- function(data, dt = 1L, type = NULL, mean_si = NULL, std_s
 #'   data = weekly_transformed_plover_data,
 #'   start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "weekly"
 #' )
-forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "weekly",
+forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "daily",
                                           type = NULL, verbose = FALSE, smoothing_cutoff = 10, ...) {
   data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
   if (data_lag <= 7 && time_period == "weekly") {
     warning("Your data may not be weekly data. Please set time_period = daily for daily data")
   }
-  sim <- week_date <- daily_date <- NULL
+  sim <- week_date <- daily_date <- date <- NULL
 
+  # check and filter on start date
+  check_data_contains_start_date(data,start_date)
+  data <- data %>%
+    dplyr::filter(date > start_date)
 
-  model_non_zero_data <- data %>%
+  non_zero_dates <- data %>%
     dplyr::filter(confirm > 0) %>%
     pull(date)
 
   data <- data %>%
-    dplyr::filter(date >= model_non_zero_data[1])
+    dplyr::filter(date >= non_zero_dates[1])
 
 
   start_index <- which(data$date == min(data$date))
@@ -386,4 +390,11 @@ calculate_daily_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
   )
 
   return(row)
+}
+
+#' @noRd
+check_data_contains_start_date <- function(data,start_date){
+  if(!(start_date %in% data$date)){
+    stop("Data must include the `start_date`")
+  }
 }
