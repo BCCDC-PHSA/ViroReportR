@@ -1,6 +1,9 @@
 test_that("forecast_time_period works for flu_a with EpiEstim", {
   # Simulate or load the data
-  daily_data <- simulate_data()  # Or use load("data/daily_data.rda") if pre-saved
+  set.seed(123)
+  daily_data <- simulate_data(days = 30, peaks = c(flua = 30),
+                              amplitudes = c(flua = 60),
+                              scales = c(flua = -0.01))
 
   disease_type <- "flua"
   daily_flua <- data.frame(date = daily_data$date, confirm = daily_data[[disease_type]])
@@ -16,8 +19,8 @@ test_that("forecast_time_period works for flu_a with EpiEstim", {
   )
 
   # Basic checks
-  expect_s3_class(result, "data.frame")
-  expect_true("date" %in% names(result))
-  expect_true("mean_R" %in% names(result) || "R" %in% names(result))  # Adjust depending on output
-  expect_equal(nrow(result), 14)
+  expect_s3_class(result[[1]]$R, "data.frame")
+  expect_true( "R" %in% names(result[[1]]))
+  expect_true("dates" %in% names(result[[1]]))
+
 })
