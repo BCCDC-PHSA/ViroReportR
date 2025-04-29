@@ -24,22 +24,22 @@ extract_daily_samples_epiestim_fit <- function(data, model_fit, dt = 7L, n_days 
   }
   confirm <- NULL
   if (dt > 1L) {
-  model_data_linelist <-
-    tibble::tibble(
-      date = seq(min(data$date),
-        max(data$date) + lubridate::days(dt - 1),
-        by = "1 day"
-      ),
-      confirm = model_fit$I
-    ) %>%
-    dplyr::group_by(date) %>%
-    dplyr::reframe(case_index = seq(1:confirm))
+    model_data_linelist <-
+      tibble::tibble(
+        date = seq(min(data$date),
+          max(data$date) + lubridate::days(dt - 1),
+          by = "1 day"
+        ),
+        confirm = model_fit$I
+      ) %>%
+      dplyr::group_by(date) %>%
+      dplyr::reframe(case_index = seq(1:confirm))
   } else if (dt == 1L) {
     model_data_linelist <-
-    tibble::tibble(
-      date = model_fit$dates,
-      confirm = model_fit$I
-    ) %>%
+      tibble::tibble(
+        date = model_fit$dates,
+        confirm = model_fit$I
+      ) %>%
       dplyr::group_by(date) %>%
       dplyr::reframe(case_index = seq(1:confirm))
   }
@@ -116,7 +116,6 @@ extract_agg_samples_epiestim_fit <- function(samples) {
 #' @return input model_data subset to extension interval period specified
 extend_rows_model_data <- function(data, min_model_date_str,
                                    extension_interval = 1) {
-
   data <- data %>%
     dplyr::arrange(date)
   min_model_date <- lubridate::ymd(min_model_date_str)
@@ -467,7 +466,8 @@ summary_ind_quantiles_formatter <- function(time_period_result) {
     replace(is.na(.), 0) %>%
     dplyr::mutate_if(is.numeric, round) %>%
     dplyr::mutate(`95 percentile interval` = ifelse(`50 percentile interval` == 1, 1,
-                                                         `95 percentile interval`)) %>%
+      `95 percentile interval`
+    )) %>%
     dplyr::mutate_at(
       dplyr::vars(`50 percentile interval`, `95 percentile interval`),
       dplyr::funs(case_when(
@@ -608,7 +608,7 @@ validation_summary_text_season <- function(time_period_result, year_input = 2021
 
 forecast_quality_precheck <- function(data, model_data) {
   data <- tail(data)
-return(sum(data$confirm > median(model_data$confirm))/nrow(data))
+  return(sum(data$confirm > median(model_data$confirm)) / nrow(data))
 }
 
 #' Plot Mean Rt with time index (dates)
@@ -621,18 +621,25 @@ plot_rt <- function(time_period_result) {
   rt_dat <- last_time_period[["R"]]
   rt_start_date <- model_data_dates[1]
   rt_date_seq <- seq(rt_start_date, by = "day", length.out = length(rt_dat$t_start))
-  rt_dat$date <-  rt_date_seq
-  rt_dat <- rt_dat %>% dplyr::mutate(
-    weekly_date = lubridate::floor_date(date, unit = "week")
-  ) %>%
+  rt_dat$date <- rt_date_seq
+  rt_dat <- rt_dat %>%
+    dplyr::mutate(
+      weekly_date = lubridate::floor_date(date, unit = "week")
+    ) %>%
     dplyr::group_by(weekly_date) %>%
-    dplyr::summarise(weekly_rt = mean(`Mean(R)`), weekly_ymin = mean(`Quantile.0.025(R)`),
-                     weekly_ymax = mean(`Quantile.0.975(R)`))
-p <- ggplot(rt_dat, aes(x = weekly_date)) +
-  ggplot2::geom_ribbon(ggplot2::aes(ymin = weekly_ymin, ymax = weekly_ymax), fill = "#08519C", alpha = 0.25) +
-  ggplot2::geom_line(ggplot2::aes(y = weekly_rt), color = "#08519C") + theme_bw() + labs(x = "Time", y = "mean(expression(R[t]))") +
-  ggplot2::geom_line(ggplot2::aes(y = weekly_rt), color = "#08519C") + theme_bw() + labs(x = "Time", y = "Mean(Rt)")
- return(p)
+    dplyr::summarise(
+      weekly_rt = mean(`Mean(R)`), weekly_ymin = mean(`Quantile.0.025(R)`),
+      weekly_ymax = mean(`Quantile.0.975(R)`)
+    )
+  p <- ggplot(rt_dat, aes(x = weekly_date)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = weekly_ymin, ymax = weekly_ymax), fill = "#08519C", alpha = 0.25) +
+    ggplot2::geom_line(ggplot2::aes(y = weekly_rt), color = "#08519C") +
+    theme_bw() +
+    labs(x = "Time", y = "mean(expression(R[t]))") +
+    ggplot2::geom_line(ggplot2::aes(y = weekly_rt), color = "#08519C") +
+    theme_bw() +
+    labs(x = "Time", y = "Mean(Rt)")
+  return(p)
 }
 
 #' Calculate bootstrapped standard smoothing error
@@ -640,16 +647,17 @@ p <- ggplot(rt_dat, aes(x = weekly_date)) +
 #' @param data *data frame* at each time-step containing two columns: date and confirm (number of cases per day)
 #' @return bootstrapped smoothing error for each sliding window
 boot_smoothing_error <- function(time_period_result, data) {
-time_index <- seq(from = 1, to = length(time_period_result))
+  time_index <- seq(from = 1, to = length(time_period_result))
   time_period_original <- lapply(time_index, function(tp) {
     confirm <- time_period_result[[tp]]$confirm
     smoothed_confirm <- time_period_result[[tp]]$smoothed_confirm
     resid <- confirm - smoothed_confirm
     se_estimate <- mean(bootstrap::bootstrap(resid,
-                  nboot = 1000, sd)$thetastar)
-     })
+      nboot = 1000, sd
+    )$thetastar)
+  })
   sd_dat <- do.call(rbind.data.frame, time_period_original)
-   return(sd_dat)
+  return(sd_dat)
 }
 
 
@@ -667,35 +675,42 @@ gam_prediction_error <- function(time_period_result) {
 #' @return upper and lower bounds for 95% prediction interval for smoothed predictions
 pred_interval_forecast <- function(time_period_result, pred_horizon_str = NULL) {
   forecast_dat <- create_forecast_df(time_period_result)
+
+  if (!(pred_horizon_str %in% unique(forecast_dat$pred_horizon))) {
+    stop("`pred_horizon_str` not in forecast data")
+  }
+
   forecast_dat <- forecast_dat %>%
     dplyr::filter(pred_horizon == pred_horizon_str)
   aggregate_unit <- time_period_result[[1]][["quantile_unit"]]
-   dates <- c()
-   sd_smooth <- c()
+  dates <- c()
+  sd_smooth <- c()
   for (i in seq_along(time_period_result)) {
     sd_smooth[i] <- sqrt(mean(time_period_result[[i]]$smoothed_error))
   }
 
   smoothing_error_dat <- data.frame(sd_smooth = sd_smooth)
   if (aggregate_unit == "daily") {
-     forecast_dat <- forecast_dat %>% dplyr::group_by(daily_date) %>%
-       dplyr::summarise(agg_p50 = mean(p50), agg_p25 = mean(p25), agg_p75 = mean(p75),
-                        agg_p025 = mean(p025), agg_p975 = mean(p975), agg_value = mean(sim_draws),
-                        agg_sd_sim = sd(sim_draws)/sqrt(n()))
-   }
+    forecast_dat <- forecast_dat %>%
+      dplyr::group_by(daily_date) %>%
+      dplyr::summarise(
+        agg_p50 = mean(p50), agg_p25 = mean(p25), agg_p75 = mean(p75),
+        agg_p025 = mean(p025), agg_p975 = mean(p975), agg_value = mean(sim_draws),
+        agg_sd_sim = sd(sim_draws) / sqrt(n())
+      )
+  }
 
-forecast_dat <- cbind(forecast_dat, smoothing_error_dat)
+  forecast_dat <- cbind(forecast_dat, smoothing_error_dat)
 
 
-   dplyr::left_join(smoothing_error_dat, by = "weekly_date") %>%
-   dplyr::group_by(weekly_date) %>%
-   dplyr::mutate(mean_sim = mean(sim_draws)) %>%
-   dplyr::mutate(upper_bound90 = mean_sim + qnorm(1-0.025)*(sd(sim_draws)/sqrt(n()) + smoothing_error)) %>%
-   dplyr::mutate(lower_bound90 = mean_sim - qnorm(1-0.025)*(sd(sim_draws)/sqrt(n()) + smoothing_error)) %>%
-   dplyr::mutate(upper_bound50 = mean_sim + qnorm(1-0.25)*(sd(sim_draws)/sqrt(n()) + smoothing_error)) %>%
-   dplyr::mutate(lower_bound50 = mean_sim - qnorm(1-0.25)*(sd(sim_draws)/sqrt(n()) + smoothing_error)) %>%
-   dplyr::mutate(lower_bound90 = ifelse(lower_bound90 < 0, 0, lower_bound90)) %>%
-   dplyr::mutate(lower_bound50 = ifelse(lower_bound50 < 0, 0, lower_bound50))
- return(forecast_dat)
+  dplyr::left_join(smoothing_error_dat, by = "weekly_date") %>%
+    dplyr::group_by(weekly_date) %>%
+    dplyr::mutate(mean_sim = mean(sim_draws)) %>%
+    dplyr::mutate(upper_bound90 = mean_sim + qnorm(1 - 0.025) * (sd(sim_draws) / sqrt(n()) + smoothing_error)) %>%
+    dplyr::mutate(lower_bound90 = mean_sim - qnorm(1 - 0.025) * (sd(sim_draws) / sqrt(n()) + smoothing_error)) %>%
+    dplyr::mutate(upper_bound50 = mean_sim + qnorm(1 - 0.25) * (sd(sim_draws) / sqrt(n()) + smoothing_error)) %>%
+    dplyr::mutate(lower_bound50 = mean_sim - qnorm(1 - 0.25) * (sd(sim_draws) / sqrt(n()) + smoothing_error)) %>%
+    dplyr::mutate(lower_bound90 = ifelse(lower_bound90 < 0, 0, lower_bound90)) %>%
+    dplyr::mutate(lower_bound50 = ifelse(lower_bound50 < 0, 0, lower_bound50))
+  return(forecast_dat)
 }
-

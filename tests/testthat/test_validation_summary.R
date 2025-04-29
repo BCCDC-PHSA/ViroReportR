@@ -37,5 +37,3 @@ test_that("One week ahead predictions are correct dimension (skipping first two 
   ))), 0)
 })
 
-
-rm(bad_pred_example)
