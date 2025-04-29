@@ -341,11 +341,11 @@ create_forecast_df <- function(time_period_result) {
 #' }
 #'
 combine_df_pred_case <- function(forecast_dat, data, pred_horizon_str = NULL) {
-  weekly_date <- sim_draws <- NULL
+  date <- sim_draws <- NULL
   data <- data %>% dplyr::slice(-c(1, 2))
   future_preds <- as.numeric(substr(pred_horizon_str, 0, 1))
   forecast_dat <- forecast_dat %>%
-    dplyr::group_by(weekly_date) %>%
+    dplyr::group_by(date) %>%
     dplyr::slice(1)
   index_future_pred <- c(rev(seq_len(nrow(forecast_dat)))[1:future_preds])
   forecast_dat <- forecast_dat[-index_future_pred, ]
@@ -672,8 +672,10 @@ gam_prediction_error <- function(time_period_result) {
 #' Calculate 95% prediction interval bounds for smoothed predictions
 #' @param time_period_result output from  \code{forecast_time_period}
 #' @param pred_horizon_str A *string* indicating the prediction horizon time period to plot
+#' @importFrom stats qnorm
 #' @return upper and lower bounds for 95% prediction interval for smoothed predictions
 pred_interval_forecast <- function(time_period_result, pred_horizon_str = NULL) {
+  p50 <- p75 <- p25 <- p025 <- p975 <- sim_draws <- weekly_date <- daily_date <- NULL
   forecast_dat <- create_forecast_df(time_period_result)
 
   if (!(pred_horizon_str %in% unique(forecast_dat$pred_horizon))) {
@@ -692,25 +694,43 @@ pred_interval_forecast <- function(time_period_result, pred_horizon_str = NULL) 
   smoothing_error_dat <- data.frame(sd_smooth = sd_smooth)
   if (aggregate_unit == "daily") {
     forecast_dat <- forecast_dat %>%
+      cbind(smoothing_error_dat) %>%
       dplyr::group_by(daily_date) %>%
       dplyr::summarise(
-        agg_p50 = mean(p50), agg_p25 = mean(p25), agg_p75 = mean(p75),
-        agg_p025 = mean(p025), agg_p975 = mean(p975), agg_value = mean(sim_draws),
-        agg_sd_sim = sd(sim_draws) / sqrt(n())
-      )
+        p50 = mean(p50), p25 = mean(p25), p75 = mean(p75),
+        p025 = mean(p025), p975 = mean(p975),
+        mean_sim = mean(sim_draws),
+        sd_sim = sd(sim_draws) / sqrt(dplyr::n())
+      ) %>%
+      dplyr::mutate(
+        upper_bound90 = mean_sim + qnorm(1 - 0.025) * (sd_sim + sd_smooth),
+        lower_bound90 = mean_sim - qnorm(1 - 0.025) * (sd_sim + sd_smooth),
+        upper_bound50 = mean_sim + qnorm(1 - 0.25) * (sd_sim + sd_smooth),
+        lower_bound50 = mean_sim - qnorm(1 - 0.25) * (sd_sim + sd_smooth),
+        lower_bound90 = ifelse(lower_bound90 < 0, 0, lower_bound90),
+        lower_bound50 = ifelse(lower_bound50 < 0, 0, lower_bound50)
+      ) %>%
+      dplyr::rename(date = daily_date)
+
+  } else if (aggregate_unit == "weekly") {
+    forecast_dat <- forecast_dat %>%
+      dplyr::left_join(smoothing_error_dat, by = "weekly_date") %>%
+      dplyr::group_by(weekly_date) %>%
+      dplyr::mutate(mean_sim = mean(sim_draws)) %>%
+      dplyr::mutate(upper_bound90 = mean_sim + qnorm(1 - 0.025) * (sd(sim_draws) / sqrt(n()) + sd_smooth)) %>%
+      dplyr::mutate(lower_bound90 = mean_sim - qnorm(1 - 0.025) * (sd(sim_draws) / sqrt(n()) + sd_smooth)) %>%
+      dplyr::mutate(upper_bound50 = mean_sim + qnorm(1 - 0.25) * (sd(sim_draws) / sqrt(n()) + sd_smooth)) %>%
+      dplyr::mutate(lower_bound50 = mean_sim - qnorm(1 - 0.25) * (sd(sim_draws) / sqrt(n()) + sd_smooth)) %>%
+      dplyr::mutate(lower_bound90 = ifelse(lower_bound90 < 0, 0, lower_bound90)) %>%
+      dplyr::mutate(lower_bound50 = ifelse(lower_bound50 < 0, 0, lower_bound50)) %>%
+      dplyr::rename(date = weekly_date)
+  } else {
+    stop("Unknown `aggregate_unit`")
   }
 
-  forecast_dat <- cbind(forecast_dat, smoothing_error_dat)
 
 
-  dplyr::left_join(smoothing_error_dat, by = "weekly_date") %>%
-    dplyr::group_by(weekly_date) %>%
-    dplyr::mutate(mean_sim = mean(sim_draws)) %>%
-    dplyr::mutate(upper_bound90 = mean_sim + qnorm(1 - 0.025) * (sd(sim_draws) / sqrt(n()) + smoothing_error)) %>%
-    dplyr::mutate(lower_bound90 = mean_sim - qnorm(1 - 0.025) * (sd(sim_draws) / sqrt(n()) + smoothing_error)) %>%
-    dplyr::mutate(upper_bound50 = mean_sim + qnorm(1 - 0.25) * (sd(sim_draws) / sqrt(n()) + smoothing_error)) %>%
-    dplyr::mutate(lower_bound50 = mean_sim - qnorm(1 - 0.25) * (sd(sim_draws) / sqrt(n()) + smoothing_error)) %>%
-    dplyr::mutate(lower_bound90 = ifelse(lower_bound90 < 0, 0, lower_bound90)) %>%
-    dplyr::mutate(lower_bound50 = ifelse(lower_bound50 < 0, 0, lower_bound50))
+
+
   return(forecast_dat)
 }

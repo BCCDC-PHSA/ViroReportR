@@ -170,22 +170,19 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
     date = object[[length(object)]]$model_data_date,
     confirm = object[[length(object)]]$confirm
   )
-  forecast_dat <- pred_interval_forecast(time_period_result = object,  pred_horizon = pred_horizon_str)
-  forecast_dat <- forecast_dat %>%
-    dplyr::filter(pred_horizon == pred_horizon_str)
-  if (!(pred_horizon_str %in% forecast_dat$pred_horizon)) {
-    stop("Prediction horizon not found in time_period_result, please check input")
-  }
+  forecast_dat <- pred_interval_forecast(time_period_result = object,
+                                         pred_horizon = pred_horizon_str)
+
   smoothed_model_data <- data.frame(
     date = object[[length(object)]]$smoothed_date,
     confirm = object[[length(object)]]$smoothed_confirm
   )
   forecast_cases_dat <- combine_df_pred_case(forecast_dat, smoothed_model_data,
-    pred_horizon_str = eval(parse(text = "pred_horizon_str"))
+    pred_horizon_str = pred_horizon_str
   )
   forecast_cases_dat <- forecast_cases_dat %>%
-    dplyr::left_join(model_data, by = c("weekly_date" = "date")) %>%
-    dplyr::group_by(weekly_date) %>%
+    dplyr::left_join(model_data, by = "date") %>%
+    dplyr::group_by(date) %>%
     dplyr::mutate(coverage = dplyr::case_when(
       upper_bound90 < confirm || confirm < lower_bound90 ~ "Outside 95 percentile interval",
       lower_bound50 <= confirm && confirm <= upper_bound50 ~ "50 percentile interval",
@@ -195,7 +192,7 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
     dplyr::mutate_if(is.numeric, round) %>%
     dplyr::mutate(`50 percentile interval bounds` = glue::glue("({lower_bound50}-{upper_bound50})")) %>%
     dplyr::mutate(`95 percentile interval bounds` = glue::glue("({lower_bound90}-{upper_bound90})")) %>%
-    dplyr::select(weekly_date, coverage, weighted_diff, confirm, median.prediction = p50, `50 percentile interval bounds`, `95 percentile interval bounds`) %>%
+    dplyr::select(date, coverage, weighted_diff, confirm, median.prediction = p50, `50 percentile interval bounds`, `95 percentile interval bounds`) %>%
     dplyr::rename("Confirmed cases" = confirm, "Predicted cases" = median.prediction)
   if ((any(forecast_cases_dat$coverage %in% "Outside 95 percentile interval"))) {
     warning("Prediction percentile intervals do not cover some data-points in validation fits. Some forecasts may not be reliable")
