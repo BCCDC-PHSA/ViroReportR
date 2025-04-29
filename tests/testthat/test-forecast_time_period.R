@@ -6,12 +6,13 @@ test_that("forecast_time_period works for flu_a with EpiEstim", {
                               scales = c(flua = -0.01))
 
   disease_type <- "flua"
-  daily_flua <- data.frame(date = daily_data$date, confirm = daily_data[[disease_type]])
+  daily_flua <- data.frame(date = daily_data[["date"]],
+                           confirm = daily_data[[disease_type]])
 
   # Run forecast_time_period
   result <- forecast_time_period(
     data = daily_flua,
-    start_date = "2022-10-02",
+    start_date = "2024-01-11",
     n_days = 14,
     type = "flu_a",
     time_period = "daily",

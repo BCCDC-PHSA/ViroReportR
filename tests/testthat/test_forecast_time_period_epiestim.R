@@ -65,3 +65,4 @@ test_that("extend_model_data indexes properly when start date is not first obser
   )), nrow(test_data) - 2)
 })
 
+
