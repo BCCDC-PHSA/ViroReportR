@@ -386,7 +386,7 @@ calculate_daily_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
   row <- c(cur_model, tp, model_data,
     smoothed_model_data, cur_daily_samples, cur_samples_agg_quantiles,
     quantile_unit = quantile_unit,
-    smoothed_error
+    smoothed_error = smoothed_error
   )
 
   return(row)
