@@ -1,41 +1,56 @@
-#################### Test validation summary function ################################
-test_that("Empty prediction horizon throws an error", {
+forecast_obj <- create_test_forecast_time_period()
+
+test_that("summary.forecast_time_period throws error for incorrect object class", {
+  fake_obj <- list()
+  class(fake_obj) <- "not_forecast_time_period"
   expect_error(
-    summary(weekly_time_period_result),
+    summary.forecast_time_period(fake_obj, pred_horizon_str = "7 days ahead"),
+    "input must be object of class forecast_time_period"
+  )
+})
+
+test_that("summary.forecast_time_period throws error if pred_horizon_str is missing", {
+  forecast_obj <- create_test_forecast_time_period()
+  expect_error(
+    summary(forecast_obj),
     "Must specify prediction time horizon for validation summary"
   )
 })
 
-test_that("Daily aggregated data throws an error", {
-  expect_error(
-    summary(daily_time_period_result, pred_horizon_str = "1 week ahead"),
-    "Only weekly aggregated data suitable for validation summary. Please re-run forecast_time_period_epiestim with time_period = weekly"
-  )
+test_that("summary.forecast_time_period returns expected list structure", {
+  forecast_obj <- create_test_forecast_time_period()
+  result <- summary(forecast_obj, pred_horizon_str = "7 days ahead")
+  expect_type(result, "list")
+  expect_named(result, c("individual_quantiles", "quantile_summary", "time_weighted_mspe"))
+})
+
+test_that("individual_quantiles contains expected columns", {
+  forecast_obj <- create_test_forecast_time_period()
+  result <- summary(forecast_obj, pred_horizon_str = "7 days ahead")
+  df <- result$individual_quantiles
+  expect_s3_class(df, "data.frame")
+  expect_true(all(c("date", "coverage", "Confirmed cases", "Predicted cases",
+                    "50 percentile interval bounds", "95 percentile interval bounds") %in% names(df)))
+})
+
+test_that("quantile_summary contains expected columns and factor levels", {
+  forecast_obj <- create_test_forecast_time_period()
+  result <- summary(forecast_obj, pred_horizon_str = "7 days ahead")
+  summ <- result$quantile_summary
+  expect_s3_class(summ, "data.frame")
+  expect_true(all(c("coverage", "counts", "proportion") %in% names(summ)))
+  expect_true(is.factor(summ$coverage))
+  expect_true(all(levels(summ$coverage) %in% c("50 percentile interval", "95 percentile interval", "Outside 95 percentile interval")))
 })
 
 
-test_that("Incorrect prediction horizon throws an error", {
-  expect_error(
-    summary(weekly_time_period_result, pred_horizon_str = "3 week ahead"),
-    "Prediction horizon not found in time_period_result, please check input"
-  )
-})
 
-# Test function output and warning handling --------------------------------
-
-test_that("Warning is thrown if confirmed case value is not within prediction percentile interval", {
-  expect_warning(
-    summary(weekly_time_period_result, pred_horizon_str = "2 week ahead"),
-    "Prediction percentile intervals do not cover some data-points in validation fits. Some forecasts may not be reliable"
-  )
-})
-
-test_that("One week ahead predictions are correct dimension (skipping first two dates in data)", {
-  expect_equal(length(intersect(suppressWarnings(summary(weekly_time_period_result, pred_horizon_str = "1 week ahead"))$individual_quantiles$weekly_date, c(
-    weekly_transformed_plover_data$date[1],
-    weekly_transformed_plover_data$date[2]
-  ))), 0)
+test_that("time_weighted_mspe is numeric and non-negative", {
+  forecast_obj <- create_test_forecast_time_period()
+  result <- summary(forecast_obj, pred_horizon_str = "7 days ahead")
+  expect_type(result$time_weighted_mspe, "double")
+  expect_gte(result$time_weighted_mspe, 0)
 })
 
 
-rm(bad_pred_example)
+

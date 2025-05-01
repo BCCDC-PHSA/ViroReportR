@@ -44,8 +44,9 @@ Imports:
     here,
     yaml,
     DT,
-   emojifont,
-   htmltools
+    emojifont,
+    htmltools,
+    bootstrap
 VignetteBuilder: knitr
 Depends: 
     R (>= 3.5)

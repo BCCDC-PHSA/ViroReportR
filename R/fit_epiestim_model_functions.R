@@ -8,15 +8,14 @@
 #'
 #'
 #' @param data *data frame* containing two columns: date and confirm (number of cases)
-#' @param dt *Integer* 	length of temporal aggregations of the incidence data. This should be an integer or vector of integers. The default value is 7 time units (1 week).
+#' @param dt *Integer* 	Not implemented. length of temporal aggregations of the incidence data. This should be an integer or vector of integers. The default value is 7 time units (1 week).
 #' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "custom"
 #' @param mean_si *Numeric* User specification of mean of parametric serial interval
 #' @param std_si *Numeric* User specification of standard deviation of parametric serial interval
-#' @param recon_opt One of "naive" or "match" to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page)
+#' @param recon_opt Not implemented. One of "naive" or "match" to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page)
 #' @param method One of "non_parametric_si", "parametric_si", "uncertain_si", "si_from_data" or "si_from_sample" to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page)
 #' @param mean_prior *Numeric* positive number giving the mean of the common prior distribution for all reproduction numbers
 #' @param std_prior *Numeric* positive number giving the standard deviation of the common prior distribution for all reproduction numbers
-#' @param ... Other optional parameters to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page) to control estimation of reproduction number
 #'
 #'
 #' @return Object of class {\code{\link[EpiEstim]{estimate_R}}} (see \code{EpiEstim} help page)
@@ -25,8 +24,8 @@
 #' @examples
 #' fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a")
 #'
-fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
-                               method = "parametric_si", mean_prior = NULL, std_prior = NULL, iter = 20L, ...) {
+fit_epiestim_model <- function(data, dt = 1L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
+                               method = "parametric_si", mean_prior = NULL, std_prior = NULL) {
   confirm <- NULL
   if (!is.data.frame(data) || !all(colnames(data) %in% c("date", "confirm"))) {
     stop("Must pass a data frame with two columns: date and confirm")
@@ -42,10 +41,16 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
     warning("Custom mean_si, std_s, mean_prior and std_prior can only be specified with type set to custom. Default config values were used")
   }
 
+  if (dt == 7L) {
+    stop("Weekly data not currently implmented. Use only daily data.")
+  }
+
   data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
   if (data_lag <= 7 && dt == 7L) {
     warning("Your data may not be weekly data. Please set dt to 1L for daily data")
   }
+
+
 
   # 6. Providing default values
   if (is.null(mean_si)) {
@@ -113,10 +118,8 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
   epiestim_estimates <- NULL
   epiestim_estimates <- suppressWarnings(EpiEstim::estimate_R(
     incid = incid,
-    dt = dt,
-    recon_opt = recon_opt,
     method = method,
-    config = config, iter = iter, ...
+    config = config
   ))
 
 
@@ -157,21 +160,25 @@ fit_epiestim_model <- function(data, dt = 7L, type = NULL, mean_si = NULL, std_s
 #'   data = weekly_transformed_plover_data,
 #'   start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "weekly"
 #' )
-forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "weekly",
+forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "daily",
                                           type = NULL, verbose = FALSE, smoothing_cutoff = 10, ...) {
   data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
   if (data_lag <= 7 && time_period == "weekly") {
     warning("Your data may not be weekly data. Please set time_period = daily for daily data")
   }
-  sim <- week_date <- daily_date <- NULL
+  sim <- week_date <- daily_date <- date <- NULL
 
+  # check and filter on start date
+  check_data_contains_start_date(data,start_date)
+  data <- data %>%
+    dplyr::filter(date > start_date)
 
-  model_non_zero_data <- data %>%
+  non_zero_dates <- data %>%
     dplyr::filter(confirm > 0) %>%
     pull(date)
 
   data <- data %>%
-    dplyr::filter(date >= model_non_zero_data[1])
+    dplyr::filter(date >= non_zero_dates[1])
 
 
   start_index <- which(data$date == min(data$date))
@@ -248,7 +255,8 @@ smooth_model_data <- function(model_data, smoothing_cutoff = 10, n_reps = 10000)
     Xp <- suppressWarnings(predict(model_smooth, newdata = data.frame(index = index), type = "lpmatrix"))
     fv <- Xp %*% br
     yr <- matrix(rnorm(nrow(fv) * ncol(fv), mean = fv, sd = model_smooth$sig2),
-                 nrow = nrow(fv), ncol = ncol(fv))
+      nrow = nrow(fv), ncol = ncol(fv)
+    )
     conf_int <- apply(yr, 1, quantile, prob = c(0.025, 0.975))
     diff <- conf_int[2, ] - conf_int[1, ]
     uncertainity_se <- diff / (qnorm(1 - 0.05 / 2) * 2)
@@ -378,8 +386,15 @@ calculate_daily_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
   row <- c(cur_model, tp, model_data,
     smoothed_model_data, cur_daily_samples, cur_samples_agg_quantiles,
     quantile_unit = quantile_unit,
-    smoothed_error
+    smoothed_error = smoothed_error
   )
 
   return(row)
+}
+
+#' @noRd
+check_data_contains_start_date <- function(data,start_date){
+  if(!(start_date %in% data$date)){
+    stop("Data must include the `start_date`")
+  }
 }
