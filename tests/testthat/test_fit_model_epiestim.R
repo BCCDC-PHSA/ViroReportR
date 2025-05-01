@@ -1,5 +1,4 @@
 #################### Test fit_epiestim_model function ################################
-# Daily PHRDW data
 set.seed(123)
 daily_simulated_data <- simulate_data(days=60,peaks=c("rsv"=80),
                                   amplitudes=c("rsv"=100),
