@@ -5,6 +5,33 @@ test_data <- simulate_data(days = 15, peaks = c(flua = 30), amplitudes = c(flua 
                            start_date = "2024-01-01")
 names(test_data) <- c("date","confirm")
 # Test function error handling  --------------------------------
+#
+
+test_that("data frame with incorrect columns throws useful error",{
+  bad_format_data <- data.frame("wrong_date"=c(NA),"wrong_cases"=c(NA))
+  expect_error(
+    forecast_time_period_epiestim(data = bad_format_data,
+    start_date = "2022-10-03", n_days = 14,
+    type = "flu_a", time_period = "daily"),
+    "Data needs columns: date, confirm"
+  )
+
+  bad_format_data <- data.frame("date"=c(NA),"wrong_cases"=c(NA))
+  expect_error(
+    forecast_time_period_epiestim(data = bad_format_data,
+                                  start_date = "2022-10-03", n_days = 14,
+                                  type = "flu_a", time_period = "daily"),
+    "Data needs columns: confirm"
+  )
+
+  bad_format_data <- data.frame("date"=c(NA),"confirm"=c(NA),"wrong_cases"=c(NA))
+  expect_error(
+    forecast_time_period_epiestim(data = bad_format_data,
+                                  start_date = "2022-10-03", n_days = 14,
+                                  type = "flu_a", time_period = "daily"),
+    "Data has redundant columns: wrong_cases"
+  )
+})
 
 
 test_that("Start date that does not match dataset dates throws an error", {

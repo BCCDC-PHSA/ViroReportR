@@ -168,6 +168,8 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
   }
   sim <- week_date <- daily_date <- date <- NULL
 
+  check_epiestim_format(data)
+
   # check and filter on start date
   check_data_contains_start_date(data,start_date)
   data <- data %>%
@@ -396,5 +398,28 @@ calculate_daily_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
 check_data_contains_start_date <- function(data,start_date){
   if(!(start_date %in% data$date)){
     stop("Data must include the `start_date`")
+  }
+}
+
+#' Validates that the input `data` contains the required columns for use with
+#'  EpiEstim.
+#'
+#' This function checks that the input data frame has the required columns:
+#' `"date"` and `"confirm"`.
+#' If either of these columns is missing, the function will stop with an
+#' error message.
+#'
+#' @param data A data frame
+#'
+#' @noRd
+check_epiestim_format <- function(data){
+  required_columns <- c("date","confirm")
+  missing_columns <- setdiff(required_columns, colnames(data))
+  extra_columns <- setdiff(colnames(data),required_columns)
+  if(length(missing_columns) > 0){
+    stop("Data needs columns: ", paste(missing_columns, collapse = ", "))
+  }
+  if(length(extra_columns) > 0){
+    stop("Data has redundant columns: ", paste(extra_columns, collapse = ", "))
   }
 }
