@@ -5,7 +5,7 @@ test_data <- simulate_data()
 
 # test data transformation function ---------------------------------------
 test_that("weekly generic filtered column name correct", {
-  weekly_aggregated_data <- get_weekly_aggregated_data(
+  weekly_aggregated_data <- get_aggregated_data(
     test_data,
     "date", "rsv"
   )
@@ -19,7 +19,7 @@ test_that("weekly generic filtered column name correct", {
 test_that("invalid date column name handling correct", {
   wrong_date_column <- "date_date"
   expect_error(
-    get_weekly_aggregated_data(
+    get_aggregated_data(
       test_data,
       wrong_date_column, "flua",
       "2024-01-07", "2024-12-08"
@@ -32,7 +32,7 @@ test_that("invalid date column name handling correct", {
 test_that("invalid number column handling correct", {
   wrong_number_column <- "date_date"
   expect_error(
-    get_weekly_aggregated_data(
+    get_aggregated_data(
       test_data,
       "date", wrong_number_column,
       "2024-01-07", "2024-12-08"
@@ -45,7 +45,7 @@ test_that("invalid start date handling correct", {
   wrong_start_date <- "2024-06-01"
 
   expect_error(
-    get_weekly_aggregated_data(
+    get_aggregated_data(
       test_data,
       "date", "flua",
       wrong_start_date, "2024-03-20"
@@ -61,10 +61,11 @@ test_that("non Sunday input start_date warning correct", {
   non_sunday <- "2024-01-01"
 
   expect_warning(
-    get_weekly_aggregated_data(
+    get_aggregated_data(
       test_data,
       "date", "flua",
-      non_sunday, "2024-12-08"
+      non_sunday, "2024-12-08",
+      unit = "week"
     ),
     "The input `start_date` doesn't coincide with start of a week, the aggregated data might include partial number of dates in the start week"
   )
@@ -75,10 +76,11 @@ test_that("non Sunday input end_date warning correct", {
   non_sunday <- "2024-12-04"
 
   expect_warning(
-    get_weekly_aggregated_data(
+    get_aggregated_data(
       test_data,
       "date", "flua",
-      "2024-01-07", non_sunday
+      "2024-01-07", non_sunday,
+      unit = "week"
     ),
     "The input `end_date` doesn't coincide with start of a week, the aggregated data might include partial number of dates in the end week"
   )
