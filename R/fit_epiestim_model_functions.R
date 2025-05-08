@@ -95,8 +95,9 @@ fit_epiestim_model <- function(data, dt = 1L, type = NULL, mean_si = NULL, std_s
     incid <- data.frame(I = data$confirm, dates = data$date)
     incid <- incid %>%
       dplyr::arrange(dates)
-    t_start <- seq(2, nrow(incid))
-    t_end <- t_start
+    # this should create weekly windows for the Rt
+    t_start <- seq(2, max(nrow(incid)-7,2))
+    t_end <- pmin(t_start + 7,nrow(incid))
     config <- EpiEstim::make_config(list(
       mean_si = mean_si,
       std_si = std_si,
