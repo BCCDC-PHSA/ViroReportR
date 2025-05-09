@@ -86,14 +86,23 @@ forecast_data |>
 forecast_res <- list()
 # p is the quantile of data starting at 30% of the time-series
 # and proceeding to 100% of the time-series in increments of 10%
+window_size <- 5
 for(p in seq(0.3,1,by=0.1)){
   max_date <- quantile(formatted_data$date,p,type=1)
   filtered_formatted_data <-
     formatted_data |>
     dplyr::filter(date < max_date)
+  # change window size to custom window_size
+  # starting at 2 as conditional on the past observations
+  n_t <- nrow(filtered_formatted_data)
+  t_start <- seq(2, max(n_t-(window_size - 1),2))
+  t_end <- pmin(t_start+window_size - 1,n_t)
+
   res <- estimate_R(filtered_formatted_data$confirm,
                              method="parametric_si",
                              config = make_config(list(
+                               t_start = t_start,
+                               t_end = t_end,
                                mean_si = 2.6,
                                std_si = 1.5))
   )
@@ -101,4 +110,5 @@ for(p in seq(0.3,1,by=0.1)){
 
 }
 do.call(plot_forecast_comparison,forecast_res) +
-  geom_point(ggplot2::aes(x=date,y=confirm),data=formatted_data)
+  geom_point(ggplot2::aes(x=date,y=confirm),data=formatted_data) +
+  ggplot2::ggtitle(glue::glue("{window_size} day windows"))
