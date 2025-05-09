@@ -83,7 +83,7 @@ plot_forecast_comparison <- function(...) {
       ymin = `0.025`, ymax = `0.975`,
       fill = type
     ), alpha = 0.2) +
-    ggplot2::geom_line(ggplot2::aes(color = type)) +
+    ggplot2::geom_line(ggplot2::aes(y=`0.5`, color = type)) +
     ggplot2::theme_classic() +
     ggplot2::theme(legend.position = "bottom") +
     ggplot2::labs(x = "time", y = "incidence", color = "", fill = "")

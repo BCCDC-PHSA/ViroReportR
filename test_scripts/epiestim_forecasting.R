@@ -81,3 +81,24 @@ forecast_data |>
   ggplot(aes(x=date,y=incidence,group=interaction(sim,type),color=type)) +
   geom_line(alpha=0.2)
 
+# compare forecasts using different proportions of data throughout the
+# whole time series
+forecast_res <- list()
+# p is the quantile of data starting at 30% of the time-series
+# and proceeding to 100% of the time-series in increments of 10%
+for(p in seq(0.3,1,by=0.1)){
+  max_date <- quantile(formatted_data$date,p,type=1)
+  filtered_formatted_data <-
+    formatted_data |>
+    dplyr::filter(date < max_date)
+  res <- estimate_R(filtered_formatted_data$confirm,
+                             method="parametric_si",
+                             config = make_config(list(
+                               mean_si = 2.6,
+                               std_si = 1.5))
+  )
+  forecast_res[[scales::percent(p)]] <- generate_forecasts(filtered_formatted_data,res,n_days=7)
+
+}
+do.call(plot_forecast_comparison,forecast_res) +
+  geom_point(ggplot2::aes(x=date,y=confirm),data=formatted_data)
