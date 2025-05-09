@@ -295,7 +295,7 @@ smooth_model_data <- function(model_data, smoothing_cutoff = 10, n_reps = 10000)
 #' 	- Weekly quantile estimates.
 #' 	- Smoothed error values.
 #'
-#' @details The function fits an EpiEstim model using `fit_epiestim_model()`, extracts daily samples with `extract_daily_samples_epiestim_fit()`,
+#' @details The function fits an EpiEstim model using `fit_epiestim_model()`, extracts daily samples with `generate_forecasts()`,
 #' and renames key columns for consistency. It ensures `n_days` is a multiple of 7 before aggregating data to weekly intervals.
 #'
 #' @importFrom dplyr rename
@@ -307,7 +307,7 @@ calculate_weekly_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
   quantile_unit <- "weekly"
 
   cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, ...)
-  cur_daily_samples <- extract_daily_samples_epiestim_fit(
+  cur_daily_samples <- generate_forecasts(
     data = smoothed_model_data,
     model_fit = cur_model,
     n_days = n_days
@@ -356,7 +356,7 @@ calculate_weekly_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
 #' 	- Daily quantile estimates.
 #' 	- Smoothed error values.
 #'
-#' @details The function fits an EpiEstim model using `fit_epiestim_model()`, extracts daily samples with `extract_daily_samples_epiestim_fit()`,
+#' @details The function fits an EpiEstim model using `fit_epiestim_model()`, extracts daily samples with `generate_forecasts()`,
 #' and renames key columns for consistency. It also generates daily quantile estimates using `create_quantiles()`.
 #'
 #' @importFrom dplyr rename
@@ -368,9 +368,8 @@ calculate_daily_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
   quantile_unit <- "daily"
 
   cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, dt = 1L, ...)
-  cur_daily_samples <- extract_daily_samples_epiestim_fit(
+  cur_daily_samples <- generate_forecasts(
     data = smoothed_model_data,
-    dt = 1L,
     model_fit = cur_model,
     n_days = n_days
   )

@@ -1,9 +1,6 @@
 .onAttach <- function(libname, pkgname) {
-  packageStartupMessage(
-    "================================================\n",
-    "Welcome to ViroReportR! \n",
-    "Please run `pkgdown::build_site(lazy = TRUE)` in your console \n",
-    "to access documentation on the package website \n",
-    "================================================"
-  )
+  cli::cli_h1("ViroReportR")
+  cli::cli_text("Please run {.code pkgdown::build_site(lazy = TRUE)} in your console")
+  cli::cli_text("to access documentation on the package website")
+  cli::cli_rule()
 }

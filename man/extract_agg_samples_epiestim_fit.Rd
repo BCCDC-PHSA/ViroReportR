@@ -7,7 +7,7 @@
 extract_agg_samples_epiestim_fit(samples)
 }
 \arguments{
-\item{samples}{Daily samples generated from \code{extract_daily_samples_epiestim_fit}}
+\item{samples}{Daily samples generated from \code{generate_forecasts}}
 }
 \value{
 Data-frame of aggregated weekly forecast samples for each simulation run
