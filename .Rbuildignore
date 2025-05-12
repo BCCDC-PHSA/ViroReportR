@@ -10,3 +10,4 @@
 ^package_logo$
 ^\.vscode/$
 ^\.github$
+^\test_scripts/$

@@ -46,7 +46,8 @@ Imports:
     DT,
     emojifont,
     htmltools,
-    bootstrap
+    bootstrap,
+    cli
 VignetteBuilder: knitr
 Depends: 
     R (>= 3.5)
