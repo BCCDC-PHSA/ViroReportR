@@ -103,6 +103,7 @@ plot_validation <- function(time_period_result, pred_plot = "ribbon") {
   smoothed_model_data$point_type <- rep("Confirmed Case (Smoothed)", nrow(smoothed_model_data))
   model_data$point_type <- rep("Confirmed Case (Unsmoothed)", nrow(model_data))
   forecast_dat$point_type <- rep("Mean Prediction", nrow(forecast_dat))
+  blue_grad_20 <- colorRampPalette(c("#08519c","#deebf7"))(20)
 
   base_plot <- ggplot2::ggplot(
     data = forecast_dat,
@@ -128,10 +129,12 @@ plot_validation <- function(time_period_result, pred_plot = "ribbon") {
       ggplot2::geom_line(ggplot2::aes(y = mean_sim)) +
       ggplot2::geom_errorbar(ggplot2::aes(group = date, ymin = lower_bound90,
                                           ymax = upper_bound90)) +
+      ggplot2::scale_color_manual(values = blue_grad_20) +
       ggplot2::theme(legend.position = "None")
   } else if (pred_plot == "ribbon") {
     p <- base_plot +
       ggplot2::geom_ribbon(aes(ymin = lower_bound90, ymax = upper_bound90), alpha = 0.3, color = NA) +
+      ggplot2::scale_color_manual(values = blue_grad_20) +
       ggplot2::geom_line(size = 1)
   }
 
