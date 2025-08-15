@@ -50,8 +50,8 @@ forecast_time_period <- function(data, start_date, n_days = 7, time_period = "we
 #' Plot a ribbon plot with each time horizon predictions against true values for validation
 #'
 #' @param time_period_result object of class \code{forecast_time_period}
-#' @param pred_plot either \code{"ribbon"} or \code{"violin"} (by default) to produce either ribbon prediction plots or violin plots respectively
-#' @return violin validation plot or ribbon validation plot  for a specific prediction horizon
+#' @param pred_plot either \code{"ribbon"} or \code{"error_bar"} (by default) to produce either ribbon prediction plots or error_bar plots respectively
+#' @return error_bar validation plot or ribbon validation plot  for a specific prediction horizon
 #'
 #' @export
 #' @examples
@@ -61,15 +61,15 @@ forecast_time_period <- function(data, start_date, n_days = 7, time_period = "we
 plot_validation <- function(time_period_result, pred_plot = "ribbon") {
   p025 <- p975 <- p25 <- p75 <- NULL
   smoothed_confirm <- confirm <- p50 <- point_type <- pred_horizon <- sim_draws <- date <- NULL
-  pred_horizon_str_list <- paste0(seq(1,7,1)," days ahead")
+  pred_horizon_str_list <- paste0(seq(1, 7, 1), " days ahead")
   forecast_dat <- NULL
   aggregate_unit <- time_period_result[[length(time_period_result)]][["quantile_unit"]]
 
   if (!inherits(time_period_result, "forecast_time_period")) {
     stop("time_period_result input must be object of class forecast_time_period")
   }
-  if (!(pred_plot %in% c("violin", "ribbon"))) {
-    stop("Supported plot types are 'violin' and 'ribbon'")
+  if (!(pred_plot %in% c("error_bar", "ribbon"))) {
+    stop("Supported plot types are 'error_bar' and 'ribbon'")
   }
 
   model_data <- data.frame(
@@ -78,12 +78,15 @@ plot_validation <- function(time_period_result, pred_plot = "ribbon") {
   )
 
   for (pred_horizon_str in pred_horizon_str_list) {
-    forecast_dat<- rbind(forecast_dat,
-                         pred_interval_forecast(time_period_result,
-                                                pred_horizon = pred_horizon_str) %>% 
-                           mutate(pred_horizon_str = pred_horizon_str))
+    forecast_dat <- rbind(
+      forecast_dat,
+      pred_interval_forecast(time_period_result,
+        pred_horizon = pred_horizon_str
+      ) %>%
+        mutate(pred_horizon_str = pred_horizon_str)
+    )
   }
-  
+
   forecast_dat <- forecast_dat %>%
     arrange(date, pred_horizon_str) %>%
     mutate(
@@ -100,8 +103,14 @@ plot_validation <- function(time_period_result, pred_plot = "ribbon") {
   smoothed_model_data$point_type <- rep("Confirmed Case (Smoothed)", nrow(smoothed_model_data))
   model_data$point_type <- rep("Confirmed Case (Unsmoothed)", nrow(model_data))
   forecast_dat$point_type <- rep("Mean Prediction", nrow(forecast_dat))
-  
-  base_plot <- ggplot2::ggplot(data = forecast_dat, aes(x = date, y = mean_sim, group = group_id, color = group_id, fill = group_id)) +
+
+  base_plot <- ggplot2::ggplot(
+    data = forecast_dat,
+    ggplot2::aes(
+      x = date, y = mean_sim, group = group_id, color = group_id,
+      fill = group_id
+    )
+  ) +
     ggplot2::geom_point(data = model_data, aes(x = date, y = confirm), colour = "black", inherit.aes = FALSE) +
     ggplot2::geom_line(data = smoothed_model_data, aes(x = date, y = confirm), colour = "red", linewidth = 1, inherit.aes = FALSE) +
     ggplot2::coord_cartesian(ylim = c(0, 500), expand = FALSE) +
@@ -112,19 +121,21 @@ plot_validation <- function(time_period_result, pred_plot = "ribbon") {
       legend.title = ggplot2::element_blank(), legend.position = "right",
       axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
     )
-  
-  if (pred_plot == "violin") {
+
+  if (pred_plot == "error_bar") {
     p <- base_plot +
       ggplot2::geom_point(ggplot2::aes(y = mean_sim), size = 2) +
       ggplot2::geom_line(ggplot2::aes(y = mean_sim)) +
-      ggplot2::geom_errorbar(aes(group = date, ymin = lower_bound90, ymax = upper_bound90))
+      ggplot2::geom_errorbar(ggplot2::aes(group = date, ymin = lower_bound90,
+                                          ymax = upper_bound90)) +
+      ggplot2::theme(legend.position = "None")
   } else if (pred_plot == "ribbon") {
     p <- base_plot +
       ggplot2::geom_ribbon(aes(ymin = lower_bound90, ymax = upper_bound90), alpha = 0.3, color = NA) +
       ggplot2::geom_line(size = 1)
   }
-  
-  
+
+
   return(p)
 }
 
