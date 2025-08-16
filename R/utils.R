@@ -1,3 +1,32 @@
+#' Internal helper with defaults for serial interval and priors by epidemic type
+#'
+#' Returns a list of default `mean_si`, `std_si`, `mean_pr`, and `std_pr` for a given epidemic type.
+#'
+#' @param type Character string specifying epidemic type. Must be one of
+#'   `"flu_a"`, `"flu_b"`, `"rsv"`, `"sars_cov2"`, or `"custom"`.
+#'
+#' @return A named list with four elements:
+#'   \describe{
+#'     \item{mean_si}{Default mean serial interval.}
+#'     \item{std_si}{Default standard deviation of serial interval.}
+#'     \item{mean_pr}{Default mean prior for R.}
+#'     \item{std_pr}{Default standard deviation of prior for R.}
+#'   }
+#' @keywords internal
+#' @noRd
+#' 
+.epi_defaults <- function(type) {
+  if (!(type %in% c("flu_a","flu_b","rsv","sars_cov2","custom"))) {
+    stop("Unknown type")
+  }
+  list(
+    mean_si  = switch(type, flu_a=3.1, flu_b=3.7, rsv=7.5, sars_cov2=2.75, custom=NA_real_),
+    std_si   = switch(type, flu_a=2.1, flu_b=2.1, rsv=2.1,  sars_cov2=2.53, custom=NA_real_),
+    mean_pr  = switch(type, flu_a=1,   flu_b=1,   rsv=1,    sars_cov2=2,    custom=NA_real_),
+    std_pr   = switch(type, flu_a=1,   flu_b=1,   rsv=1,    sars_cov2=1,    custom=NA_real_)
+  )
+}
+
 #' Extract daily forecast samples
 #'
 #'

@@ -29,7 +29,7 @@
 #'   data = weekly_transformed_plover_data,
 #'   start_date = "2022-10-02", n_days = 14, type = "flu_a", algorithm = "EpiFilter"
 #' )
-forecast_time_period <- function(data, start_date, n_days = 7, time_period = "weekly",
+forecast_time_period <- function(data, start_date, n_days = 7, time_period = "weekly", start_serial_interval_multiple = 2L,
                                  type = NULL, algorithm = "EpiEstim", ...) {
   stopifnot(
     "Only EpiFilter and EpiEstim are currently supported as forecasting models. Please check input." =
@@ -38,7 +38,7 @@ forecast_time_period <- function(data, start_date, n_days = 7, time_period = "we
   if (algorithm == "EpiEstim") {
     time_period_result <- forecast_time_period_epiestim(
       data = data, start_date = start_date, n_days = n_days,
-      time_period = eval(parse(text = "time_period")), type = eval(parse(text = "type")), ...
+      time_period = eval(parse(text = "time_period")), start_serial_interval_multiple = start_serial_interval_multiple, type = eval(parse(text = "type")), ...
     )
   } else if (algorithm == "EpiFilter") {
     stop("EpiFilter is still in the process of being implemented. Please set algorithm to EpiEstim")

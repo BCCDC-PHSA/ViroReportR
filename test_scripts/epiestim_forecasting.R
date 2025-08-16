@@ -1,4 +1,5 @@
-
+library(devtools)
+devtools::load_all(".")
 library(ViroReportR)
 library(EpiEstim)
 library(ggplot2)

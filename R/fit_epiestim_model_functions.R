@@ -51,44 +51,15 @@ fit_epiestim_model <- function(data, dt = 1L, type = NULL, mean_si = NULL, std_s
   }
 
 
-
   # 6. Providing default values
-  if (is.null(mean_si)) {
-    mean_si <- switch(type,
-      "flu_a" = 3.1,
-      "flu_b" = 3.7,
-      "rsv" = 7.5,
-      "sars_cov2" = 2.75,
-      "custom" = NULL
-    )
+    if (is.null(mean_si) || is.null(std_si) || is.null(mean_prior) || is.null(std_prior)) {
+    defs <- .epi_defaults(type)
+    mean_si   <- if (is.null(mean_si))   defs$mean_si else mean_si
+    std_si    <- if (is.null(std_si))    defs$std_si  else std_si
+    mean_prior<- if (is.null(mean_prior))defs$mean_pr else mean_prior
+    std_prior <- if (is.null(std_prior)) defs$std_pr  else std_prior
   }
-  if (is.null(std_si)) {
-    std_si <- switch(type,
-      "flu_a" = 2.1,
-      "flu_b" = 2.1,
-      "rsv" = 2.1,
-      "sars_cov2" = 2.53,
-      "custom" = NULL
-    )
-  }
-  if (is.null(mean_prior)) {
-    mean_prior <- switch(type,
-      "flu_a" = 1,
-      "flu_b" = 1,
-      "rsv" = 1,
-      "sars_cov2" = 2,
-      "custom" = NULL
-    )
-  }
-  if (is.null(std_prior)) {
-    std_prior <- switch(type,
-      "flu_a" = 1,
-      "flu_b" = 1,
-      "rsv" = 1,
-      "sars_cov2" = 1,
-      "custom" = NULL
-    )
-  }
+
 
   # 7. Configuring based on type
   if (dt == 1L) {
@@ -161,8 +132,8 @@ fit_epiestim_model <- function(data, dt = 1L, type = NULL, mean_si = NULL, std_s
 #'   data = weekly_transformed_plover_data,
 #'   start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "weekly"
 #' )
-forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "daily",
-                                          type = NULL, verbose = FALSE, smoothing_cutoff = 10, ...) {
+forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "daily", start_serial_interval_multiple = 2, 
+                                          min_points = NULL, type = NULL, verbose = FALSE, smoothing_cutoff = 10, ...) {
   data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
   if (data_lag <= 7 && time_period == "weekly") {
     warning("Your data may not be weekly data. Please set time_period = daily for daily data")
@@ -184,35 +155,50 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
     dplyr::filter(date >= non_zero_dates[1])
 
 
-  start_index <- which(data$date == min(data$date))
-  time_length <- nrow(data) - start_index
-  time_index <- seq(from = start_index, to = time_length)
+  dots <- list(...)
+  mean_si_outer <- dots$mean_si
+  if (is.null(mean_si_outer)) {
+    defaults <- .epi_defaults(type)
+    mean_si_outer <- defaults$mean_si
+    if (is.na(mean_si_outer)) {
+      stop("For type='custom', please pass mean_si (or min_points) to control the outer loop start.")
+    }
+  }
 
-  time_period_result <- lapply(time_index, function(tp) {
+  if (is.null(min_points)) {
+    W <- 7L
+    min_points <- max(ceiling(start_serial_interval_multiple * mean_si_outer), W)
+  }
+  
+  start_index <- 1L
+  time_length <- nrow(data) - start_index
+  if (nrow(data) < min_points) stop("Not enough data after filtering to reach minimum required points")
+
+  first_valid_index <- max(start_index, min_points - 1L)
+  offset_steps <- seq(from = first_valid_index, to = time_length) 
+
+  time_period_result <- lapply(offset_steps, function(offset) {
     model_data <- extend_rows_model_data(
       data = data, min_model_date_str = min(data$date),
-      extension_interval = tp
+      extension_interval = offset
     )
 
-
     if (verbose) {
-      message(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
+      message(paste0("Current time period: ", offset, " ", "(", max(model_data$date), ")"))
     }
-
-
 
     smoothed_output <- smooth_model_data(model_data, smoothing_cutoff = smoothing_cutoff)
 
     if (time_period == "weekly") {
       row <- calculate_weekly_fit_row(
         smoothed_output,
-        tp,
+        offset,
         type = type, n_days = n_days, ...
       )
     } else if (time_period == "daily") {
       row <- calculate_daily_fit_row(
         smoothed_output,
-        tp,
+        offset,
         type = type, n_days = n_days, ...
       )
     }

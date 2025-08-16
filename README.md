@@ -44,11 +44,11 @@ Influenza-A.
 
 ``` r
 library(ViroReportR)
-#> ================================================
-#> Welcome to ViroReportR! 
-#> Please run `pkgdown::build_site(lazy = TRUE)` in your console 
-#> to access documentation on the package website 
-#> ================================================
+#> 
+#> ── ViroReportR ─────────────────────────────────────────────────────────────────
+#> Please run `pkgdown::build_site(lazy = TRUE)` in your console
+#> to access documentation on the package website
+#> ────────────────────────────────────────────────────────────────────────────────
 ```
 
 We will use the simulated data for Influenza A, which is included with
@@ -71,12 +71,12 @@ head(formatted_data)
 #> # A tibble: 6 × 2
 #>   date       confirm
 #>   <date>       <dbl>
-#> 1 2024-04-01      13
-#> 2 2024-04-02       4
-#> 3 2024-04-03      10
-#> 4 2024-04-04       4
-#> 5 2024-04-05      12
-#> 6 2024-04-06      10
+#> 1 2024-04-01      12
+#> 2 2024-04-02       7
+#> 3 2024-04-03      11
+#> 4 2024-04-04      13
+#> 5 2024-04-05      19
+#> 6 2024-04-06      15
 ```
 
 ## Model fitting and forecasting over sliding windows
@@ -121,39 +121,19 @@ the same arguments as the `plot_validation` function above:
 summary(time_period_result_daily, pred_horizon_str = "7 days ahead")
 #> `mutate_if()` ignored the following grouping variables:
 #> • Column `date`
-#> Warning in summary.forecast_time_period(time_period_result_daily,
-#> pred_horizon_str = "7 days ahead"): Prediction percentile intervals do not
-#> cover some data-points in validation fits. Some forecasts may not be reliable
 #> $individual_quantiles
-#> # A tibble: 13 × 6
-#> # Groups:   date [13]
-#>    date       coverage                       `Confirmed cases` `Predicted cases`
-#>    <date>     <chr>                                      <dbl>             <dbl>
-#>  1 2024-04-19 Outside 95 percentile interval                45      341872241110
-#>  2 2024-04-20 Outside 95 percentile interval                33          21325901
-#>  3 2024-04-21 Outside 95 percentile interval                40            600558
-#>  4 2024-04-22 Outside 95 percentile interval                43              9278
-#>  5 2024-04-23 Outside 95 percentile interval                35              1477
-#>  6 2024-04-24 Outside 95 percentile interval                32               350
-#>  7 2024-04-25 Outside 95 percentile interval                27               163
-#>  8 2024-04-26 Outside 95 percentile interval                30               114
-#>  9 2024-04-27 Outside 95 percentile interval                25                56
-#> 10 2024-04-28 Outside 95 percentile interval                39                54
-#> 11 2024-04-29 Outside 95 percentile interval                25                53
-#> 12 2024-04-30 Outside 95 percentile interval                26                44
-#> 13 2024-05-01 95 percentile interval                        27                35
-#> # ℹ 2 more variables: `50 percentile interval bounds` <glue>,
-#> #   `95 percentile interval bounds` <glue>
+#> # A tibble: 0 × 6
+#> # Groups:   date [0]
+#> # ℹ 6 variables: date <date>, coverage <chr>, Confirmed cases <dbl>,
+#> #   Predicted cases <dbl>, 50 percentile interval bounds <glue>,
+#> #   95 percentile interval bounds <glue>
 #> 
 #> $quantile_summary
-#> # A tibble: 2 × 3
-#>   coverage                       counts proportion
-#>   <fct>                           <int>      <dbl>
-#> 1 95 percentile interval              1       7.69
-#> 2 Outside 95 percentile interval     12      92.3 
+#> # A tibble: 0 × 3
+#> # ℹ 3 variables: coverage <fct>, counts <int>, proportion <lgl>
 #> 
 #> $time_weighted_mspe
-#> [1] 268186651037
+#> [1] NaN
 ```
 
 Finally, the `ViroReportR` package can conveniently generate an
