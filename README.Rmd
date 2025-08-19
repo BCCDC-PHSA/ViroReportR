@@ -84,7 +84,7 @@ time_period = "daily" , algorithm = "EpiEstim"
 Finally, we can plot a validation plot using the `plot_validation` function. We can plot 7 days ahead forecasts for example by setting the `pred_horizon` argument. 
 
 ```{r plot_validation, dpi = 300, fig.align = "center", fig.height = 5, fig.width = 5, out.width= '80%'}
-plot_validation(time_period_result_daily, pred_horizon_str = "7 days ahead", pred_plot = "ribbon") +
+plot_validation(time_period_result_daily, pred_plot = "ribbon") +
   ggplot2::coord_cartesian(ylim=c(0,500),expand=FALSE)
 ```
 

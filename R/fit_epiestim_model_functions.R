@@ -396,7 +396,7 @@ calculate_daily_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
 
 #' @noRd
 check_data_contains_start_date <- function(data,start_date){
-  if(!(start_date %in% data$date)){
+  if(!(as.Date(start_date) %in% as.Date(data$date))){
     stop("Data must include the `start_date`")
   }
 }
