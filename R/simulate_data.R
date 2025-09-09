@@ -15,19 +15,23 @@
 #' useful if want to test data with larger values in the middle of a respiratory
 #' season.
 #' @param start_date string
+#' @param noise_sd numeric or named numeric.
+#' Gaussian noise applied to each virus signal. can either be a single value
+#' or named for each virus e.g., `c("flua"=2,"rsv"=5,"covid"=7)`
 #'
 #' @return A data frame with daily simulated incidence counts for each virus,
 #' including a `date` column.
 #' @examples
 #' simulate_data()
 #' simulate_data(days = 100, peaks = c(flua = 30), amplitudes = c(flua = 60),
-#' scales = c(flua = -0.01))
+#' scales = c(flua = -0.01), noise_sd = c(flua = 5))
 #' @export
 simulate_data <- function(days=365,
                           peaks = c("flua"=90,"rsv"=110,"covid"=160),
                           amplitudes=c("flua"=50,"rsv"=40,"covid"=20),
                           scales = c("flua"=-0.004,"rsv"=-0.005,"covid"=-0.001),
                           time_offset = 0,
+                          noise_sd = 5,
                           start_date = "2024-01-01"
                           ){
   check_match_names(peaks,amplitudes,scales)
@@ -40,9 +44,10 @@ simulate_data <- function(days=365,
   daily_data <- data.frame(date = dates)
 
   for(virus in names(peaks)){
+    virus_noise_sd <- if (!is.null(names(noise_sd))) noise_sd[virus] else noise_sd
     # Gaussian like peak
     mean_ <- amplitudes[virus] * exp( scales[virus] * (time - peaks[virus])^2)
-    noise <-  rnorm(length(time), mean = 0, sd = 5)
+    noise <-  rnorm(length(time), mean = 0, sd = virus_noise_sd)
     incidence <- floor(pmax(mean_ + noise, 0))
     daily_data[,virus] <- incidence
   }
