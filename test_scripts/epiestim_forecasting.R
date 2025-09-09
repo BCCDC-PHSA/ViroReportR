@@ -6,7 +6,7 @@ library(dplyr)
 
 # create data
 disease_type <- "rsv"
-test_data <- simulate_data()
+test_data <- simulate_data(noise_sd=5)
 formatted_data <- get_aggregated_data(
   test_data,
   number_column = disease_type,
@@ -71,7 +71,7 @@ forecast_two_week <- generate_forecasts(formatted_data,res_two_week,n_days=28)
 
 plot_forecast_comparison("one week"=forecast_one_week,"two week"=forecast_two_week)
 
-forecast_data |>
+forecast_one_week |>
   mutate(type="one week") |>
   bind_rows(
   forecast_two_week |>
@@ -86,7 +86,7 @@ forecast_data |>
 forecast_res <- list()
 # p is the quantile of data starting at 30% of the time-series
 # and proceeding to 100% of the time-series in increments of 10%
-window_size <- 5
+window_size <- 3
 for(p in seq(0.3,1,by=0.1)){
   max_date <- quantile(formatted_data$date,p,type=1)
   filtered_formatted_data <-
