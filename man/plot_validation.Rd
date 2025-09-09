@@ -2,29 +2,23 @@
 % Please edit documentation in R/validation_functions.R
 \name{plot_validation}
 \alias{plot_validation}
-\title{Plot a violin plot with specific time horizon predictions against true values for validation}
+\title{Plot a ribbon plot with each time horizon predictions against true values for validation}
 \usage{
-plot_validation(
-  time_period_result,
-  pred_horizon_str = NULL,
-  pred_plot = "violin"
-)
+plot_validation(time_period_result, pred_plot = "ribbon")
 }
 \arguments{
 \item{time_period_result}{object of class \code{forecast_time_period}}
 
-\item{pred_horizon_str}{\emph{string} prediction horizon time period to plot}
-
-\item{pred_plot}{either \code{"ribbon"} or \code{"violin"} (by default) to produce either ribbon prediction plots or violin plots respectively}
+\item{pred_plot}{either \code{"ribbon"} or \code{"error_bar"} (by default) to produce either ribbon prediction plots or error_bar plots respectively}
 }
 \value{
-violin validation plot or ribbon validation plot  for a specific prediction horizon
+error_bar validation plot or ribbon validation plot  for a specific prediction horizon
 }
 \description{
-Plot a violin plot with specific time horizon predictions against true values for validation
+Plot a ribbon plot with each time horizon predictions against true values for validation
 }
 \examples{
 \dontrun{
-plot_validation(daily_time_period_result, pred_horizon_str = "7 days ahead")
+plot_validation(daily_time_period_result)
 }
 }

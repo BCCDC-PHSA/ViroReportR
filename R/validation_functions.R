@@ -59,11 +59,6 @@ forecast_time_period <- function(data, start_date, n_days = 7, time_period = "we
 #' plot_validation(daily_time_period_result)
 #' }
 plot_validation <- function(time_period_result, pred_plot = "ribbon") {
-  p025 <- p975 <- p25 <- p75 <- NULL
-  smoothed_confirm <- confirm <- p50 <- point_type <- pred_horizon <- sim_draws <- date <- NULL
-  pred_horizon_str_list <- paste0(seq(1, 7, 1), " days ahead")
-  forecast_dat <- NULL
-  aggregate_unit <- time_period_result[[length(time_period_result)]][["quantile_unit"]]
 
   if (!inherits(time_period_result, "forecast_time_period")) {
     stop("time_period_result input must be object of class forecast_time_period")
@@ -71,6 +66,15 @@ plot_validation <- function(time_period_result, pred_plot = "ribbon") {
   if (!(pred_plot %in% c("error_bar", "ribbon"))) {
     stop("Supported plot types are 'error_bar' and 'ribbon'")
   }
+
+
+  p025 <- p975 <- p25 <- p75 <- NULL
+  smoothed_confirm <- confirm <- p50 <- point_type <- pred_horizon <- sim_draws <- date <- NULL
+  pred_horizon_str_list <- paste0(seq(1, 7, 1), " days ahead")
+  forecast_dat <- NULL
+  aggregate_unit <- time_period_result[[length(time_period_result)]][["quantile_unit"]]
+
+
 
   model_data <- data.frame(
     date = time_period_result[[length(time_period_result)]]$model_data_date,
@@ -83,13 +87,13 @@ plot_validation <- function(time_period_result, pred_plot = "ribbon") {
       pred_interval_forecast(time_period_result,
         pred_horizon = pred_horizon_str
       ) %>%
-        mutate(pred_horizon_str = pred_horizon_str)
+        dplyr::mutate(pred_horizon_str = pred_horizon_str)
     )
   }
 
   forecast_dat <- forecast_dat %>%
-    arrange(date, pred_horizon_str) %>%
-    mutate(
+    dplyr::arrange(date, pred_horizon_str) %>%
+    dplyr::mutate(
       ahead_num = as.numeric(sub(" days ahead", "", pred_horizon_str)),
       anchor_date = as.Date(date) - (ahead_num - 1),
       group_id = as.character(factor(anchor_date))
