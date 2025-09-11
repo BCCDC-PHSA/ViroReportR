@@ -8,8 +8,8 @@
 #'
 #'
 #' @param data *data frame* containing two columns: date and confirm (number of cases)
-#' @param dt *Integer* 	Not implemented. length of temporal aggregations of the incidence data. This should be an integer or vector of integers. The default value is 7 time units (1 week).
 #' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "custom"
+#' @param n_days Number of days to forecast ahead. Defaults to 7
 #' @param mean_si *Numeric* User specification of mean of parametric serial interval
 #' @param std_si *Numeric* User specification of standard deviation of parametric serial interval
 #' @param recon_opt Not implemented. One of "naive" or "match" to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page)
@@ -24,8 +24,9 @@
 #' @examples
 #' fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a")
 #'
-fit_epiestim_model <- function(data, dt = 1L, type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
-                               method = "parametric_si", mean_prior = NULL, std_prior = NULL) {
+fit_epiestim_model <- function(data, type = NULL, n_days = 7, mean_si = NULL, std_si = NULL, 
+                               recon_opt = "match", method = "parametric_si", mean_prior = NULL, 
+                               std_prior = NULL) {
   confirm <- NULL
   if (!is.data.frame(data) || !all(colnames(data) %in% c("date", "confirm"))) {
     stop("Must pass a data frame with two columns: date and confirm")
@@ -41,33 +42,33 @@ fit_epiestim_model <- function(data, dt = 1L, type = NULL, mean_si = NULL, std_s
     warning("Custom mean_si, std_s, mean_prior and std_prior can only be specified with type set to custom. Default config values were used")
   }
 
-  if (dt == 7L) {
-    stop("Weekly data not currently implmented. Use only daily data.")
-  }
-
-  data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
-  if (data_lag <= 7 && dt == 7L) {
-    warning("Your data may not be weekly data. Please set dt to 1L for daily data")
-  }
+  # if (dt == 7L) {
+  #   stop("Weekly data not currently implmented. Use only daily data.")
+  # }
+  # 
+  # data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
+  # if (data_lag <= 7 && dt == 7L) {
+  #   warning("Your data may not be weekly data. Please set dt to 1L for daily data")
+  # }
 
 
 
   # 6. Providing default values
   if (is.null(mean_si)) {
     mean_si <- switch(type,
-      "flu_a" = 3.1,
+      "flu_a" = 4,
       "flu_b" = 3.7,
       "rsv" = 7.5,
-      "sars_cov2" = 2.75,
+      "sars_cov2" = 4,
       "custom" = NULL
     )
   }
   if (is.null(std_si)) {
     std_si <- switch(type,
-      "flu_a" = 2.1,
+      "flu_a" = 2,
       "flu_b" = 2.1,
       "rsv" = 2.1,
-      "sars_cov2" = 2.53,
+      "sars_cov2" = 4.75,
       "custom" = NULL
     )
   }
@@ -91,30 +92,21 @@ fit_epiestim_model <- function(data, dt = 1L, type = NULL, mean_si = NULL, std_s
   }
 
   # 7. Configuring based on type
-  if (dt == 1L) {
-    incid <- data.frame(I = data$confirm, dates = data$date)
-    incid <- incid %>%
-      dplyr::arrange(dates)
-    # this should create weekly windows for the Rt
-    t_start <- seq(2, max(nrow(incid)-7,2))
-    t_end <- pmin(t_start + 7,nrow(incid))
-    config <- EpiEstim::make_config(list(
-      mean_si = mean_si,
-      std_si = std_si,
-      mean_prior = mean_prior,
-      std_prior = std_prior,
-      t_start = t_start,
-      t_end = t_end
-    ))
-  } else if (dt > 1L) {
-    incid <- data$confirm
-    config <- EpiEstim::make_config(list(
-      mean_si = mean_si,
-      std_si = std_si,
-      mean_prior = mean_prior,
-      std_prior = std_prior
-    ))
-  }
+  incid <- data.frame(I = data$confirm, dates = data$date)
+  incid <- incid %>%
+    dplyr::arrange(dates)
+  # this should create weekly windows for the Rt
+  n_t <- nrow(incid)
+  t_start <- seq(2, max(n_t-(n_days - 1),2))
+  t_end <- pmin(t_start + n_days - 1,n_t)
+  config <- EpiEstim::make_config(list(
+    mean_si = mean_si,
+    std_si = std_si,
+    mean_prior = mean_prior,
+    std_prior = std_prior,
+    t_start = t_start,
+    t_end = t_end
+  ))
 
   epiestim_estimates <- NULL
   epiestim_estimates <- suppressWarnings(EpiEstim::estimate_R(
