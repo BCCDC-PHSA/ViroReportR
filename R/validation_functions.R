@@ -47,6 +47,223 @@ forecast_time_period <- function(data, start_date, n_days = 7, time_period = "we
   return(time_period_result)
 }
 
+
+#' Iterate through a time-period as a sliding window to produce short-term forecasts with the EpiEstim model fit
+#'
+#'
+#' @description Function to produce short-term forecasts from objects of class {\code{\link[EpiEstim]{estimate_R}}}
+#'
+#' @param data *data frame* containing two columns: date and confirm (number of cases per week)
+#' @param start_date Initial starting time-point. Must match a timepoint in the input dataset
+#' @param n_days Number of days to forecast ahead. Defaults to 7
+#' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"
+#' @param time_period time period string (e.g. 'daily', 'weekly'). Default is daily
+#' @param verbose set to true to display progress output
+#' @param smoothing_cutoff number of time periods windows after to start smoothing
+#' @param ... Pass on optional arguments from \code{fit_epiestim_model}
+#'
+#'
+#'
+#' @return List of class \code{forecast_time_period}
+#' storing quantiles of both daily and weekly forecasts from each sliding window
+#' @export
+#'
+#' @examples
+#'
+#' #  Daily forecast
+#' forecast_time_period_epiestim(
+#'   data = weekly_transformed_plover_data,
+#'   start_date = "2022-10-02", n_days = 14, type = "flu_a"
+#' )
+#'
+# weekly aggregated forecast
+#' forecast_time_period_epiestim(
+#'   data = weekly_transformed_plover_data,
+#'   start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "weekly"
+#' )
+forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "daily",
+                                          type = NULL, verbose = FALSE, smoothing_cutoff = 10, ...) {
+  data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
+  if (data_lag <= 7 && time_period == "weekly") {
+    warning("Your data may not be weekly data. Please set time_period = daily for daily data")
+  }
+  sim <- week_date <- daily_date <- date <- NULL
+  
+  check_epiestim_format(data)
+  
+  # check and filter on start date
+  check_data_contains_start_date(data,start_date)
+  data <- data %>%
+    dplyr::filter(date > start_date)
+  
+  non_zero_dates <- data %>%
+    dplyr::filter(confirm > 0) %>%
+    pull(date)
+  
+  data <- data %>%
+    dplyr::filter(date >= non_zero_dates[1])
+  
+  
+  start_index <- which(data$date == min(data$date)) + 14
+  time_length <- nrow(data) - start_index
+  time_index <- seq(from = start_index, to = time_length + 14)
+  
+  time_period_result <- lapply(time_index, function(tp) {
+    model_data <- extend_rows_model_data(
+      data = data, min_model_date_str = min(data$date),
+      extension_interval = tp
+    )
+    
+    
+    if (verbose) {
+      message(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
+    }
+    
+    
+    
+    smoothed_output <- smooth_model_data(model_data, smoothing_cutoff = smoothing_cutoff)
+    
+    if (time_period == "weekly") {
+      row <- calculate_weekly_fit_row(
+        smoothed_output,
+        tp,
+        type = type, n_days = n_days, ...
+      )
+    } else if (time_period == "daily") {
+      row <- calculate_daily_fit_row(
+        smoothed_output,
+        tp,
+        type = type, n_days = n_days, ...
+      )
+    }
+    
+    return(row)
+  })
+  return(time_period_result)
+}
+
+
+
+#' Calculate Weekly Fit Row from Smoothed Output
+#'
+#' Processes smoothed model data to fit an EpiEstim model, extract daily samples, aggregate them weekly,
+#' and return a structured output containing relevant model and quantile information.
+#'
+#' @param smoothed_output A list containing:
+#' 	- `data`: A data frame with smoothed model data, including a `date` and `confirm` column.
+#' 	- `error`: The estimated smoothing error.
+#' @param tp time period
+#' @param type type of disease
+#' @param n_days Number of days to forecast ahead. Defaults to 7
+#' @param ... Additional arguments passed to `fit_epiestim_model()`.
+#'
+#' @return A named list containing:
+#' 	- Fitted model results.
+#' 	- Time period information.
+#' 	- Original, smoothed, and aggregated model data.
+#' 	- Weekly quantile estimates.
+#' 	- Smoothed error values.
+#'
+#' @details The function fits an EpiEstim model using `fit_epiestim_model()`, extracts daily samples with `generate_forecasts()`,
+#' and renames key columns for consistency. It ensures `n_days` is a multiple of 7 before aggregating data to weekly intervals.
+#'
+#' @importFrom dplyr rename
+#' @noRd
+calculate_weekly_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
+                                     n_days = 7, ...) {
+  smoothed_model_data <- smoothed_output$data
+  smoothed_error <- smoothed_output$error
+  quantile_unit <- "weekly"
+  
+  cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, ...)
+  cur_daily_samples <- generate_forecasts(
+    data = smoothed_model_data,
+    model_fit = cur_model,
+    n_days = n_days
+  )
+  cur_daily_samples <- cur_daily_samples %>%
+    dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
+  
+  smoothed_model_data <- smoothed_model_data %>%
+    dplyr::rename(smoothed_date = date, smoothed_confirm = confirm)
+  
+  model_data <- smoothed_output$original_data %>%
+    dplyr::rename(model_data_date = date)
+  if (!(n_days %% 7 == 0)) {
+    stop("n_days must be a multiple of 7 to aggregate by week")
+  }
+  cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
+  cur_samples_agg_quantiles <- cur_samples %>%
+    create_quantiles(week_date, variable = "weekly_incidence") %>%
+    dplyr::rename(quantile_date = week_date)
+  
+  row <- c(cur_model, tp, model_data, smoothed_model_data, cur_samples, cur_samples_agg_quantiles,
+           quantile_unit = quantile_unit,
+           smoothed_error
+  )
+  
+  return(row)
+}
+
+#' Calculate Daily Fit Row from Smoothed Output
+#'
+#' Processes smoothed model data to fit an EpiEstim model, extract daily samples,
+#' and return a structured output containing relevant model and quantile information.
+#'
+#' @param smoothed_output A list containing:
+#' 	- `data`: A data frame with smoothed model data, including a `date` and `confirm` column.
+#' 	- `error`: The estimated smoothing error.
+#' @param tp time period
+#' @param type type of disease
+#' @param n_days Number of days to forecast ahead. Defaults to 7
+#' @param ... Additional arguments passed to `fit_epiestim_model()`.
+#'
+#' @return A named list containing:
+#' 	- Fitted model results.
+#' 	- Time period information.
+#' 	- Original, smoothed, and daily model data.
+#' 	- Daily quantile estimates.
+#' 	- Smoothed error values.
+#'
+#' @details The function fits an EpiEstim model using `fit_epiestim_model()`, extracts daily samples with `generate_forecasts()`,
+#' and renames key columns for consistency. It also generates daily quantile estimates using `create_quantiles()`.
+#'
+#' @importFrom dplyr rename
+#' @noRd
+calculate_daily_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
+                                    n_days = 7, ...) {
+  smoothed_model_data <- smoothed_output$data
+  smoothed_error <- smoothed_output$error
+  quantile_unit <- "daily"
+  
+  cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, dt = 1L, ...)
+  cur_daily_samples <- generate_forecasts(
+    data = smoothed_model_data,
+    model_fit = cur_model,
+    n_days = n_days
+  )
+  cur_daily_samples <- cur_daily_samples %>%
+    dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
+  
+  smoothed_model_data <- smoothed_model_data %>%
+    dplyr::rename(smoothed_date = date, smoothed_confirm = confirm)
+  
+  model_data <- smoothed_output$original_data %>%
+    dplyr::rename(model_data_date = date)
+  cur_samples_agg_quantiles <- cur_daily_samples %>%
+    create_quantiles(daily_date, variable = "daily_incidence") %>%
+    dplyr::rename(quantile_date = daily_date)
+  
+  row <- c(cur_model, tp, model_data,
+           smoothed_model_data, cur_daily_samples, cur_samples_agg_quantiles,
+           quantile_unit = quantile_unit,
+           smoothed_error = smoothed_error
+  )
+  
+  return(row)
+}
+
+
 #' Plot a ribbon plot with each time horizon predictions against true values for validation
 #'
 #' @param time_period_result object of class \code{forecast_time_period}
