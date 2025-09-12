@@ -8,8 +8,9 @@
 #'
 #'
 #' @param data *data frame* containing two columns: date and confirm (number of cases)
+#' @param dt *Integer* 	Not implemented. length of temporal aggregations of the incidence data. This should be an integer or vector of integers. The default value is 7 time units (1 week).
+#' @param window_size *Integer* Length of the sliding windows used for R estimates.
 #' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "custom"
-#' @param n_days Number of days to forecast ahead. Defaults to 7
 #' @param mean_si *Numeric* User specification of mean of parametric serial interval
 #' @param std_si *Numeric* User specification of standard deviation of parametric serial interval
 #' @param recon_opt Not implemented. One of "naive" or "match" to pass on to {\code{\link[EpiEstim]{estimate_R}}} (see help page)
@@ -24,9 +25,8 @@
 #' @examples
 #' fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a")
 #'
-fit_epiestim_model <- function(data, type = NULL, n_days = 7, mean_si = NULL, std_si = NULL, 
-                               recon_opt = "match", method = "parametric_si", mean_prior = NULL, 
-                               std_prior = NULL) {
+fit_epiestim_model <- function(data, dt = 1L, window_size = 7L,type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
+                               method = "parametric_si", mean_prior = NULL, std_prior = NULL) {
   confirm <- NULL
   if (!is.data.frame(data) || !all(colnames(data) %in% c("date", "confirm"))) {
     stop("Must pass a data frame with two columns: date and confirm")
@@ -37,182 +37,191 @@ fit_epiestim_model <- function(data, type = NULL, n_days = 7, mean_si = NULL, st
   if (type == "custom" && any(is.null(mean_si), is.null(std_si), is.null(mean_prior), is.null(std_prior))) {
     stop("Must specify mean_si, std_si, mean_prior and std_prior for type custom")
   }
-
+  
   if (type != "custom" && any(!is.null(mean_si), !is.null(std_si), !is.null(mean_prior), !is.null(std_prior))) {
     warning("Custom mean_si, std_s, mean_prior and std_prior can only be specified with type set to custom. Default config values were used")
   }
-
-  # if (dt == 7L) {
-  #   stop("Weekly data not currently implmented. Use only daily data.")
-  # }
-  # 
-  # data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
-  # if (data_lag <= 7 && dt == 7L) {
-  #   warning("Your data may not be weekly data. Please set dt to 1L for daily data")
-  # }
-
-
-
+  
+  if (dt == 7L) {
+    stop("Weekly data not currently implmented. Use only daily data.")
+  }
+  
+  data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
+  if (data_lag <= 7 && dt == 7L) {
+    warning("Your data may not be weekly data. Please set dt to 1L for daily data")
+  }
+  
   # 6. Providing default values
   if (is.null(mean_si)) {
     mean_si <- switch(type,
-      "flu_a" = 4,
-      "flu_b" = 3.7,
-      "rsv" = 7.5,
-      "sars_cov2" = 4,
-      "custom" = NULL
+                      "flu_a" = 4,
+                      "flu_b" = 3.7,
+                      "rsv" = 7.5,
+                      "sars_cov2" = 4,
+                      "custom" = NULL
     )
   }
   if (is.null(std_si)) {
     std_si <- switch(type,
-      "flu_a" = 2,
-      "flu_b" = 2.1,
-      "rsv" = 2.1,
-      "sars_cov2" = 4.75,
-      "custom" = NULL
+                     "flu_a" = 2,
+                     "flu_b" = 2.1,
+                     "rsv" = 2.1,
+                     "sars_cov2" = 4.75,
+                     "custom" = NULL
     )
   }
   if (is.null(mean_prior)) {
     mean_prior <- switch(type,
-      "flu_a" = 1,
-      "flu_b" = 1,
-      "rsv" = 1,
-      "sars_cov2" = 2,
-      "custom" = NULL
+                         "flu_a" = 1,
+                         "flu_b" = 1,
+                         "rsv" = 1,
+                         "sars_cov2" = 2,
+                         "custom" = NULL
     )
   }
   if (is.null(std_prior)) {
     std_prior <- switch(type,
-      "flu_a" = 1,
-      "flu_b" = 1,
-      "rsv" = 1,
-      "sars_cov2" = 1,
-      "custom" = NULL
+                        "flu_a" = 1,
+                        "flu_b" = 1,
+                        "rsv" = 1,
+                        "sars_cov2" = 1,
+                        "custom" = NULL
     )
   }
-
+  
   # 7. Configuring based on type
-  incid <- data.frame(I = data$confirm, dates = data$date)
-  incid <- incid %>%
-    dplyr::arrange(dates)
-  # this should create weekly windows for the Rt
-  n_t <- nrow(incid)
-  t_start <- seq(2, max(n_t-(n_days - 1),2))
-  t_end <- pmin(t_start + n_days - 1,n_t)
-  config <- EpiEstim::make_config(list(
-    mean_si = mean_si,
-    std_si = std_si,
-    mean_prior = mean_prior,
-    std_prior = std_prior,
-    t_start = t_start,
-    t_end = t_end
-  ))
-
+  if (dt == 1L) {
+    incid <- data.frame(I = data$confirm, dates = data$date)
+    incid <- incid %>%
+      dplyr::arrange(dates)
+    # this should create weekly windows for the Rt
+    n_t <- nrow(incid)
+    t_start <- seq(2, max(n_t-(window_size - 1),2))
+    t_end <- pmin(t_start + window_size - 1,n_t)
+    config <- EpiEstim::make_config(list(
+      mean_si = mean_si,
+      std_si = std_si,
+      mean_prior = mean_prior,
+      std_prior = std_prior,
+      t_start = t_start,
+      t_end = t_end
+    ))
+  } else if (dt > 1L) {
+    incid <- data$confirm
+    config <- EpiEstim::make_config(list(
+      mean_si = mean_si,
+      std_si = std_si,
+      mean_prior = mean_prior,
+      std_prior = std_prior
+    ))
+  }
+  
   epiestim_estimates <- NULL
   epiestim_estimates <- suppressWarnings(EpiEstim::estimate_R(
     incid = incid,
     method = method,
     config = config
   ))
-
-
+  
+  
   return(epiestim_estimates)
 }
 
 
-#' Iterate through a time-period as a sliding window to produce short-term forecasts with the EpiEstim model fit
+#' Extract daily forecast samples
 #'
 #'
-#' @description Function to produce short-term forecasts from objects of class {\code{\link[EpiEstim]{estimate_R}}}
+#' @description Function to produce short-term daily projections from objects of class {\code{\link[EpiEstim]{estimate_R}}}
 #'
-#' @param data *data frame* containing two columns: date and confirm (number of cases per week)
-#' @param start_date Initial starting time-point. Must match a timepoint in the input dataset
-#' @param n_days Number of days to forecast ahead. Defaults to 7
-#' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "other"
-#' @param time_period time period string (e.g. 'daily', 'weekly'). Default is daily
-#' @param verbose set to true to display progress output
-#' @param smoothing_cutoff number of time periods windows after to start smoothing
-#' @param ... Pass on optional arguments from \code{fit_epiestim_model}
+#' @param data *data frame* containing two columns: date and confirm (number of cases per day)
+#' @param model_fit Object of class {\code{\link[EpiEstim]{estimate_R}}} generated by running \code{fit_epiestim_model}
+#' @param n_days 	The number of days to run simulations for. Defaults to 14
+#' @param n_sim The number of epicurves to simulate. Defaults to 1000
 #'
 #'
 #'
-#' @return List of class \code{forecast_time_period}
-#' storing quantiles of both daily and weekly forecasts from each sliding window
-#' @export
 #'
-#' @examples
-#'
-#' #  Daily forecast
-#' forecast_time_period_epiestim(
-#'   data = weekly_transformed_plover_data,
-#'   start_date = "2022-10-02", n_days = 14, type = "flu_a"
-#' )
-#'
-# weekly aggregated forecast
-#' forecast_time_period_epiestim(
-#'   data = weekly_transformed_plover_data,
-#'   start_date = "2022-10-02", n_days = 14, type = "flu_a", time_period = "weekly"
-#' )
-forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_period = "daily",
-                                          type = NULL, verbose = FALSE, smoothing_cutoff = 10, ...) {
-  data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
-  if (data_lag <= 7 && time_period == "weekly") {
-    warning("Your data may not be weekly data. Please set time_period = daily for daily data")
-  }
-  sim <- week_date <- daily_date <- date <- NULL
-
+#' @return Data-frame of daily forecast samples from all simulations
+#' \describe{
+#'   \item{date}{date}
+#'   \item{incidence}{projected number of daily confirmed cases}
+#'   \item{sim}{simulation run number}
+#' }
+generate_forecasts <- function(data, model_fit, n_days = 7, n_sim = 1000) { 
+  confirm <- NULL
+  
   check_epiestim_format(data)
+  
+  # incidence expects data in linelist format
+  date_list <- data |>
+    tidyr::uncount(confirm) |>
+    dplyr::pull(date)
+  incidence_obj <- incidence::incidence(date_list)
+  
+  r_vals <- utils::tail(model_fit$R, n = 1)
+  r_dist <- rtrunc_norm(1000, mean = r_vals$`Mean(R)`, sd = r_vals$`Std(R)`, lower_lim = 0)
+  # Use the project function
+  proj <- projections::project(incidence_obj,
+                               R = r_dist,
+                               si = model_fit$si_distr[-1],
+                               n_sim = n_sim,
+                               n_days = n_days,
+                               R_fix_within = FALSE
+  )
+  
+  
+  data_proj <- as.data.frame(proj, long = TRUE)
+  
+  return(data_proj)
+}
 
+
+#' Main function to run the forecast model
+#'
+#'
+forecast_epiestim <- function(
+    data,
+    start_date,
+    window_size = 7,
+    n_days = 7,
+    type = NULL,
+    smooth_data = FALSE,
+    smoothing_cutoff = 10,
+    ...
+){
+  
+  check_epiestim_format(data)
+  
   # check and filter on start date
   check_data_contains_start_date(data,start_date)
   data <- data %>%
     dplyr::filter(date > start_date)
-
+  
+  # exclude the first date if there are no confirmed cases
   non_zero_dates <- data %>%
     dplyr::filter(confirm > 0) %>%
     pull(date)
-
   data <- data %>%
     dplyr::filter(date >= non_zero_dates[1])
-
-
-  start_index <- which(data$date == min(data$date))
-  time_length <- nrow(data) - start_index
-  time_index <- seq(from = start_index, to = time_length)
-
-  time_period_result <- lapply(time_index, function(tp) {
-    model_data <- extend_rows_model_data(
-      data = data, min_model_date_str = min(data$date),
-      extension_interval = tp
-    )
-
-
-    if (verbose) {
-      message(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
-    }
-
-
-
-    smoothed_output <- smooth_model_data(model_data, smoothing_cutoff = smoothing_cutoff)
-
-    if (time_period == "weekly") {
-      row <- calculate_weekly_fit_row(
-        smoothed_output,
-        tp,
-        type = type, n_days = n_days, ...
-      )
-    } else if (time_period == "daily") {
-      row <- calculate_daily_fit_row(
-        smoothed_output,
-        tp,
-        type = type, n_days = n_days, ...
-      )
-    }
-
-    return(row)
-  })
-  return(time_period_result)
+  
+  # use smooth data
+  if(smooth_data){
+    smoothed_output <- smooth_model_data(data, smoothing_cutoff = smoothing_cutoff)
+    data <- smoothed_output$data
+  }
+  # modelling function
+  epiestim_estimates <- fit_epiestim_model(data = data,
+                                           window_size = window_size,
+                                           type = type,
+                                           ...)
+  # generating forecast data
+  forecast_res <- generate_forecasts(data = data, 
+                                     model_fit = epiestim_estimates, 
+                                     n_days = n_days)
+  
+  return(forecast_res)
 }
+
 
 
 #' Smooth Model Data Using P-Spline GAM
@@ -267,151 +276,5 @@ smooth_model_data <- function(model_data, smoothing_cutoff = 10, n_reps = 10000)
   return(list(original_data = model_data, data = smoothed_model_data, error = smoothed_error))
 }
 
-#' Calculate Weekly Fit Row from Smoothed Output
-#'
-#' Processes smoothed model data to fit an EpiEstim model, extract daily samples, aggregate them weekly,
-#' and return a structured output containing relevant model and quantile information.
-#'
-#' @param smoothed_output A list containing:
-#' 	- `data`: A data frame with smoothed model data, including a `date` and `confirm` column.
-#' 	- `error`: The estimated smoothing error.
-#' @param tp time period
-#' @param type type of disease
-#' @param n_days Number of days to forecast ahead. Defaults to 7
-#' @param ... Additional arguments passed to `fit_epiestim_model()`.
-#'
-#' @return A named list containing:
-#' 	- Fitted model results.
-#' 	- Time period information.
-#' 	- Original, smoothed, and aggregated model data.
-#' 	- Weekly quantile estimates.
-#' 	- Smoothed error values.
-#'
-#' @details The function fits an EpiEstim model using `fit_epiestim_model()`, extracts daily samples with `generate_forecasts()`,
-#' and renames key columns for consistency. It ensures `n_days` is a multiple of 7 before aggregating data to weekly intervals.
-#'
-#' @importFrom dplyr rename
-#' @noRd
-calculate_weekly_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
-                                     n_days = 7, ...) {
-  smoothed_model_data <- smoothed_output$data
-  smoothed_error <- smoothed_output$error
-  quantile_unit <- "weekly"
 
-  cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, ...)
-  cur_daily_samples <- generate_forecasts(
-    data = smoothed_model_data,
-    model_fit = cur_model,
-    n_days = n_days
-  )
-  cur_daily_samples <- cur_daily_samples %>%
-    dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
 
-  smoothed_model_data <- smoothed_model_data %>%
-    dplyr::rename(smoothed_date = date, smoothed_confirm = confirm)
-
-  model_data <- smoothed_output$original_data %>%
-    dplyr::rename(model_data_date = date)
-  if (!(n_days %% 7 == 0)) {
-    stop("n_days must be a multiple of 7 to aggregate by week")
-  }
-  cur_samples <- extract_agg_samples_epiestim_fit(cur_daily_samples)
-  cur_samples_agg_quantiles <- cur_samples %>%
-    create_quantiles(week_date, variable = "weekly_incidence") %>%
-    dplyr::rename(quantile_date = week_date)
-
-  row <- c(cur_model, tp, model_data, smoothed_model_data, cur_samples, cur_samples_agg_quantiles,
-    quantile_unit = quantile_unit,
-    smoothed_error
-  )
-
-  return(row)
-}
-
-#' Calculate Daily Fit Row from Smoothed Output
-#'
-#' Processes smoothed model data to fit an EpiEstim model, extract daily samples,
-#' and return a structured output containing relevant model and quantile information.
-#'
-#' @param smoothed_output A list containing:
-#' 	- `data`: A data frame with smoothed model data, including a `date` and `confirm` column.
-#' 	- `error`: The estimated smoothing error.
-#' @param tp time period
-#' @param type type of disease
-#' @param n_days Number of days to forecast ahead. Defaults to 7
-#' @param ... Additional arguments passed to `fit_epiestim_model()`.
-#'
-#' @return A named list containing:
-#' 	- Fitted model results.
-#' 	- Time period information.
-#' 	- Original, smoothed, and daily model data.
-#' 	- Daily quantile estimates.
-#' 	- Smoothed error values.
-#'
-#' @details The function fits an EpiEstim model using `fit_epiestim_model()`, extracts daily samples with `generate_forecasts()`,
-#' and renames key columns for consistency. It also generates daily quantile estimates using `create_quantiles()`.
-#'
-#' @importFrom dplyr rename
-#' @noRd
-calculate_daily_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
-                                    n_days = 7, ...) {
-  smoothed_model_data <- smoothed_output$data
-  smoothed_error <- smoothed_output$error
-  quantile_unit <- "daily"
-
-  cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, dt = 1L, ...)
-  cur_daily_samples <- generate_forecasts(
-    data = smoothed_model_data,
-    model_fit = cur_model,
-    n_days = n_days
-  )
-  cur_daily_samples <- cur_daily_samples %>%
-    dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
-
-  smoothed_model_data <- smoothed_model_data %>%
-    dplyr::rename(smoothed_date = date, smoothed_confirm = confirm)
-
-  model_data <- smoothed_output$original_data %>%
-    dplyr::rename(model_data_date = date)
-  cur_samples_agg_quantiles <- cur_daily_samples %>%
-    create_quantiles(daily_date, variable = "daily_incidence") %>%
-    dplyr::rename(quantile_date = daily_date)
-
-  row <- c(cur_model, tp, model_data,
-    smoothed_model_data, cur_daily_samples, cur_samples_agg_quantiles,
-    quantile_unit = quantile_unit,
-    smoothed_error = smoothed_error
-  )
-
-  return(row)
-}
-
-#' @noRd
-check_data_contains_start_date <- function(data,start_date){
-  if(!(as.Date(start_date) %in% as.Date(data$date))){
-    stop("Data must include the `start_date`")
-  }
-}
-
-#' Validates that the input `data` contains the required columns for use with
-#'  EpiEstim.
-#'
-#' This function checks that the input data frame has the required columns:
-#' `"date"` and `"confirm"`.
-#' If either of these columns is missing, the function will stop with an
-#' error message.
-#'
-#' @param data A data frame
-#'
-#' @noRd
-check_epiestim_format <- function(data){
-  required_columns <- c("date","confirm")
-  missing_columns <- setdiff(required_columns, colnames(data))
-  extra_columns <- setdiff(colnames(data),required_columns)
-  if(length(missing_columns) > 0){
-    stop("Data needs columns: ", paste(missing_columns, collapse = ", "))
-  }
-  if(length(extra_columns) > 0){
-    stop("Data has redundant columns: ", paste(extra_columns, collapse = ", "))
-  }
-}
