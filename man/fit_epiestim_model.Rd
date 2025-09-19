@@ -7,6 +7,7 @@
 fit_epiestim_model(
   data,
   dt = 1L,
+  window_size = 7L,
   type = NULL,
   mean_si = NULL,
   std_si = NULL,
@@ -20,6 +21,8 @@ fit_epiestim_model(
 \item{data}{\emph{data frame} containing two columns: date and confirm (number of cases)}
 
 \item{dt}{\emph{Integer}     Not implemented. length of temporal aggregations of the incidence data. This should be an integer or vector of integers. The default value is 7 time units (1 week).}
+
+\item{window_size}{\emph{Integer} Length of the sliding windows used for R estimates.}
 
 \item{type}{\emph{character} Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "custom"}
 

@@ -88,41 +88,41 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
     warning("Your data may not be weekly data. Please set time_period = daily for daily data")
   }
   sim <- week_date <- daily_date <- date <- NULL
-  
+
   check_epiestim_format(data)
-  
+
   # check and filter on start date
   check_data_contains_start_date(data,start_date)
   data <- data %>%
     dplyr::filter(date > start_date)
-  
+
   non_zero_dates <- data %>%
     dplyr::filter(confirm > 0) %>%
     pull(date)
-  
+
   data <- data %>%
     dplyr::filter(date >= non_zero_dates[1])
-  
-  
+
+
   start_index <- which(data$date == min(data$date)) + 14
   time_length <- nrow(data) - start_index
   time_index <- seq(from = start_index, to = time_length + 14)
-  
+
   time_period_result <- lapply(time_index, function(tp) {
     model_data <- extend_rows_model_data(
       data = data, min_model_date_str = min(data$date),
       extension_interval = tp
     )
-    
-    
+
+
     if (verbose) {
       message(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
     }
-    
-    
-    
+
+
+
     smoothed_output <- smooth_model_data(model_data, smoothing_cutoff = smoothing_cutoff)
-    
+
     if (time_period == "weekly") {
       row <- calculate_weekly_fit_row(
         smoothed_output,
@@ -136,7 +136,7 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
         type = type, n_days = n_days, ...
       )
     }
-    
+
     return(row)
   })
   return(time_period_result)
@@ -174,7 +174,7 @@ calculate_weekly_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
   smoothed_model_data <- smoothed_output$data
   smoothed_error <- smoothed_output$error
   quantile_unit <- "weekly"
-  
+
   cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, ...)
   cur_daily_samples <- generate_forecasts(
     data = smoothed_model_data,
@@ -183,10 +183,10 @@ calculate_weekly_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
   )
   cur_daily_samples <- cur_daily_samples %>%
     dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
-  
+
   smoothed_model_data <- smoothed_model_data %>%
     dplyr::rename(smoothed_date = date, smoothed_confirm = confirm)
-  
+
   model_data <- smoothed_output$original_data %>%
     dplyr::rename(model_data_date = date)
   if (!(n_days %% 7 == 0)) {
@@ -196,12 +196,12 @@ calculate_weekly_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
   cur_samples_agg_quantiles <- cur_samples %>%
     create_quantiles(week_date, variable = "weekly_incidence") %>%
     dplyr::rename(quantile_date = week_date)
-  
+
   row <- c(cur_model, tp, model_data, smoothed_model_data, cur_samples, cur_samples_agg_quantiles,
            quantile_unit = quantile_unit,
            smoothed_error
   )
-  
+
   return(row)
 }
 
@@ -235,7 +235,7 @@ calculate_daily_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
   smoothed_model_data <- smoothed_output$data
   smoothed_error <- smoothed_output$error
   quantile_unit <- "daily"
-  
+
   cur_model <- fit_epiestim_model(data = smoothed_model_data, type = type, dt = 1L, ...)
   cur_daily_samples <- generate_forecasts(
     data = smoothed_model_data,
@@ -244,22 +244,22 @@ calculate_daily_fit_row <- function(smoothed_output, tp, type = "sars_cov2",
   )
   cur_daily_samples <- cur_daily_samples %>%
     dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
-  
+
   smoothed_model_data <- smoothed_model_data %>%
     dplyr::rename(smoothed_date = date, smoothed_confirm = confirm)
-  
+
   model_data <- smoothed_output$original_data %>%
     dplyr::rename(model_data_date = date)
   cur_samples_agg_quantiles <- cur_daily_samples %>%
     create_quantiles(daily_date, variable = "daily_incidence") %>%
     dplyr::rename(quantile_date = daily_date)
-  
+
   row <- c(cur_model, tp, model_data,
            smoothed_model_data, cur_daily_samples, cur_samples_agg_quantiles,
            quantile_unit = quantile_unit,
            smoothed_error = smoothed_error
   )
-  
+
   return(row)
 }
 
@@ -387,7 +387,7 @@ plot_validation <- function(time_period_result, pred_plot = "ribbon") {
 #' @examples
 #' summary(weekly_time_period_result, pred_horizon_str = "1 week ahead")
 summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
-  confirm <- p50 <- weighted_diff <- `50 percentile interval bounds` <- `95 percentile interval bounds` <- counts <- median.prediction <- NULL
+  confirm <- p50 <- `50 percentile interval bounds` <- `95 percentile interval bounds` <- counts <- median.prediction <- NULL
   pred_horizon <- weekly_date <- coverage <- NULL
   if (class(object)[1] != "forecast_time_period") {
     stop("input must be object of class forecast_time_period")
@@ -409,7 +409,7 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
     date = object[[length(object)]]$smoothed_date,
     confirm = object[[length(object)]]$smoothed_confirm
   )
-  forecast_cases_dat <- combine_df_pred_case(forecast_dat, smoothed_model_data,
+  forecast_cases_dat <- combine_df_pred_case(forecast_dat,
     pred_horizon_str = pred_horizon_str
   )
   forecast_cases_dat <- forecast_cases_dat %>%
@@ -420,16 +420,15 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
       lower_bound50 <= confirm && confirm <= upper_bound50 ~ "50 percentile interval",
       lower_bound90 <= confirm && confirm <= upper_bound90 ~ "95 percentile interval",
     )) %>%
-    dplyr::mutate(weighted_diff = time_weighted_diff(confirm, p50, pred_horizon_str = eval(parse(text = "pred_horizon_str")))) %>%
     dplyr::mutate_if(is.numeric, round) %>%
     dplyr::mutate(`50 percentile interval bounds` = glue::glue("({lower_bound50}-{upper_bound50})")) %>%
     dplyr::mutate(`95 percentile interval bounds` = glue::glue("({lower_bound90}-{upper_bound90})")) %>%
-    dplyr::select(date, coverage, weighted_diff, confirm, median.prediction = p50, `50 percentile interval bounds`, `95 percentile interval bounds`) %>%
+    dplyr::select(date, coverage, confirm, median.prediction = p50, `50 percentile interval bounds`, `95 percentile interval bounds`) %>%
     dplyr::rename("Confirmed cases" = confirm, "Predicted cases" = median.prediction)
   if ((any(forecast_cases_dat$coverage %in% "Outside 95 percentile interval"))) {
     warning("Prediction percentile intervals do not cover some data-points in validation fits. Some forecasts may not be reliable")
   }
-  forecast_cases_dat_summ <- forecast_cases_dat %>%
+  forecast_cases_dat_sum <- forecast_cases_dat %>%
     dplyr::group_by(coverage) %>%
     dplyr::summarise(counts = dplyr::n()) %>%
     dplyr::mutate(proportion = round(counts / sum(counts) * 100, 2)) %>%
@@ -437,7 +436,7 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
       sum(proportion[coverage == "50 percentile interval"]) + proportion,
       proportion
     ))
-  forecast_cases_dat_summ$coverage <- factor(forecast_cases_dat_summ$coverage,
+  forecast_cases_dat_sum$coverage <- factor(forecast_cases_dat_sum$coverage,
     levels = c(
       "50 percentile interval",
       "95 percentile interval",
@@ -445,14 +444,12 @@ summary.forecast_time_period <- function(object, pred_horizon_str = NULL, ...) {
     )
   )
 
-  forecast_cases_dat_summ <- forecast_cases_dat_summ[order(forecast_cases_dat_summ$coverage), ]
-  time_weighted_mspe <- sqrt(mean(forecast_cases_dat$weighted_diff))
+  forecast_cases_dat_sum <- forecast_cases_dat_sum[order(forecast_cases_dat_sum$coverage), ]
 
-  forecast_cases_dat <- forecast_cases_dat %>%
-    select(-weighted_diff)
+  forecast_cases_dat <- forecast_cases_dat
   return(list(
     individual_quantiles = forecast_cases_dat,
-    quantile_summary = forecast_cases_dat_summ, time_weighted_mspe = round(time_weighted_mspe, 3)
+    quantile_summary = forecast_cases_dat_sum
   ))
 }
 
@@ -496,7 +493,7 @@ plot.forecast_time_period <- function(x, ...) {
 #' @examples
 #' summary(weekly_time_period_result, pred_horizon_str = "1 week ahead")
 summary_season.forecast_time_period <- function(object, pred_horizon_str = NULL, year_input = NULL, ...) {
-  confirm <- p50 <- weighted_diff <- `50 percentile interval bounds` <- `95 percentile interval bounds` <- counts <- median.prediction <- NULL
+  confirm <- p50 <- `50 percentile interval bounds` <- `95 percentile interval bounds` <- counts <- median.prediction <- NULL
   pred_horizon <- weekly_date <- coverage <- NULL
   if (class(object)[1] != "forecast_time_period") {
     stop("input must be object of class forecast_time_period")
@@ -522,7 +519,7 @@ summary_season.forecast_time_period <- function(object, pred_horizon_str = NULL,
     date = object[[length(object)]]$smoothed_date,
     confirm = object[[length(object)]]$smoothed_confirm
   )
-  forecast_cases_dat <- combine_df_pred_case(forecast_dat, smoothed_model_data,
+  forecast_cases_dat <- combine_df_pred_case(forecast_dat,
     pred_horizon_str = eval(parse(text = "pred_horizon_str"))
   )
   forecast_cases_dat <- forecast_cases_dat %>%
@@ -536,16 +533,15 @@ summary_season.forecast_time_period <- function(object, pred_horizon_str = NULL,
       lower_bound50 <= confirm && confirm <= upper_bound50 ~ "50 percentile interval",
       lower_bound90 <= confirm && confirm <= upper_bound90 ~ "95 percentile interval",
     )) %>%
-    dplyr::mutate(weighted_diff = time_weighted_diff(confirm, p50, pred_horizon_str = eval(parse(text = "pred_horizon_str")))) %>%
     dplyr::mutate_if(is.numeric, round) %>%
     dplyr::mutate(`50 percentile interval bounds` = glue::glue("({lower_bound50}-{upper_bound50})")) %>%
     dplyr::mutate(`95 percentile interval bounds` = glue::glue("({lower_bound90}-{upper_bound90})")) %>%
-    dplyr::select(weekly_date, coverage, weighted_diff, confirm, median.prediction = p50, `50 percentile interval bounds`, `95 percentile interval bounds`) %>%
+    dplyr::select(weekly_date, coverage, confirm, median.prediction = p50, `50 percentile interval bounds`, `95 percentile interval bounds`) %>%
     dplyr::rename("Confirmed cases" = confirm, "Predicted cases" = median.prediction)
   if ((any(forecast_cases_dat$coverage %in% "Outside 95 percentile interval"))) {
     warning("Prediction percentile intervals do not cover some data-points in validation fits. Some forecasts may not be reliable")
   }
-  forecast_cases_dat_summ <- forecast_cases_dat %>%
+  forecast_cases_dat_sum <- forecast_cases_dat %>%
     dplyr::group_by(coverage) %>%
     dplyr::summarise(counts = dplyr::n()) %>%
     dplyr::mutate(proportion = round(counts / sum(counts) * 100, 2)) %>%
@@ -553,7 +549,7 @@ summary_season.forecast_time_period <- function(object, pred_horizon_str = NULL,
       sum(proportion[coverage == "50 percentile interval"]) + proportion,
       proportion
     ))
-  forecast_cases_dat_summ$coverage <- factor(forecast_cases_dat_summ$coverage,
+  forecast_cases_dat_sum$coverage <- factor(forecast_cases_dat_sum$coverage,
     levels = c(
       "50 percentile interval",
       "95 percentile interval",
@@ -561,14 +557,11 @@ summary_season.forecast_time_period <- function(object, pred_horizon_str = NULL,
     )
   )
 
-  forecast_cases_dat_summ <- forecast_cases_dat_summ[order(forecast_cases_dat_summ$coverage), ]
-  time_weighted_mspe <- sqrt(mean(forecast_cases_dat$weighted_diff))
+  forecast_cases_dat_sum <- forecast_cases_dat_sum[order(forecast_cases_dat_sum$coverage), ]
 
-  forecast_cases_dat <- forecast_cases_dat %>%
-    select(-weighted_diff)
   return(list(
     individual_quantiles = forecast_cases_dat,
-    quantile_summary = forecast_cases_dat_summ, time_weighted_mspe = round(time_weighted_mspe, 3)
+    quantile_summary = forecast_cases_dat_sum
   ))
 }
 
@@ -596,7 +589,7 @@ summary_season.forecast_time_period <- function(object, pred_horizon_str = NULL,
 #' @examples
 #' summary(weekly_time_period_result, pred_horizon_str = "1 week ahead")
 summary_daily.forecast_time_period <- function(object, ...) {
-  confirm <- p50 <- weighted_diff <- `50 percentile interval bounds` <- `95 percentile interval bounds` <- counts <- median.prediction <- NULL
+  confirm <- p50 <- `50 percentile interval bounds` <- `95 percentile interval bounds` <- counts <- median.prediction <- NULL
   pred_horizon <- daily_date <- coverage <- NULL
   if (class(object)[1] != "forecast_time_period") {
     stop("input must be object of class forecast_time_period")
@@ -616,18 +609,7 @@ summary_daily.forecast_time_period <- function(object, ...) {
       p50 = mean(p50), p25 = mean(p25), p75 = mean(p75),
       p025 = mean(p025), p975 = mean(p975), value = mean(value)
     )
-  # forecast_dat <- forecast_dat %>%
-  # dplyr::filter(pred_horizon == pred_horizon_str)
-  # if (!(pred_horizon_str %in% forecast_dat$pred_horizon)) {
-  #  stop("Prediction horizon not found in time_period_result, please check input")
-  # }
-  # smoothed_model_data <- data.frame(
-  #   date = object[[length(object)]]$smoothed_date,
-  #   confirm = object[[length(object)]]$smoothed_confirm
-  # )
-  # forecast_cases_dat <- combine_df_pred_case(forecast_dat, smoothed_model_data,
-  #                                            pred_horizon_str = eval(parse(text = "pred_horizon_str"))
-  # )
+
   forecast_cases_dat <- forecast_dat %>%
     dplyr::left_join(model_data, by = c("daily_date" = "date")) %>%
     dplyr::group_by(daily_date) %>%
@@ -636,16 +618,15 @@ summary_daily.forecast_time_period <- function(object, ...) {
       agg_p25 <= confirm && confirm <= agg_p75 ~ "50 percentile interval",
       agg_p025 <= confirm && confirm <= agg_p975 ~ "95 percentile interval",
     )) %>%
-    dplyr::mutate(weighted_diff = time_weighted_diff(confirm, p50, pred_horizon_str = eval(parse(text = "pred_horizon_str")))) %>%
     dplyr::mutate_if(is.numeric, round) %>%
     dplyr::mutate(`50 percentile interval bounds` = glue::glue("({lower_bound50}-{upper_bound50})")) %>%
     dplyr::mutate(`95 percentile interval bounds` = glue::glue("({lower_bound90}-{upper_bound90})")) %>%
-    dplyr::select(weekly_date, coverage, weighted_diff, confirm, median.prediction = p50, `50 percentile interval bounds`, `95 percentile interval bounds`) %>%
+    dplyr::select(weekly_date, coverage, confirm, median.prediction = p50, `50 percentile interval bounds`, `95 percentile interval bounds`) %>%
     dplyr::rename("Confirmed cases" = confirm, "Predicted cases" = median.prediction)
   if ((any(forecast_cases_dat$coverage %in% "Outside 95 percentile interval"))) {
     warning("Prediction percentile intervals do not cover some data-points in validation fits. Some forecasts may not be reliable")
   }
-  forecast_cases_dat_summ <- forecast_cases_dat %>%
+  forecast_cases_dat_sum <- forecast_cases_dat %>%
     dplyr::group_by(coverage) %>%
     dplyr::summarise(counts = dplyr::n()) %>%
     dplyr::mutate(proportion = round(counts / sum(counts) * 100, 2)) %>%
@@ -654,7 +635,7 @@ summary_daily.forecast_time_period <- function(object, ...) {
       sum(proportion[coverage == "50 percentile interval"]) + proportion,
       proportion
     ))
-  forecast_cases_dat_summ$coverage <- factor(forecast_cases_dat_summ$coverage,
+  forecast_cases_dat_sum$coverage <- factor(forecast_cases_dat_sum$coverage,
     levels = c(
       "50 percentile interval",
       "95 percentile interval",
@@ -662,13 +643,10 @@ summary_daily.forecast_time_period <- function(object, ...) {
     )
   )
 
-  forecast_cases_dat_summ <- forecast_cases_dat_summ[order(forecast_cases_dat_summ$coverage), ]
-  time_weighted_mspe <- sqrt(mean(forecast_cases_dat$weighted_diff))
+  forecast_cases_dat_sum <- forecast_cases_dat_sum[order(forecast_cases_dat_sum$coverage), ]
 
-  forecast_cases_dat <- forecast_cases_dat %>%
-    select(-weighted_diff)
   return(list(
     individual_quantiles = forecast_cases_dat,
-    quantile_summary = forecast_cases_dat_summ, time_weighted_mspe = round(time_weighted_mspe, 3)
+    quantile_summary = forecast_cases_dat_sum
   ))
 }

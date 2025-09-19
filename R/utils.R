@@ -257,7 +257,6 @@ create_forecast_df <- function(time_period_result) {
 
 #' Extract combined dataframe with forecast quantiles and weekly case data for summary function
 #' @param forecast_dat output from  \code{create_forecast_df}
-#' @param data *data frame* containing two columns: date and confirm (number of cases per week)
 #' @param pred_horizon_str *string* prediction horizon time period to plot
 #' @return combined dataframe with forecast quantiles and weekly case data for summary function
 #' #' \describe{
@@ -274,30 +273,18 @@ create_forecast_df <- function(time_period_result) {
 #'   \item{confirm}{confirmed weekly cases}
 #' }
 #'
-combine_df_pred_case <- function(forecast_dat, data, pred_horizon_str = NULL) {
+combine_df_pred_case <- function(forecast_dat, pred_horizon_str = NULL) {
   date <- sim_draws <- NULL
-  data <- data %>% dplyr::slice(-c(1, 2))
   future_preds <- as.numeric(substr(pred_horizon_str, 0, 1))
   forecast_dat <- forecast_dat %>%
     dplyr::group_by(date) %>%
     dplyr::slice(1)
+  future_preds <- min(future_preds,nrow(forecast_dat))
   index_future_pred <- c(rev(seq_len(nrow(forecast_dat)))[1:future_preds])
   forecast_dat <- forecast_dat[-index_future_pred, ]
   return(forecast_dat)
 }
 
-#' Extract squared error between predicted and confirmed case values weighted by number of time-points used to make prediction
-#' @param confirm confirmed weekly cases
-#' @param p50 prediction median quantile value
-#' @param pred_horizon_str *string* prediction horizon time period to plot
-#' @return *numeric* Weighted squared error at each data time-point
-time_weighted_diff <- function(confirm, p50, pred_horizon_str = NULL) {
-  future_preds <- as.numeric(substr(pred_horizon_str, 0, 1))
-  squared_diff <- (confirm - p50)^2
-  date_weights <- seq(from = future_preds + 1, to = length(confirm) + future_preds)
-  weighted_squared_diff <- date_weights * squared_diff
-  return(weighted_squared_diff)
-}
 
 #' Helper function to filter and extract first reliable date
 #' @param data weekly transformed PLOVER or PHRDW data
@@ -507,11 +494,9 @@ validation_summary_text <- function(time_period_result) {
   proportion_50 <- summary_table_quantiles$quantile_summary$proportion[1]
   frac_95 <- glue::glue("({summary_table_quantiles$quantile_summary$counts[2]}/{sum(summary_table_quantiles$quantile_summary$counts)})")
   frac_50 <- glue::glue("({summary_table_quantiles$quantile_summary$counts[1]}/{sum(summary_table_quantiles$quantile_summary$counts)})")
-  mspe <- summary_table_quantiles$time_weighted_mspe
   cat(
     "Previous 1-week ahead forecasts had", proportion_50, "%", frac_50, "of the true confirmed cases within the 50% prediction interval",
-    "and", proportion_95, "%", frac_95, "of the true confirmed cases in the 95% prediction interval \n",
-    "\n\n The Mean squared percentage error on the validation set is:", mspe, "\n"
+    "and", proportion_95, "%", frac_95, "of the true confirmed cases in the 95% prediction interval \n"
   )
 }
 
@@ -527,11 +512,9 @@ validation_summary_text_season <- function(time_period_result, year_input = 2021
   proportion_50 <- summary_table_quantiles$quantile_summary$proportion[1]
   frac_95 <- glue::glue("({summary_table_quantiles$quantile_summary$counts[2]}/{sum(summary_table_quantiles$quantile_summary$counts)})")
   frac_50 <- glue::glue("({summary_table_quantiles$quantile_summary$counts[1]}/{sum(summary_table_quantiles$quantile_summary$counts)})")
-  mspe <- summary_table_quantiles$time_weighted_mspe
   cat(
     "In the", year_input, "season,", "Previous 1-week ahead forecasts had", proportion_50, "%", frac_50, "of the true confirmed cases within the 50% prediction interval",
-    "and", proportion_95, "%", frac_95, "of the true confirmed cases in the 95% prediction interval \n",
-    "\n\n The Mean squared percentage error on the validation set is:", mspe, "\n"
+    "and", proportion_95, "%", frac_95, "of the true confirmed cases in the 95% prediction interval \n"
   )
 }
 
