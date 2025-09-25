@@ -26,7 +26,8 @@ time_period_result_daily <- forecast_time_period(
 )
 
 plot_validation(time_period_result_daily, pred_plot = "ribbon") +
-  ggplot2::coord_cartesian(ylim=c(0,500),expand=FALSE)
+  ggplot2::coord_cartesian(ylim=c(0,90),expand=FALSE)
+  
 
-plot_validation(time_period_result_daily, pred_plot = "error_bar") +
-  ggplot2::coord_cartesian(ylim=c(0,500),expand=FALSE)
+# plot_validation(time_period_result_daily, pred_plot = "error_bar") +
+#   ggplot2::coord_cartesian(ylim=c(0,70),expand=FALSE)

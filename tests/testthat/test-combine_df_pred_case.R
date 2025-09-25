@@ -8,7 +8,7 @@ test_that("combine_df_pred_case works", {
   forecast_dat <- pred_interval_forecast(time_period_result = test_time_period,
                            pred_horizon = pred_horizon_str)
   expect_no_error({
-    combine_df_pred_case(forecast_dat,smoothed_model_data,
+    combine_df_pred_case(forecast_dat,
                          pred_horizon_str = pred_horizon_str)
   })
 

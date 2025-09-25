@@ -96,30 +96,29 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
   data <- data %>%
     dplyr::filter(date > start_date)
 
+  # remove days at the start with zero confirmed cases
   non_zero_dates <- data %>%
     dplyr::filter(confirm > 0) %>%
     pull(date)
-
   data <- data %>%
     dplyr::filter(date >= non_zero_dates[1])
 
+  # check valid days
+  check_min_days(data)
 
-  start_index <- which(data$date == min(data$date)) + 14
-  time_length <- nrow(data) - start_index
-  time_index <- seq(from = start_index, to = time_length + 14)
+  # get time index after the 14th days
+  time_index <- seq(from = 14, to = nrow(data))
 
   time_period_result <- lapply(time_index, function(tp) {
-    model_data <- extend_rows_model_data(
-      data = data, min_model_date_str = min(data$date),
-      extension_interval = tp
-    )
 
+    # extract model data with extension during each iteration of loop
+    model_data <- data %>%
+      dplyr::arrange(date) %>%
+      dplyr::filter(date >= min(data$date), date <= data$date[tp])
 
     if (verbose) {
       message(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))
     }
-
-
 
     smoothed_output <- smooth_model_data(model_data, smoothing_cutoff = smoothing_cutoff)
 
