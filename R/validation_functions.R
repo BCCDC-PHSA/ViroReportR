@@ -121,9 +121,9 @@ plot_validation <- function(time_period_result, pred_plot = "ribbon") {
     ggplot2::coord_cartesian(ylim = c(0, 500), expand = FALSE) +
     ggplot2::theme_bw() +
     ggplot2::labs(x = "Date", y = paste0("Prediction of confirmed cases", fill = "", colour = "")) +
-    ggplot2::ggtitle(paste0(toupper(substr(pred_plot, 1, 1)), substr(pred_plot, 2, nchar(pred_plot)), " plot of predictions")) +
+    ggplot2::ggtitle(paste0(gsub("_"," ",paste0(toupper(substr(pred_plot, 1, 1)), substr(pred_plot, 2, nchar(pred_plot)))), " plot of predictions")) +
     ggplot2::theme(
-      legend.title = ggplot2::element_blank(), legend.position = "right",
+      legend.title = ggplot2::element_blank(), legend.position = "None",
       axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
     )
 
@@ -139,6 +139,7 @@ plot_validation <- function(time_period_result, pred_plot = "ribbon") {
     p <- base_plot +
       ggplot2::geom_ribbon(aes(ymin = lower_bound90, ymax = upper_bound90), alpha = 0.3, color = NA) +
       ggplot2::scale_color_manual(values = blue_grad_20) +
+      ggplot2::scale_fill_manual(values = blue_grad_20) +
       ggplot2::geom_line(size = 1)
   }
 
