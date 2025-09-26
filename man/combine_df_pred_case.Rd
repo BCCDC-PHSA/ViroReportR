@@ -4,12 +4,10 @@
 \alias{combine_df_pred_case}
 \title{Extract combined dataframe with forecast quantiles and weekly case data for summary function}
 \usage{
-combine_df_pred_case(forecast_dat, data, pred_horizon_str = NULL)
+combine_df_pred_case(forecast_dat, pred_horizon_str = NULL)
 }
 \arguments{
 \item{forecast_dat}{output from  \code{create_forecast_df}}
-
-\item{data}{\emph{data frame} containing two columns: date and confirm (number of cases per week)}
 
 \item{pred_horizon_str}{\emph{string} prediction horizon time period to plot}
 }

@@ -152,8 +152,6 @@ summary(time_period_result_daily, pred_horizon_str = "7 days ahead")
 #> 1 95 percentile interval              1       7.69
 #> 2 Outside 95 percentile interval     12      92.3 
 #> 
-#> $time_weighted_mspe
-#> [1] 268186651037
 ```
 
 Finally, the `ViroReportR` package can conveniently generate an

@@ -50,6 +50,13 @@ test_that("Start date greater than or equal to end date throws an error", {
   )
 })
 
+test_that("check_min_days work properly when start date is not first observation in dataset", {
+  expect_error(forecast_time_period_epiestim(
+    data = test_data, start_date = "2024-01-05", n_days = 14, type = "flu_a",
+    time_period = "daily"),
+    "At least 14 days of data are needed.")
+})
+
 
 
 # Test function output --------------------------------
@@ -71,19 +78,14 @@ test_that("n_days works correctly to produce number of daily quantiles (even if 
   expect_equal(length(result[[1]]$quantile_date), 3)
 })
 
-test_that("extend_model_data works correctly and dimension of list produced is correct", {
+test_that("trim data works correctly and dimension of list produced is correct", {
   result <- forecast_time_period_epiestim(
     data = test_data, start_date = "2024-01-01", n_days = 14, type = "flu_a",
     time_period = "daily"
   )
-  expect_equal(length(result), nrow(test_data) - 3)
-})
-
-test_that("extend_model_data indexes properly when start date is not first observation in dataset", {
-  expect_equal(length(forecast_time_period_epiestim(
-    data = test_data, start_date = "2024-01-05", n_days = 14, type = "flu_a",
-    time_period = "daily"
-  )), nrow(test_data) - 5 - 1)
+  # function trims dataset so that it starts from the first day with at least one confirmed case
+  # function will removing all earlier days where confirm == 0
+  expect_equal(length(result), nrow(dplyr::filter(test_data, date >= min(date[confirm > 0]))) - 13)
 })
 
 

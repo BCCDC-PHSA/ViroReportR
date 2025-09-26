@@ -21,7 +21,7 @@ test_that("summary.forecast_time_period returns expected list structure", {
   forecast_obj <- create_test_forecast_time_period()
   result <- summary(forecast_obj, pred_horizon_str = "7 days ahead")
   expect_type(result, "list")
-  expect_named(result, c("individual_quantiles", "quantile_summary", "time_weighted_mspe"))
+  expect_named(result, c("individual_quantiles", "quantile_summary"))
 })
 
 test_that("individual_quantiles contains expected columns", {
@@ -45,12 +45,6 @@ test_that("quantile_summary contains expected columns and factor levels", {
 
 
 
-test_that("time_weighted_mspe is numeric and non-negative", {
-  forecast_obj <- create_test_forecast_time_period()
-  result <- summary(forecast_obj, pred_horizon_str = "7 days ahead")
-  expect_type(result$time_weighted_mspe, "double")
-  expect_gte(result$time_weighted_mspe, 0)
-})
 
 
 
