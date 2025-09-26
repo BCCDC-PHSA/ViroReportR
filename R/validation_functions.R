@@ -114,7 +114,7 @@ forecast_time_period_epiestim <- function(data, start_date, n_days = 7, time_per
     # extract model data with extension during each iteration of loop
     model_data <- data %>%
       dplyr::arrange(date) %>%
-      dplyr::filter(date >= min(data$date), date <= data$date[tp])
+      dplyr::filter(date <= data$date[tp])
 
     if (verbose) {
       message(paste0("Current time period: ", tp, " ", "(", max(model_data$date), ")"))

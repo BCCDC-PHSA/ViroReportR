@@ -23,7 +23,7 @@ test_that("forecast_epiestim returns expected output structure", {
 
   # check output type and columns
   expect_s3_class(res, "data.frame")
-  expect_true(all(c("date", "incidence", "sim") %in% names(res)))
+  expect_true(all(c("date", "p50", "p25", "p75", "p025", "p975", "min_sim", "max_sim") %in% names(res)))
 
   # check that forecast includes requested horizon
   expect_true(min(res$date) > max(test_data$date))
@@ -57,8 +57,8 @@ test_that("forecast_epiestim respects smoothing option", {
 
   expect_s3_class(res_no_smooth, "data.frame")
   expect_s3_class(res_smooth, "data.frame")
-  expect_true(all(c("date", "incidence", "sim") %in% names(res_smooth)))
-  expect_true(all(c("date", "incidence", "sim") %in% names(res_no_smooth)))
+  expect_true(all(c("date", "p50", "p25", "p75", "p025", "p975", "min_sim", "max_sim") %in% names(res_smooth)))
+  expect_true(all(c("date", "p50", "p25", "p75", "p025", "p975", "min_sim", "max_sim") %in% names(res_no_smooth)))
 })
 
 test_that("forecast_epiestim errors with invalid input", {
