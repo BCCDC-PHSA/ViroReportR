@@ -1,0 +1,223 @@
+---
+title: "Summary report of short-term forecasts for viral respiratory diseases by `ViroReportR`"
+output: 
+  html_document:
+    toc: true
+editor_options: 
+  chunk_output_type: console
+params:
+  filepath: "O:\\BCCDC\\Groups\\Data_Linked\\Archive\\PANDA\\nb0077\\New_Data/all_disease_data.csv"
+  start_date: NULL
+  n_days: 7
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+# setup -------------------------------------------------------------------
+library(dplyr)
+library(ViroReportR)
+library(ggplot2)
+
+forecast_horizon <- params$n_days
+```
+
+## Overview
+
+This document provides an overview and usage guide for the `ViroReportR` package. The report presents the forecast of `r forecast_horizon`-days ahead confirmed cases for the 3 prevalent respiratory viral cases in BC (Flu-A, RSV and SARS-CoV-2).
+
+`ViroReportR` package uses `EpiEstim` as the backend to forecast daily confirmed cases, which forecasts cases by estimating the instantaneous reproduction number using the [Cori method](https://academic.oup.com/aje/article/178/9/1505/89262) and then simulating the number of new cases using fixed exponential growth over a given time period. This model is designed for short-term forecasting, and its predictive accuracy decreases when extending beyond the optimal 7-14 days horizon.
+
+## Key Functionality
+
+### Core Forecasting Function
+
+#### `forecast_epiestim()`
+
+**Purpose:** Main wrapper function that combines data cleaning, model fitting, and forecast generation into one step.
+
+**Key Steps** 
+
+1. Checks data format and ensures there are at least 14 days of data. 
+2. Filters data after the provided `start_date`. 
+3. Removes pre-epidemic zero-case days. 
+4. Optionally smooths data using `smooth_model_data()`. 
+5. Fits reproduction model and generates forecasts. 
+6. Summarizes results with quantile estimates.
+
+**Arguments**
+
+| Argument             | Description                                                               |
+|--------------------------------|----------------------------------------|
+| **data**             | Data frame with `date` and `confirm` columns.                             |
+| **start_date**       | Start date of epidemic period.                                            |
+| **window_size**      | Rolling window size for $R_t$ estimation.                                 |
+| **n_days**           | Forecast horizon (default = 7 days).                                      |
+| **type**             | Epidemic type (`"flu_a"`, `"flu_b"`, `"rsv"`, `"sars_cov2"`, `"custom"`). |
+| **smooth_data**      | Logical; whether to smooth input curve.                                   |
+| **smoothing_cutoff** | Minimum rows required for smoothing (default = 10).                       |
+| **...**              | Extra parameters passed to `fit_epiestim_model()`.                        |
+
+**Returns**
+
+Data frame containing: 
+  - `date`: forecast date
+  - `p025`, `p25`, `p50`, `p75`, `p975`: forecast quantiles
+  - `min_sim`, `max_sim`: forecast range
+
+### Supporting Functions
+
+| Function                   | Description                                                                                  |
+|---------------------------------|---------------------------------------|
+| **`fit_epiestim_model()`** | Function to estimate the reproduction number of epidemics to support short-term forecasts.   |
+| **`generate_forecasts()`** | Produce short-term daily projections.                                                        |
+| **`smooth_model_data()`**  | Applies P-spline smoothing using a Generalized Additive Model (GAM) to the input model data. |
+
+### Model Validation and Visualization
+
+#### `forecast_time_period()`
+
+**Purpose:** This function runs the forecasting routine across a specified evaluation window. It returns a structured object containing both observed and predicted values for each evaluation period.
+
+**Arguments**
+
+| Argument        | Description                                                              |
+|--------------------------------|----------------------------------------|
+| **data**        | Data frame with `date` and `confirm` columns.                            |
+| **start_date**  | Beginning of the evaluation window.                                      |
+| **time_period** | Evaluation granularity ("daily", "weekly", etc.).                        |
+| **n_days**      | Forecast horizon (default = 7 days).                                     |
+| **type**        | Disease type (`"flu_a"`, `"flu_b"`, `"rsv"`, `"sars_cov2"`, `"custom"`). |
+| **algorithm**   | Forecasting algorithm used --- here, "EpiEstim".                         |
+| **...**         | Extra parameters passed to `fit_epiestim_model()`.                       |
+
+#### `plot_validation()`
+
+This function visualizes the comparison between observed and predicted incidence.
+The pred_plot = "ribbon" option displays prediction intervals as shaded regions around the median forecast.
+
+The resulting plot includes:
+  - Black points: observed incidence.
+  - Blue line: median predicted incidence (p50).
+  - Shaded ribbon: forecast uncertainty (e.g., 25th–75th percentile).
+
+## Example Workflow
+
+### Create simulate data
+
+In this workflow, we simulate RSV incidence data, format it for analysis, and generate short-term forecasts using the EpiEstim-based forecasting functions. We demonstrate the impact of smoothing on forecast results.
+
+```{r}
+# create simulate RSV data
+disease_type <- "rsv"
+test_data <- simulate_data(noise_sd=5)
+formatted_data <- get_aggregated_data(
+  test_data,
+  number_column = disease_type,
+  date_column = "date",
+  start_date = "2024-04-01",
+  end_date = "2024-05-01"
+)
+```
+
+### Running Forecasts
+
+We generate two forecasts:
+
+With smoothing -- reduces noise in observed case counts to stabilize the {R_t}estimation.
+
+Without smoothing -- uses raw counts directly, showing more variability in predictions.
+
+```{r}
+# Run forecasting with smoothing
+res_smooth <- forecast_epiestim(
+  data = formatted_data,
+  start_date = "2024-04-01",
+  n_days = forecast_horizon,
+  type = "rsv",
+  smooth_data = T
+)
+
+# Run forecasting without smoothing
+res_non_smooth <- forecast_epiestim(
+  data = formatted_data,
+  start_date = "2024-04-01",
+  n_days = forecast_horizon,
+  type = "rsv",
+  smooth_data = F
+)
+```
+
+### Viewing Forecast Results
+
+The resulting objects (`res_smooth` and `res_non_smooth`) are lists containing daily forecast quantiles, including: - p025 -- 2.5th percentile - p25 -- 25th percentile - p50 -- median prediction - p75 -- 75th percentile - p975 -- 97.5th percentile
+
+Each row corresponds to a forecasted day, and the columns contain the forecast median and uncertainty intervals.
+
+***Smoothed Forecast Result***
+```{r}
+res_smooth
+```
+
+***Non-Smoothed Forecast Result***
+```{r}
+res_non_smooth
+```
+
+### Visualizing Forecasts
+
+We can visualize forecasts using ribbon plots, where:
+
+-   The shaded ribbon represents the 50% prediction interval.
+-   The blue line shows the median forecast.
+-   Observed case counts are plotted as black points for comparison.
+
+***Smoothed Forecast Plot***
+
+```{r}
+ggplot(res_smooth, aes(x = date)) +
+  geom_ribbon(aes(ymin = p25, ymax = p75), fill = "skyblue", alpha = 0.4) +
+  geom_line(aes(y = p50), color = "blue", size = 1) +
+  geom_point(data = formatted_data, aes( x = date, y = confirm), color = "black", size = 1) +
+  labs(
+    title = paste0(forecast_horizon, "-Day Forecast of Daily RSV Cases (Smoothed)"),
+    x = "Date", y = "Predicted Cases"
+  ) +
+  theme_minimal()
+```
+
+***Non-Smoothed Forecast Plot***
+
+```{r}
+ggplot(res_non_smooth, aes(x = date)) +
+  geom_ribbon(aes(ymin = p25, ymax = p75), fill = "skyblue", alpha = 0.4) +
+  geom_line(aes(y = p50), color = "blue", size = 1) +
+  geom_point(data = formatted_data, aes( x = date, y = confirm), color = "black", size = 1) +
+  labs(
+    title = paste0(forecast_horizon, "-Day Forecast of Daily RSV Cases (Non-Smoothed)"),
+    x = "Date", y = "Predicted Cases"
+  ) +
+  theme_minimal()
+```
+
+## Validation
+
+This section demonstrates how to validate the forecast model by comparing predicted values against observed data over a specified time period.
+
+```{r}
+time_period_result_daily <- forecast_time_period(
+  data = formatted_data,
+  start_date = "2024-04-01",
+  n_days = forecast_horizon,
+  type = "rsv",
+  time_period = "daily",
+  algorithm = "EpiEstim"
+)
+```
+
+The validation results can be visualized using plot_validation(), which overlays predicted intervals and observed data points.
+
+```{r}
+plot_validation(time_period_result_daily, pred_plot = "ribbon") +
+  ggplot2::coord_cartesian(ylim=c(0,90),expand=FALSE)
+```
+

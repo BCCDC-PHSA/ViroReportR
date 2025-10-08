@@ -32,7 +32,7 @@ fit_epiestim_model <- function(data, dt = 1L, window_size = 7L,type = NULL, mean
     stop("Must pass a data frame with two columns: date and confirm")
   }
   if (missing(type) || !(type %in% c("flu_a", "flu_b", "sars_cov2", "rsv", "custom"))) {
-    stop("Must specify the type of epidemic (flu_a, flu_b, covid, rsv or custom)")
+    stop("Must specify the type of epidemic (flu_a, flu_b, sars_cov2, rsv or custom)")
   }
   if (type == "custom" && any(is.null(mean_si), is.null(std_si), is.null(mean_prior), is.null(std_prior))) {
     stop("Must specify mean_si, std_si, mean_prior and std_prior for type custom")
