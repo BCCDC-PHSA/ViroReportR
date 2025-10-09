@@ -19,14 +19,14 @@ test_that("Data frame input error handling correct", {
 
 test_that("Typo in type error correct", {
   expect_error(fit_epiestim_model(data = formatted_simulated_data, type = "coviad"),
-    "Must specify the type of epidemic (flu_a, flu_b, covid, rsv or custom)",
+    "Must specify the type of epidemic (flu_a, flu_b, sars_cov2, rsv or custom)",
     fixed = TRUE
   )
 })
 
 test_that("Missing type error correct", {
   expect_error(fit_epiestim_model(data = formatted_simulated_data),
-    "Must specify the type of epidemic (flu_a, flu_b, covid, rsv or custom)",
+    "Must specify the type of epidemic (flu_a, flu_b, sars_cov2, rsv or custom)",
     fixed = TRUE
   )
 })
