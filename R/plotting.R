@@ -98,7 +98,14 @@ plot_forecast_comparison <- function(...) {
 #' @export
 plot_rt <- function(time_period_result) {
   last_time_period <- time_period_result[[length(time_period_result)]]
-  model_data_dates <- last_time_period$model_data_date
+
+  # check input from validation or forecast func
+  if("model_data_date" %in% names(last_time_period)){
+    model_data_dates <- last_time_period$model_data_date
+  }else{
+    model_data_dates <- last_time_period$dates
+  }
+
   rt_dat <- last_time_period[["R"]]
   rt_start_date <- model_data_dates[1]
   rt_date_seq <- seq(rt_start_date, by = "day", length.out = length(rt_dat$t_start))

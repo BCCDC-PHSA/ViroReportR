@@ -4,9 +4,10 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 params:
-  filepath: "O:\\BCCDC\\Groups\\Data_Linked\\Archive\\PANDA\\nb0077\\New_Data/all_disease_data.csv"
+  filepath: NULL
   start_date: NULL
   n_days: 7
+  smooth: TRUE
 ---
 
 
@@ -14,7 +15,7 @@ params:
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 # setup -------------------------------------------------------------------
 library(dplyr)
-library(ViroReportR)
+# library(ViroReportR)
 library(ggplot2)
 library(here)
 library(DT)
@@ -25,119 +26,160 @@ library(purrr)
 ```{r load data}
 # Load data
 vri_data <- read.csv(file.path(params$filepath))
+
 vri_data$date <- lubridate::ymd(vri_data$date)
 
 # VRI data set-up
-disease_dict <- vri_data %>% 
+vri_name_list <- vri_data %>% 
     dplyr::group_by(disease_type) %>% 
   dplyr::group_keys() %>% pull()
 
 
-vri_list <- vri_data %>% 
+vri_data_list <- vri_data %>% 
   dplyr::group_by(disease_type) %>% 
   dplyr::group_map(~.x)
 
 # document parameters set-up
 start_date <- params$start_date
 if(is.null(start_date)){
-  start_date <- min(vri_data$date)
+  start_date <- min(vri_data$date) + 13
 }
 
 forecast_horizon <- params$n_days
-
+# forecast_horizon <- 7
+smooth <- params$smooth
+# smooth <- TRUE
 ```
 
 
 
 ```{r generate forecasts}
-forecasts <- tibble(
-  plover_list = vri_list,
+forecasts_results <- tibble(
+  vri_data_list,
   forecasts = map2(
-    vri_list,
-    disease_dict,
-    ~ forecast_time_period(.x,
+    vri_data_list,
+    vri_name_list,
+    ~ forecast_epiestim(
+      data = .x,
+      smooth_data = smooth,
       type = .y,
       n_days = forecast_horizon,
       start_date = start_date
     )
   )
 )
+
+names(forecasts_results$forecasts) <- vri_name_list
+names(forecasts_results$vri_data_list) <- vri_name_list
 ```
-
-
-```{r assign pretty dict names}
-# Fix names
-names(plover_forecasts$forecasts) <- disease_dict
-names(phrdw_forecasts$forecasts) <- disease_dict
-
-names(plover_forecasts$plover_list) <- disease_dict
-names(phrdw_forecasts$phrdw_list) <- disease_dict
-```
-
 
 ## Description
 
 This report provides the forecast of `r forecast_horizon`-days ahead confirmed cases for the 3 prevalent respiratory viral cases in BC (Flu-A, RSV and SARS-CoV-2). Forecast reports were generated using the Provincial Lab (PLIS) data. `vriforecasting` uses `EpiEstim` as the backend to forecast weekly confirmed cases, which forecasts cases by estimating the instantaneous reproduction number using the [Cori method](https://academic.oup.com/aje/article/178/9/1505/89262) and then simulating the number of new cases using fixed exponential growth over a given time period. This is a short term prediction model, meaning that an increase in the time-period horizon over an optimal horizon of 1 or 2-weeks ahead results in a decline of prediction performance. The report is divided into two sections: `r forecast_horizon`-days forecast for the current season of respiratory cases as well as validation plots and metrics for the performance of the forecasting model on historical data to help in the assessment of model performance. 
 
-# Current season forecast {.tabset}
+# `r forecast_horizon`-days ahead forecast {.tabset}
 
-### Description 
+### Description {.tabset}
 
-This section presents the 1-week ahead model forecast for the current season for both PHRDW and PLOVER data. The 1-week ahead forecasted confirmed cases is reported with the 95% and 50% prediction interval. The last estimated reproduction number is also reported with the 95% confidence interval. 
+This section presents the `r forecast_horizon`-days ahead forecasts for each virus. The forecasts include:
 
-```{r PLOVER forecast plots and info, results = "asis", out.width = '80%'}
-for (vri in disease_dict) {
-  cat(glue::glue("### {vri} {{.tabset}}"))
+- Median predicted cases (p50)
+- Prediction intervals (50% and 95%)
+- The last estimated Rₜ value with 95% confidence intervals
+
+Plots show the predicted cases alongside historical observations, helping visualize the expected trajectory of cases over the short-term forecast horizon.
+
+```{r forecast plots and info, results = "asis", out.width = '80%'}
+for (vri in vri_name_list) {
+  cat(glue::glue("#### {vri} "))
   cat("\n\n\n")
- print(plot(plover_forecasts$forecasts[[vri]]))
+ print(
+  ggplot(forecasts_results$forecasts[[vri]][["forecast_res_quantiles"]], aes(x = date)) +
+  geom_ribbon(aes(ymin = p10, ymax = p90), fill = "skyblue", alpha = 0.4) +
+  geom_line(aes(y = p50), color = "blue", size = 1) +
+  geom_point(data = forecasts_results$vri_data_list[[vri]], aes( x = date, y = confirm), color = "black", size = 1) +
+  labs(
+    title = paste0(forecast_horizon, "-Day Forecast of Daily RSV Cases (Smoothed)"),
+    x = "Date", y = "Predicted Cases"
+  ) +
+  theme_minimal())
   cat("\n\n\n")
- print(ViroReportR:::plot_rt(phrdw_forecasts$forecasts[[vri]]))
+ print(ViroReportR:::plot_rt(forecasts_results$forecasts[[vri]]))
   cat("\n\n\n")
-  ViroReportR:::current_forecast_text(plover_forecasts$forecasts[[vri]])
+  ViroReportR:::current_forecast_text(forecasts_results$forecasts[[vri]])
   cat("\n\n\n")
 }
 ```
 
 
-# 1-week ahead Model Forecast Validation {.tabset}
+# `r forecast_horizon`-days ahead Model Forecast Validation
 
-### Description 
+### Description {.tabset}
 
- The forecasting model is trained by fitting to historical data, which is used to then make the prediction 1-week ahead. Here, the fit of the model to the known historical data can be visualized. Overlap between the prediction interval and the historical cases indicates the performance of the model to forecast new cases over a 1 week time horizon
+The forecasting model is trained on historical data and used to predict daily cases `r forecast_horizon`-days ahead. Validation compares the model's forecasted values with observed historical data. Overlap between the prediction intervals and actual cases indicates good model performance.
 
-```{r PLOVER forecast validation plots, results = "asis", out.width = '90%'}
-for (vri in disease_dict) {
+```{r forecast validation plots, results = "asis", out.width = '90%'}
+validation_results <- tibble(
+  vri_data_list,
+  validation = map2(
+    vri_data_list,
+    vri_name_list,
+    ~ forecast_time_period(
+      data = .x,
+      type = .y,
+      n_days = forecast_horizon,
+      start_date = min(.x$date, na.rm = T),
+      time_period = "daily",
+      algorithm = "EpiEstim"
+    )
+  )
+)
+names(validation_results$validation) <- vri_name_list
+names(validation_results$vri_data_list) <- vri_name_list
+
+for (vri in vri_name_list) {
   cat("\n\n\n")
-  cat(glue::glue("### {vri} {{.tabset}}"))
+  cat(glue::glue("#### {vri}"))
   cat("\n\n\n")
-  print(plot_validation(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], pred_horizon_str = "1 week ahead", pred_plot = "violin"))
+  print(plot_validation(validation_results$validation[[vri]], pred_plot = "ribbon"))
 }
 ```
 
-# Forecast validation metrics {.tabset}
+# Forecast Validation Metrics
 
-### Description 
+### Description {.tabset}
 
- The forecasting model is trained by fitting to historical data, which is used to then make the prediction 1-week ahead. Here, the fit of the model to the known historical data is summarized. For each of the weekly historical forecasts, the metrics output whether the forecasted confirmed cases lie in the 50 or 95% percentile interval as well as the mean-squared percentage error. A higher mean squared percentage error and a relatively larger proportion of forecasts outside the 95% percentile interval are indicative of poor quality historical (and thus likely current) forecasts. 
+This section summarizes the predictive performance of the forecasting model using quantitative metrics:
 
-```{r DT initialization, include=FALSE}
-htmltools::tagList(datatable(ViroReportR:::summary_ind_quantiles_formatter(time_period_result = plover_forecasts$forecasts$`Influenza-A`, data = plover_forecasts$plover_list$`Influenza-A`)))
-```
+- SMAPE (Symmetric Mean Absolute Percentage Error): Measures forecast accuracy while handling zero values in observed data. Lower values indicate better predictions.
 
-```{r PLOVER forecast validation metrics, results = "asis"}
-for (vri in disease_dict) {
+- MASE (Mean Absolute Scaled Error): Scales forecast errors relative to the average absolute change in historical observations. Values closer to 1 indicate performance similar to a naïve forecast; values <1 indicate better predictive performance.
+
+For each virus, the metrics table reports:
+
+- The training period used for model fitting
+- The forecast period being evaluated
+- SMAPE and MASE values
+
+Higher SMAPE or MASE values suggest poorer historical forecast performance, which may indicate potential limitations in current short-term forecasts.
+
+```{r forecast validation metrics, results = "asis"}
+for (vri in vri_name_list) {
+  cat(glue::glue("#### {vri}"))
   cat("\n\n\n")
-  cat(glue::glue("### {vri} {{.tabset}}"))
-  cat("\n\n\n")
-  print(htmltools::tagList(datatable(ViroReportR:::summary_ind_quantiles_formatter(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]]))))
-  cat("\n\n\n")
-  ViroReportR:::validation_summary_text(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]])
-  cat("\n\n\n")
-   ViroReportR:::validation_summary_text_season(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], year = 2021)
-  cat("\n\n\n")
-    ViroReportR:::validation_summary_text_season(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], year = 2022)
-  cat("\n\n\n")
-   ViroReportR:::validation_summary_text_season(time_period_result = plover_forecasts$forecasts[[vri]], data = plover_forecasts$plover_list[[vri]], year = 2023)
+  table_html <- forecast_validation_metric(
+    validation_res = validation_results$validation[[vri]]
+    ) %>%
+  as.data.frame() %>%
+  knitr::kable(escape = FALSE, booktabs = TRUE) %>%
+  kableExtra::kable_styling(full_width = FALSE) %>%
+  as.character()
+  
+  cat(table_html, "\n\n")
+  
+  # print(htmltools::tagList(ViroReportR:::forecast_validation_metric(validation_res = validation_results$validation[[vri]])))
+  # print(datatable(ViroReportR:::forecast_validation_metric(validation_res = validation_results$validation[[vri]])))
+  # cat("\n\n\n")
 }
 ```
 

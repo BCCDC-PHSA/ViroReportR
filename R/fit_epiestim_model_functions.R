@@ -307,11 +307,12 @@ forecast_epiestim <- function(
                                      model_fit = epiestim_estimates,
                                      n_days = n_days)
 
-  forecast_res <- forecast_res %>%
+  forecast_res_quantiles <- forecast_res %>%
     dplyr::rename(date = date, sim = sim, daily_incidence = incidence) %>%
     create_quantiles(date, variable = "daily_incidence")
 
-  return(forecast_res)
+  return(list(forecast_res_quantiles = forecast_res_quantiles,
+              epiestim_estimates = epiestim_estimates))
 }
 
 
