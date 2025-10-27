@@ -321,7 +321,7 @@ forecast_epiestim <- function(
 #' 	- `data`: A data frame with smoothed `confirm` values.
 #' 	- `error`: Estimated uncertainty of the smoothing process.
 #'
-#' @importFrom mgcv gam predict vcov
+#' @importFrom mgcv gam
 #' @importFrom stats coef qnorm rnorm quantile
 #' @importFrom dplyr mutate
 #' @noRd
