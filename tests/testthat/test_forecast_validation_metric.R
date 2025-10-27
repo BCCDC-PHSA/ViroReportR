@@ -1,4 +1,4 @@
-create_test_forecast_validation <- function(){
+test_that("forecast_validation_metric returns expected list structure", {
   set.seed(123)
   daily_data <- simulate_data(days = 30, peaks = c(flua = 60),
                               amplitudes = c(flua = 90),
@@ -10,7 +10,7 @@ create_test_forecast_validation <- function(){
                            confirm = daily_data[[disease_type]])
 
   # Run forecast_time_period
-  result <- validate_forecast(
+  forecast_obj <- validate_forecast(
     data = daily_flua,
     start_date = "2024-01-10",
     n_days = 7,
@@ -20,6 +20,8 @@ create_test_forecast_validation <- function(){
     smooth_data = T,
     smoothing_cutoff = 10
   )
-
-  return(result)
-}
+  result <- forecast_validation_metric(data = daily_flua,
+                                       validation_res = forecast_obj)
+  expect_type(result, "list")
+  expect_named(result, c("train_period","forecast_period", "smape","mase"))
+})

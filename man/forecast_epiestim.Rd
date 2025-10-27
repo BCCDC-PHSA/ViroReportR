@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_epiestim_model_functions.R
 \name{forecast_epiestim}
 \alias{forecast_epiestim}
-\title{Main function to run the forecast model}
+\title{Forecast daily epidemic cases using EpiEstim}
 \usage{
 forecast_epiestim(
   data,
@@ -15,6 +15,91 @@ forecast_epiestim(
   ...
 )
 }
+\arguments{
+\item{data}{\emph{data frame}
+Must contain two columns:
+\itemize{
+\item \code{date}: observation dates
+\item \code{confirm}: daily confirmed cases
+}}
+
+\item{start_date}{\emph{Date}
+Date after which the epidemic is considered to have started. Data before
+this date is removed.}
+
+\item{window_size}{\emph{Integer}
+Length of the sliding window (in days) used for reproduction number
+estimation. Default is 7.}
+
+\item{n_days}{\emph{Integer}
+Number of future days to forecast. Default is 7.}
+
+\item{type}{\emph{character}
+Type of epidemic. Must be one of \code{"flu_a"}, \code{"flu_b"}, \code{"rsv"},
+\code{"sars_cov2"}, or \code{"custom"}. Passed to
+\code{\link{fit_epiestim_model}}.}
+
+\item{smooth_data}{\emph{logical}
+Whether to smooth the input daily case counts before estimation. Default
+is \code{FALSE}.}
+
+\item{smoothing_cutoff}{\emph{Integer}
+Cutoff parameter for smoothing. Only used if \code{smooth_data = TRUE}.
+Default is 10.}
+
+\item{...}{Additional arguments passed to \code{\link{fit_epiestim_model}}.}
+}
+\value{
+A data frame of forecasted daily incidence with columns:
+\itemize{
+\item \code{date}: date of forecast
+\item \code{p50}, \code{p25}, \code{p75}, \code{p025}, \code{p975}: forecast quantiles
+\item \code{min_sim}, \code{max_sim}: forecast range
+}
+}
 \description{
-Main function to run the forecast model
+This function prepares epidemic data, estimates the reproduction number
+(\eqn{R_t}) using \code{\link{fit_epiestim_model}}, and produces short-term
+forecasts of daily confirmed cases with \code{\link{generate_forecasts}}.
+
+It removes early periods with no cases, checks data validity, optionally
+smooths the epidemic curve, and then generates forward projections of cases
+for a specified number of days.
+}
+\details{
+\itemize{
+\item Data prior to the first non-zero \code{confirm} value is excluded.
+\item Input is checked for validity (sufficient days, proper format).
+\item If smoothing is enabled, case counts are adjusted before fitting.
+\item Forecasts are generated from the fitted EpiEstim model and returned with
+quantiles (2.5\%, 25\%, 50\%, 75\%, 97.5\%), minimum, and maximum.
+}
+}
+\examples{
+\dontrun{
+
+# Create sample test rsv data
+disease_type <- "rsv"
+test_data <- simulate_data()
+formatted_data <- get_aggregated_data(
+  test_data,
+  number_column = disease_type,
+  date_column = "date",
+  start_date = "2024-04-01",
+  end_date = "2024-05-01"
+)
+
+# Run a 7 day forecast with smoothing
+res_smooth <- forecast_epiestim(
+  data = formatted_data,
+  start_date = "2024-04-01",
+  n_days = 7,
+  type = "rsv",
+  smooth_data = T
+)
+}
+}
+\seealso{
+\code{\link{fit_epiestim_model}} for reproduction number estimation,
+\code{\link{generate_forecasts}} for forward simulations.
 }

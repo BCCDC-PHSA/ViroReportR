@@ -36,13 +36,6 @@ test_that("Type custom correctly checks that all custom arguments must not be nu
   "Must specify mean_si, std_si, mean_prior and std_prior for type custom")
 })
 
-test_that("Tring to use weekly data throws error", {
-  expect_error(
-    fit_epiestim_model(data = formatted_simulated_data, type = "rsv", dt=7L),
-    "Weekly data not currently implmented. Use only daily data."
-  )
-})
-
 
 # Test function warning handling --------------------------------
 

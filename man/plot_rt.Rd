@@ -4,7 +4,7 @@
 \alias{plot_rt}
 \title{Plot Mean Rt with time index (dates)}
 \usage{
-plot_rt(time_period_result)
+plot_rt(forecast_results)
 }
 \arguments{
 \item{time_period_result}{output from  \code{forecast_time_period}}

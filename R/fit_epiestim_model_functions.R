@@ -8,7 +8,6 @@
 #'
 #'
 #' @param data *data frame* containing two columns: date and confirm (number of cases)
-#' @param dt *Integer* 	Not implemented. length of temporal aggregations of the incidence data. This should be an integer or vector of integers. The default value is 7 time units (1 week).
 #' @param window_size *Integer* Length of the sliding windows used for R estimates.
 #' @param type *character* Specifies type of epidemic. Must be one of "flu_a", "flu_b", "rsv", "sars_cov2" or "custom"
 #' @param mean_si *Numeric* User specification of mean of parametric serial interval
@@ -25,7 +24,7 @@
 #' @examples
 #' fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a")
 #'
-fit_epiestim_model <- function(data, dt = 1L, window_size = 7L,type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
+fit_epiestim_model <- function(data, window_size = 7L,type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
                                method = "parametric_si", mean_prior = NULL, std_prior = NULL) {
   confirm <- NULL
   if (!is.data.frame(data) || !all(colnames(data) %in% c("date", "confirm"))) {
@@ -40,15 +39,6 @@ fit_epiestim_model <- function(data, dt = 1L, window_size = 7L,type = NULL, mean
 
   if (type != "custom" && any(!is.null(mean_si), !is.null(std_si), !is.null(mean_prior), !is.null(std_prior))) {
     warning("Custom mean_si, std_s, mean_prior and std_prior can only be specified with type set to custom. Default config values were used")
-  }
-
-  if (dt == 7L) {
-    stop("Weekly data not currently implmented. Use only daily data.")
-  }
-
-  data_lag <- as.numeric(difftime(data$date[2], data$date[1]))
-  if (data_lag <= 7 && dt == 7L) {
-    warning("Your data may not be weekly data. Please set dt to 1L for daily data")
   }
 
   # 6. Providing default values
@@ -89,32 +79,24 @@ fit_epiestim_model <- function(data, dt = 1L, window_size = 7L,type = NULL, mean
     )
   }
 
-  # 7. Configuring based on type
-  if (dt == 1L) {
-    incid <- data.frame(I = data$confirm, dates = data$date)
-    incid <- incid %>%
-      dplyr::arrange(dates)
-    # this should create weekly windows for the Rt
-    n_t <- nrow(incid)
-    t_start <- seq(2, max(n_t-(window_size - 1),2))
-    t_end <- pmin(t_start + window_size - 1,n_t)
-    config <- EpiEstim::make_config(list(
-      mean_si = mean_si,
-      std_si = std_si,
-      mean_prior = mean_prior,
-      std_prior = std_prior,
-      t_start = t_start,
-      t_end = t_end
-    ))
-  } else if (dt > 1L) {
-    incid <- data$confirm
-    config <- EpiEstim::make_config(list(
-      mean_si = mean_si,
-      std_si = std_si,
-      mean_prior = mean_prior,
-      std_prior = std_prior
-    ))
-  }
+  # configuring based on type
+  incid <- data.frame(I = data$confirm, dates = data$date) %>%
+    dplyr::arrange(dates)
+  # change window size to custom window_size
+  # starting at 2 as conditional on the past observations
+  n_t <- nrow(incid)
+  t_start <- seq(2, max(n_t-(window_size - 1),2))
+  t_end <- pmin(t_start + window_size - 1,n_t)
+
+  config <- EpiEstim::make_config(list(
+    mean_si = mean_si,
+    std_si = std_si,
+    mean_prior = mean_prior,
+    std_prior = std_prior,
+    t_start = t_start,
+    t_end = t_end
+  ))
+
 
   epiestim_estimates <- NULL
   epiestim_estimates <- suppressWarnings(EpiEstim::estimate_R(
@@ -150,18 +132,27 @@ fit_epiestim_model <- function(data, dt = 1L, window_size = 7L,type = NULL, mean
 generate_forecasts <- function(data, model_fit, n_days = 7, n_sim = 1000) {
   confirm <- NULL
 
-  check_epiestim_format(data)
   # check valid days
+  check_epiestim_format(data)
   check_min_days(data)
 
   # incidence expects data in linelist format
+  # TODO:
   date_list <- data |>
     tidyr::uncount(confirm) |>
     dplyr::pull(date)
   incidence_obj <- incidence::incidence(date_list)
 
   r_vals <- utils::tail(model_fit$R, n = 1)
-  r_dist <- rtrunc_norm(1000, mean = r_vals$`Mean(R)`, sd = r_vals$`Std(R)`, lower_lim = 0)
+  # sample from a truncated normal using inverse transform uniform sampling
+  r_dist <- stats::qnorm(stats::runif(1000,
+                                      stats::pnorm(0,
+                                                   mean = r_vals$`Mean(R)`,
+                                                   sd = r_vals$`Std(R)`),
+                                      1),
+                         mean = r_vals$`Mean(R)`,
+                         sd = r_vals$`Std(R)`)
+  # r_dist <- rtrunc_norm(1000, mean = r_vals$`Mean(R)`, sd = r_vals$`Std(R)`, lower_lim = 0)
   # Use the project function
   proj <- projections::project(incidence_obj,
                                R = r_dist,
@@ -275,27 +266,20 @@ forecast_epiestim <- function(
     ...
 ){
 
-  check_epiestim_format(data)
-
-  # check and filter on start date
-  check_data_contains_start_date(data,start_date)
-  data <- data %>%
-    dplyr::filter(date > start_date)
-
-  # exclude the first date if there are no confirmed cases
-  non_zero_dates <- data %>%
-    dplyr::filter(confirm > 0) %>%
-    pull(date)
-  data <- data %>%
-    dplyr::filter(date >= non_zero_dates[1])
-
-  # check valid days
-  check_min_days(data)
+  data <- clean_sample_data(data,
+                            start_date)
 
   # use smooth data
   if(smooth_data){
     smoothed_output <- smooth_model_data(data, smoothing_cutoff = smoothing_cutoff)
     data <- smoothed_output$data
+    smoothed_error <- smoothed_output$error
+    original_data <- smoothed_output$original_data
+    smoothed_data <- smoothed_output$data
+  }else{
+    smoothed_error <- NULL
+    original_data <- data
+    smoothed_data <- NULL
   }
   # modelling function
   epiestim_estimates <- fit_epiestim_model(data = data,
@@ -311,8 +295,13 @@ forecast_epiestim <- function(
     dplyr::rename(date = date, sim = sim, daily_incidence = incidence) %>%
     create_quantiles(date, variable = "daily_incidence")
 
-  return(list(forecast_res_quantiles = forecast_res_quantiles,
-              epiestim_estimates = epiestim_estimates))
+
+
+  return(list(original_data = original_data,
+              smoothed_data = smoothed_data,
+              smoothed_error = smoothed_error,
+              forecast_res_quantiles = forecast_res_quantiles,
+              estimate_R = epiestim_estimates))
 }
 
 

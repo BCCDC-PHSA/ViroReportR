@@ -8,6 +8,7 @@ params:
   start_date: NULL
   n_days: 7
   smooth: TRUE
+  validate_window_size: 7
 ---
 
 
@@ -15,7 +16,7 @@ params:
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 # setup -------------------------------------------------------------------
 library(dplyr)
-# library(ViroReportR)
+library(ViroReportR)
 library(ggplot2)
 library(here)
 library(DT)
@@ -39,6 +40,8 @@ vri_data_list <- vri_data %>%
   dplyr::group_by(disease_type) %>% 
   dplyr::group_map(~.x)
 
+names(vri_data_list) <- vri_name_list
+
 # document parameters set-up
 start_date <- params$start_date
 if(is.null(start_date)){
@@ -46,9 +49,8 @@ if(is.null(start_date)){
 }
 
 forecast_horizon <- params$n_days
-# forecast_horizon <- 7
 smooth <- params$smooth
-# smooth <- TRUE
+validate_window_size <- params$validate_window_size
 ```
 
 
@@ -124,13 +126,15 @@ validation_results <- tibble(
   validation = map2(
     vri_data_list,
     vri_name_list,
-    ~ forecast_time_period(
+    ~ validate_forecast(
       data = .x,
       type = .y,
       n_days = forecast_horizon,
       start_date = min(.x$date, na.rm = T),
-      time_period = "daily",
-      algorithm = "EpiEstim"
+      validate_window_size = params$validate_window_size,
+      window_size = 7,
+      smooth_data = smooth,
+      smoothing_cutoff = 10
     )
   )
 )
@@ -141,7 +145,7 @@ for (vri in vri_name_list) {
   cat("\n\n\n")
   cat(glue::glue("#### {vri}"))
   cat("\n\n\n")
-  print(plot_validation(validation_results$validation[[vri]], pred_plot = "ribbon"))
+  print(plot_validation(data = vri_data_list[[vri]], validation_results$validation[[vri]], pred_plot = "ribbon"))
 }
 ```
 
@@ -168,6 +172,7 @@ for (vri in vri_name_list) {
   cat(glue::glue("#### {vri}"))
   cat("\n\n\n")
   table_html <- forecast_validation_metric(
+    data = vri_data_list[[vri]],
     validation_res = validation_results$validation[[vri]]
     ) %>%
   as.data.frame() %>%
@@ -176,10 +181,6 @@ for (vri in vri_name_list) {
   as.character()
   
   cat(table_html, "\n\n")
-  
-  # print(htmltools::tagList(ViroReportR:::forecast_validation_metric(validation_res = validation_results$validation[[vri]])))
-  # print(datatable(ViroReportR:::forecast_validation_metric(validation_res = validation_results$validation[[vri]])))
-  # cat("\n\n\n")
 }
 ```
 

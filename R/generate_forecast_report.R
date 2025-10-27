@@ -6,10 +6,15 @@
 #'   Allowed values for `disease_type`: `"flu_a"`, `"flu_b"`, `"rsv"`, `"sars_cov2"`, `"custom"`.
 #' @param output_dir Path to output directory for the rendered HTML report.
 #' @param n_days Number of days ahead to forecast. Default is 7.
+#' @param validate_window_size The number of days between each validation window. Default is 7.
 #' @param smooth Logical indicating whether smoothing should be applied in the forecast. Default is `TRUE`.
 #'
 #' @return Invisibly returns the path to the rendered HTML report.
-generate_forecast_report <- function(input_data_dir = NULL, output_dir = NULL, n_days = 7, smooth = TRUE) {
+generate_forecast_report <- function(input_data_dir = NULL,
+                                     output_dir = NULL,
+                                     n_days = 7,
+                                     validate_window_size = 7,
+                                     smooth = TRUE) {
 
   # check that input_data_dir exists
   if (is.null(input_data_dir) || !file.exists(input_data_dir)) {
@@ -38,7 +43,10 @@ generate_forecast_report <- function(input_data_dir = NULL, output_dir = NULL, n
   rmarkdown::render(
     here::here("inst/vriforecasting_report.Rmd"),
     output_dir = output_dir,
-    params = list(n_days = n_days, filepath = input_data_dir)
+    params = list(n_days = n_days,
+                  filepath = input_data_dir,
+                  validate_window_size = validate_window_size,
+                  smooth = smooth)
   )
 }
 
