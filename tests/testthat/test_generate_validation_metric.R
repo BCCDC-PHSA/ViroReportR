@@ -1,4 +1,4 @@
-test_that("forecast_validation_metric returns expected list structure", {
+test_that("generate_validation_metric returns expected list structure", {
   set.seed(123)
   daily_data <- simulate_data(days = 30, peaks = c(flua = 60),
                               amplitudes = c(flua = 90),
@@ -20,7 +20,7 @@ test_that("forecast_validation_metric returns expected list structure", {
     smooth_data = T,
     smoothing_cutoff = 10
   )
-  result <- forecast_validation_metric(data = daily_flua,
+  result <- generate_validation_metric(data = daily_flua,
                                        validation_res = forecast_obj)
   expect_type(result, "list")
   expect_named(result, c("train_period","forecast_period", "smape","mase"))

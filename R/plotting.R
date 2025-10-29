@@ -49,7 +49,7 @@ plot_R_fit_comparison <- function(...) {
 
   g <- dplyr::bind_rows(plot_obj) |>
     dplyr::mutate(time = .5 * (t_end + t_start)) |>
-    ggplot2::ggplot(ggplot2::aes(x = time, y = `Median(R)`)) +
+    ggplot2::ggplot(ggplot2::aes(x = `time`, y = `Median(R)`)) +
     ggplot2::geom_ribbon(ggplot2::aes(
       ymin = `Quantile.0.025(R)`, ymax = `Quantile.0.975(R)`,
       fill = type
@@ -99,6 +99,7 @@ plot_R_fit_comparison <- function(...) {
 #' @export
 plot_forecast_comparison <- function(...) {
   warning("plot_forecast_comparison() is deprecated and may be removed in a future release.")
+  `p50` <- `p10` <- `p90` <- NULL
   date <- incidence <- sim <- type <- NULL
   quant <- val <- NULL
 
@@ -113,12 +114,12 @@ plot_forecast_comparison <- function(...) {
   }
 
   g <- dplyr::bind_rows(plot_obj) |>
-    ggplot(aes(x=date,y=p50)) +
+    ggplot(aes(x=`date`,y=`p50`)) +
     ggplot2::geom_ribbon(ggplot2::aes(
-      ymin = p10, ymax = p90,
+      ymin = `p10`, ymax = `p90`,
       fill = type
     ), alpha = 0.2) +
-    ggplot2::geom_line(ggplot2::aes(y=p50, color = type)) +
+    ggplot2::geom_line(ggplot2::aes(y=`p50`, color = type)) +
     ggplot2::theme_classic() +
     ggplot2::theme(legend.position = "bottom") +
     ggplot2::labs(x = "time", y = "incidence", color = "", fill = "")
@@ -149,12 +150,12 @@ plot_rt <- function(forecast_results) {
       weekly_rt = mean(`Mean(R)`), weekly_ymin = mean(`Quantile.0.025(R)`),
       weekly_ymax = mean(`Quantile.0.975(R)`)
     )
-  p <- ggplot(rt_dat, aes(x = weekly_date)) +
-    ggplot2::geom_ribbon(ggplot2::aes(ymin = weekly_ymin, ymax = weekly_ymax), fill = "#08519C", alpha = 0.25) +
-    ggplot2::geom_line(ggplot2::aes(y = weekly_rt), color = "#08519C") +
+  p <- ggplot(rt_dat, aes(x = `weekly_date`)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = `weekly_ymin`, ymax = `weekly_ymax`), fill = "#08519C", alpha = 0.25) +
+    ggplot2::geom_line(ggplot2::aes(y = `weekly_rt`), color = "#08519C") +
     theme_bw() +
     labs(x = "Time", y = "mean(expression(R[t]))") +
-    ggplot2::geom_line(ggplot2::aes(y = weekly_rt), color = "#08519C") +
+    ggplot2::geom_line(ggplot2::aes(y = `weekly_rt`), color = "#08519C") +
     theme_bw() +
     labs(x = "Time", y = "Mean(Rt)")
   return(p)
@@ -218,7 +219,7 @@ plot_validation <- function(data, validation_res, pred_plot = "ribbon") {
   forecast_dat$point_type <- rep("Mean Prediction", nrow(forecast_dat))
   # blue_grad_20 <- colorRampPalette(c("#08519c","#deebf7"))(20)
   n_groups <- length(unique(forecast_dat$group_id))
-  blue_grad <- colorRampPalette(c("#08519c","#00719b"))(n_groups)
+  blue_grad <- grDevices::colorRampPalette(c("#08519c","#00719b"))(n_groups)
 
   base_plot <- ggplot2::ggplot(
     data = forecast_dat,

@@ -18,6 +18,7 @@ Authors:
   \item Caesar Wong
   \item Nirupama Tamvada
   \item Rebeca Falcao
+  \item Nelson Tang
 }
 
 }

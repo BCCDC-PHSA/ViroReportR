@@ -139,7 +139,7 @@ generate_validation <- function(
 #' @export
 
 
-forecast_validation_metric <- function(data,
+generate_validation_metric <- function(data,
                                        validation_res){
 
   # extract model data

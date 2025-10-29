@@ -26,7 +26,7 @@ library(purrr)
 
 ```{r load data}
 # Load data
-vri_data <- read.csv(file.path(params$filepath))
+vri_data <- utils::read.csv(file.path(params$filepath))
 
 vri_data$date <- lubridate::ymd(vri_data$date)
 
@@ -171,7 +171,7 @@ Higher SMAPE or MASE values suggest poorer historical forecast performance, whic
 for (vri in vri_name_list) {
   cat(glue::glue("#### {vri}"))
   cat("\n\n\n")
-  table_html <- forecast_validation_metric(
+  table_html <- generate_validation_metric(
     data = vri_data_list[[vri]],
     validation_res = validation_results$validation[[vri]]
     ) %>%
