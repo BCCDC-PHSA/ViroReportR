@@ -10,7 +10,7 @@ create_test_forecast_validation <- function(){
                            confirm = daily_data[[disease_type]])
 
   # Run forecast_time_period
-  result <- validate_forecast(
+  result <- generate_validation(
     data = daily_flua,
     start_date = "2024-01-10",
     n_days = 7,

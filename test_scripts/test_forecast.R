@@ -14,8 +14,7 @@ formatted_data <- get_aggregated_data(
 )
 
 
-# TODO: something wrong with the modelling
-res_smooth <- forecast_epiestim(
+res_smooth <- generate_forecast(
   data = formatted_data,
   start_date = "2024-04-01",
   n_days = 7,
@@ -23,7 +22,7 @@ res_smooth <- forecast_epiestim(
   smooth_data = T
 )
 
-res_non_smooth <- forecast_epiestim(
+res_non_smooth <- generate_forecast(
   data = formatted_data,
   start_date = "2024-04-01",
   n_days = 7,
@@ -52,7 +51,7 @@ plot_forecast_comparison(smooth = res_smooth, non_smooth = res_non_smooth)+
 #                          smooth = TRUE)
 #
 #
-# forecast_epiestim(
+# generate_forecast(
 #   data = data,
 #   start_date = "2024-04-01",
 #   n_days = 7,

@@ -129,7 +129,7 @@ fit_epiestim_model <- function(data, window_size = 7L,type = NULL, mean_si = NUL
 #'   \item{incidence}{projected number of daily confirmed cases}
 #'   \item{sim}{simulation run number}
 #' }
-generate_forecasts <- function(data, model_fit, n_days = 7, n_sim = 1000) {
+project_epiestim_model <- function(data, model_fit, n_days = 7, n_sim = 1000) {
   confirm <- NULL
 
   # check valid days
@@ -137,13 +137,16 @@ generate_forecasts <- function(data, model_fit, n_days = 7, n_sim = 1000) {
   check_min_days(data)
 
   # incidence expects data in linelist format
-  # TODO:
   date_list <- data |>
     tidyr::uncount(confirm) |>
     dplyr::pull(date)
-  incidence_obj <- incidence::incidence(date_list)
 
+  incidence_obj <- incidence::incidence(date_list,
+                                        first_date = min(data$date, na.rm = T),
+                                        last_date = max(data$date, na.rm = T),
+                                        standard = FALSE)
   r_vals <- utils::tail(model_fit$R, n = 1)
+
   # sample from a truncated normal using inverse transform uniform sampling
   r_dist <- stats::qnorm(stats::runif(1000,
                                       stats::pnorm(0,
@@ -152,7 +155,7 @@ generate_forecasts <- function(data, model_fit, n_days = 7, n_sim = 1000) {
                                       1),
                          mean = r_vals$`Mean(R)`,
                          sd = r_vals$`Std(R)`)
-  # r_dist <- rtrunc_norm(1000, mean = r_vals$`Mean(R)`, sd = r_vals$`Std(R)`, lower_lim = 0)
+
   # Use the project function
   proj <- projections::project(incidence_obj,
                                R = r_dist,
@@ -161,7 +164,6 @@ generate_forecasts <- function(data, model_fit, n_days = 7, n_sim = 1000) {
                                n_days = n_days,
                                R_fix_within = FALSE
   )
-
 
   data_proj <- as.data.frame(proj, long = TRUE)
 
@@ -174,7 +176,7 @@ generate_forecasts <- function(data, model_fit, n_days = 7, n_sim = 1000) {
 #' @description
 #' This function prepares epidemic data, estimates the reproduction number
 #' (\eqn{R_t}) using \code{\link{fit_epiestim_model}}, and produces short-term
-#' forecasts of daily confirmed cases with \code{\link{generate_forecasts}}.
+#' forecasts of daily confirmed cases with \code{\link{project_epiestim_model}}.
 #'
 #' It removes early periods with no cases, checks data validity, optionally
 #' smooths the epidemic curve, and then generates forward projections of cases
@@ -226,7 +228,7 @@ generate_forecasts <- function(data, model_fit, n_days = 7, n_sim = 1000) {
 #'
 #' @seealso
 #' \code{\link{fit_epiestim_model}} for reproduction number estimation,
-#' \code{\link{generate_forecasts}} for forward simulations.
+#' \code{\link{project_epiestim_model}} for forward simulations.
 #'
 #' @export
 #'
@@ -245,7 +247,7 @@ generate_forecasts <- function(data, model_fit, n_days = 7, n_sim = 1000) {
 #' )
 #'
 #' # Run a 7 day forecast with smoothing
-#' res_smooth <- forecast_epiestim(
+#' res_smooth <- generate_forecast(
 #'   data = formatted_data,
 #'   start_date = "2024-04-01",
 #'   n_days = 7,
@@ -255,7 +257,7 @@ generate_forecasts <- function(data, model_fit, n_days = 7, n_sim = 1000) {
 #' }
 
 
-forecast_epiestim <- function(
+generate_forecast <- function(
     data,
     start_date,
     window_size = 7,
@@ -287,7 +289,7 @@ forecast_epiestim <- function(
                                            type = type,
                                            ...)
   # generating forecast data
-  forecast_res <- generate_forecasts(data = data,
+  forecast_res <- project_epiestim_model(data = data,
                                      model_fit = epiestim_estimates,
                                      n_days = n_days)
 

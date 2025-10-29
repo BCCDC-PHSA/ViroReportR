@@ -66,8 +66,8 @@ proj_one_week <- projections::project(x=incidence_obj,R = R_list,
 plot(proj_one_week)
 
 # compute forecasts from Epiestim objects
-forecast_one_week <- generate_forecasts(formatted_data,res_one_week,n_days=28)
-forecast_two_week <- generate_forecasts(formatted_data,res_two_week,n_days=28)
+forecast_one_week <- project_epiestim_model(formatted_data,res_one_week,n_days=28)
+forecast_two_week <- project_epiestim_model(formatted_data,res_two_week,n_days=28)
 
 plot_forecast_comparison("one week"=forecast_one_week,"two week"=forecast_two_week)
 
@@ -106,7 +106,7 @@ for(p in seq(0.3,1,by=0.1)){
                                mean_si = 2.6,
                                std_si = 1.5))
   )
-  forecast_res[[scales::percent(p)]] <- generate_forecasts(filtered_formatted_data,res,n_days=7)
+  forecast_res[[scales::percent(p)]] <- project_epiestim_model(filtered_formatted_data,res,n_days=7)
 
 }
 do.call(plot_forecast_comparison,forecast_res) +

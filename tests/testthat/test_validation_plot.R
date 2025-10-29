@@ -10,7 +10,7 @@ daily_flua <- data.frame(date = daily_data[["date"]],
                          confirm = daily_data[[disease_type]])
 
 # Run forecast_time_period
-forecast_obj <- validate_forecast(
+forecast_obj <- generate_validation(
   data = daily_flua,
   start_date = "2024-01-10",
   n_days = 7,

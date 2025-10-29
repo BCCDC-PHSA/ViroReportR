@@ -24,27 +24,27 @@
 #'   to forecasting (default: `FALSE`).
 #' @param smoothing_cutoff Numeric. Threshold used for smoothing when
 #'   `smooth_data = TRUE` (default: `10`).
-#' @param ... Additional arguments passed to `forecast_epiestim()`.
+#' @param ... Additional arguments passed to `generate_forecast()`.
 #'
 #' @return A list of forecast results, each element corresponding to one
 #'   validation window. Each element contains the output returned by
-#'   `forecast_epiestim()` for that particular window.
+#'   `generate_forecast()` for that particular window.
 #'
 #' @details
 #' The validation procedure ensures that forecasts are evaluated under realistic
 #' temporal conditions. Starting from the earliest date, the function repeatedly:
 #'
 #' 1. Takes a growing subset of data up to the current validation endpoint.
-#' 2. Runs the forecast using `forecast_epiestim()`.
+#' 2. Runs the forecast using `generate_forecast()`.
 #' 3. Moves the validation window forward by `validate_window_size` days.
 #'
 #' This results in a set of forecasts that can be compared to observed data to
 #' evaluate predictive performance across time.
 #'
-#' @seealso [clean_sample_data()], [forecast_epiestim()]
+#' @seealso [clean_sample_data()], [generate_forecast()]
 #' @export
 
-validate_forecast <- function(
+generate_validation <- function(
     data,
     start_date,
     validate_window_size = 7,
@@ -72,7 +72,7 @@ validate_forecast <- function(
 
   # run forecast on each validation window
   validation_res <- lapply(end_indx, function(i) {
-    forecast_epiestim(
+    generate_forecast(
       data = data[1:i,],
       start_date = data$date[1],
       window_size = window_size,
@@ -102,13 +102,13 @@ validate_forecast <- function(
 #' training and forecast periods. Computation stops once the forecast period
 #' reaches the maximum date in the model data.
 #'
-#' @param data A data frame used in [`validate_forecast()`], containing the
+#' @param data A data frame used in [`generate_validation()`], containing the
 #'   **original training data** for the model. It must include:
 #'   - `date`: Dates of the observed case data (class `Date`).
 #'   - `confirm`: Numeric values of observed confirmed cases.
 #'
 #' @param validation_res A list of forecast validation results, typically the
-#'   output from [`validate_forecast()`]. Each element should contain:
+#'   output from [`generate_validation()`]. Each element should contain:
 #'   - `forecast_res_quantiles`: A data frame with columns `date` and `p50`
 #'     (median forecasted values).
 #'   - `original_data`: A data frame representing the training data used for
@@ -135,7 +135,7 @@ validate_forecast <- function(
 #' The function automatically excludes forecasts extending beyond the latest
 #' date in the observed model data.
 #'
-#' @seealso [validate_forecast()], [forecast_epiestim()]
+#' @seealso [generate_validation()], [generate_forecast()]
 #' @export
 
 

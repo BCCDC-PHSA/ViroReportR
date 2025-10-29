@@ -7,7 +7,7 @@
 plot_R_fit_comparison(...)
 }
 \arguments{
-\item{...}{Named EpiEstim output objects produced by \code{\link[=forecast_epiestim]{forecast_epiestim()}}.
+\item{...}{Named EpiEstim output objects produced by \code{\link[=generate_forecast]{generate_forecast()}}.
 Each object should contain a data frame \code{estimate_R$R} with columns such as:
 \itemize{
 \item \code{t_start}, \code{t_end}: Time window indices
@@ -37,6 +37,6 @@ plot_R_fit_comparison(Fit1 = fit1, Fit2 = fit2)
 
 }
 \seealso{
-\code{\link[=forecast_epiestim]{forecast_epiestim()}}, \code{\link[EpiEstim:estimate_R]{EpiEstim::estimate_R()}}
+\code{\link[=generate_forecast]{generate_forecast()}}, \code{\link[EpiEstim:estimate_R]{EpiEstim::estimate_R()}}
 }
 \keyword{internal}

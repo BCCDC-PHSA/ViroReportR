@@ -7,7 +7,7 @@
 forecast_validation_metric(data, validation_res)
 }
 \arguments{
-\item{data}{A data frame used in \code{\link[=validate_forecast]{validate_forecast()}}, containing the
+\item{data}{A data frame used in \code{\link[=generate_validation]{generate_validation()}}, containing the
 \strong{original training data} for the model. It must include:
 \itemize{
 \item \code{date}: Dates of the observed case data (class \code{Date}).
@@ -15,7 +15,7 @@ forecast_validation_metric(data, validation_res)
 }}
 
 \item{validation_res}{A list of forecast validation results, typically the
-output from \code{\link[=validate_forecast]{validate_forecast()}}. Each element should contain:
+output from \code{\link[=generate_validation]{generate_validation()}}. Each element should contain:
 \itemize{
 \item \code{forecast_res_quantiles}: A data frame with columns \code{date} and \code{p50}
 (median forecasted values).
@@ -64,5 +64,5 @@ The function automatically excludes forecasts extending beyond the latest
 date in the observed model data.
 }
 \seealso{
-\code{\link[=validate_forecast]{validate_forecast()}}, \code{\link[=forecast_epiestim]{forecast_epiestim()}}
+\code{\link[=generate_validation]{generate_validation()}}, \code{\link[=generate_forecast]{generate_forecast()}}
 }

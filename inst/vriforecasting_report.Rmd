@@ -61,7 +61,7 @@ forecasts_results <- tibble(
   forecasts = map2(
     vri_data_list,
     vri_name_list,
-    ~ forecast_epiestim(
+    ~ generate_forecast(
       data = .x,
       smooth_data = smooth,
       type = .y,
@@ -126,7 +126,7 @@ validation_results <- tibble(
   validation = map2(
     vri_data_list,
     vri_name_list,
-    ~ validate_forecast(
+    ~ generate_validation(
       data = .x,
       type = .y,
       n_days = forecast_horizon,

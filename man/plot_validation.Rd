@@ -7,7 +7,7 @@
 plot_validation(data, validation_res, pred_plot = "ribbon")
 }
 \arguments{
-\item{data}{A data frame used in \code{\link[=validate_forecast]{validate_forecast()}}, containing the
+\item{data}{A data frame used in \code{\link[=generate_validation]{generate_validation()}}, containing the
 original training data used for model fitting. Must include:
 \itemize{
 \item \code{date}: Dates of the observed data (class \code{Date}).
@@ -15,7 +15,7 @@ original training data used for model fitting. Must include:
 }}
 
 \item{validation_res}{A list of forecast validation results, typically
-produced by \code{\link[=validate_forecast]{validate_forecast()}}. Each element should include:
+produced by \code{\link[=generate_validation]{generate_validation()}}. Each element should include:
 \itemize{
 \item \code{forecast_res_quantiles}: A data frame containing forecasted quantiles
 (\code{p025}, \code{p10}, \code{p25}, \code{p50}, \code{p75}, \code{p90}, \code{p975}, and \code{date}).

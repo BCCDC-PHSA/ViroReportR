@@ -15,8 +15,7 @@ formatted_data <- get_aggregated_data(
 
 head(formatted_data)
 
-# TODO: something wrong with the modelling
-time_period_result_daily <- validate_forecast(
+time_period_result_daily <- generate_validation(
   data = formatted_data,
   start_date = "2024-04-01",
   n_days = 7,

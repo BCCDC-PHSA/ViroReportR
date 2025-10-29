@@ -15,7 +15,9 @@ knitr::opts_chunk$set(
 ```
 
 ```{r}
+library(dplyr)
 library(ViroReportR)
+library(ggplot2)
 ```
 
 ## Overview 
@@ -27,14 +29,15 @@ This vignette provides a short demonstration of the model fitting functions in `
 For this short demonstration, we will use weekly data for Influenza A, which is provided with the `ViroReportR` package. The input dataset must have two columns: `date` and `confirm` in accordance to format accepted by the model fitting functions.
 
 ```{r }
-disease_type <- "flu_a"
-weekly_plover_date_type <- get_weekly_plover_by_date_type(
-   plover_data,
-  type = disease_type,
-  start_date = "2022-10-01",
-  end_date = "2022-12-01")
-
-head(weekly_plover_date_type)
+disease_type <- "rsv"
+test_data <- simulate_data(noise_sd=5)
+formatted_data <- get_aggregated_data(
+  test_data,
+  number_column = disease_type,
+  date_column = "date",
+  start_date = "2024-04-01",
+  end_date = "2024-05-01"
+)
 ```
 
 ## Model fitting
@@ -42,9 +45,15 @@ head(weekly_plover_date_type)
 The model to estimate the reproduction number using `EpiEstim` can be fit using the `fit_epiestim_model` function as follows: 
 
 ```{r}
-mod_fit <- fit_epiestim_model(data = weekly_plover_date_type, type = "flu_a")
+mod_fit <- generate_forecast(
+  data = formatted_data,
+  start_date = "2024-04-01",
+  n_days = 7,
+  type = "rsv",
+  smooth_data = T
+)
 
-head(mod_fit)
+mod_fit$forecast_res_quantiles
 ```
 
 The function supports forecasting for SARS-CoV2, RSV and Influenza A and B primarily but also provides functionality to forecast other respiratory diseases. The type of viral respiratory disease to be forecasted can be specified by the `type` argument, which takes in the inputs `rsv`, `sars_cov2`, `flu_a` and `flu_b` respectively. Any other respiratory disease can be specified by setting `type = other`. If `type = other` is set, a user-specified `mean_si` and `std_si` must be passed to the function as well. 
@@ -63,36 +72,46 @@ We can produce forecasts aggregated by week by setting `time_period = "weekly"`.
 
 
 ```{r message = FALSE}
-time_period_result_weekly <- forecast_time_period(data = weekly_plover_date_type, 
-start_date = "2022-10-02", n_days = 14, type = "flu_a",  time_period = "weekly")
+time_period_result_daily <- generate_validation(
+  data = formatted_data,
+  start_date = "2024-04-01",
+  n_days = 7,
+  type = "rsv",
+  validate_window_size = 7,
+  smooth_data = T
+)
 ```
 
 
 The forecasts can then be plotted  using the `plot` function which uses the output of `forecast_time_period`. The function takes in an object of of class `forecast_time_period`
 
 ```{r forecast_plot, dpi = 300, out.width = "70%"}
-plot(time_period_result_weekly) 
+# plot(time_period_result_weekly) 
 ```
 
 Finally, we can plot a validation violin plot using the `plot_validation` function. As the `EpiEstim` model fit is compatible with weekly forecasted data. this plot does not support daily forecasts. We can plot 1 week ahead forecasts for example by setting the `pred_horizon` argument. The function can produce either a `violin` or `ribbon` plot, which can be controlled by the `pred_plot` argument: 
 
 ```{r validation_plot_ribbon, dpi = 300, fig.align = "center", fig.height = 5, fig.width = 5, out.width= '80%'}
-plot_validation(time_period_result_weekly, pred_horizon_str = "1 week ahead", pred_plot = "ribbon")
+plot_validation(data = formatted_data,
+                validation_res = time_period_result_daily, 
+                pred_plot = "ribbon")
 ```
 
 ```{r validation_plot_violin, dpi = 300, fig.align = "center", fig.height = 5, fig.width = 5, out.width= '80%'}
-plot_validation(time_period_result_weekly, pred_horizon_str = "1 week ahead", pred_plot = "violin")
+plot_validation(data = formatted_data,
+                validation_res = time_period_result_daily, 
+                pred_plot = "error_bar")
 ```
 
 The object of class `forecast_time_period` produced by the `forecast_time_period` function also has a customized `summary` function. This function checks to see if the weekly data inputted fall into the ranges of the prediction quantiles and issues a warning if this is not the case. This can be a useful check to assess the forecasts produced and the model fit along with the validation plot. It takes in the same arguments as the `plot_validation` function above:
 
 ```{r}
-summary(time_period_result_weekly, pred_horizon_str = "1 week ahead")
+# summary(time_period_result_weekly, pred_horizon_str = "1 week ahead")
 ```
 
 Finally, the `ViroReportR` package can conveniently generate an automated report for the current season for all supported viral respiratory diseases (Influenza-A, Influenza-B, RSV and SARS-CoV2) using the `generate_forecast_report` function, which renders an HTML report.
 
 ```{r eval = FALSE}
-generate_forecast_report(output_dir = "PATH OF DIRECTORY")
+# generate_forecast_report(output_dir = "PATH OF DIRECTORY")
 ```
 
