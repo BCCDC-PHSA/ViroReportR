@@ -20,10 +20,7 @@
 #'
 #' @return Object of class {\code{\link[EpiEstim]{estimate_R}}} (see \code{EpiEstim} help page)
 #' @export
-#'
-#' @examples
-#' fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a")
-#'
+
 fit_epiestim_model <- function(data, window_size = 7L,type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
                                method = "parametric_si", mean_prior = NULL, std_prior = NULL) {
   confirm <- NULL

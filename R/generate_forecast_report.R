@@ -9,6 +9,7 @@
 #' @param validate_window_size The number of days between each validation window. Default is 7.
 #' @param smooth Logical indicating whether smoothing should be applied in the forecast. Default is `TRUE`.
 #'
+#' @import kableExtra
 #' @return Invisibly returns the path to the rendered HTML report.
 generate_forecast_report <- function(input_data_dir = NULL,
                                      output_dir = NULL,
@@ -19,6 +20,10 @@ generate_forecast_report <- function(input_data_dir = NULL,
   # check that input_data_dir exists
   if (is.null(input_data_dir) || !file.exists(input_data_dir)) {
     stop("`input_data_dir` must be a valid path to a CSV file.")
+  }
+
+  if (!requireNamespace("kableExtra", quietly = TRUE)) {
+    stop("Please install 'kableExtra' to generate this report.")
   }
 
   # read data
@@ -41,7 +46,8 @@ generate_forecast_report <- function(input_data_dir = NULL,
 
   # render report
   rmarkdown::render(
-    here::here("inst/vriforecasting_report.Rmd"),
+    # TODO:
+    system.file("vriforecasting_report.Rmd", package = "ViroReportR"),
     output_dir = output_dir,
     params = list(n_days = n_days,
                   filepath = input_data_dir,

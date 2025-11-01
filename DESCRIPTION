@@ -51,7 +51,8 @@ Imports:
     htmltools,
     bootstrap,
     cli,
-    mgcv
+    mgcv,
+    kableExtra
 VignetteBuilder: knitr
 Depends: 
     R (>= 3.5)

@@ -45,7 +45,3 @@ A wrapper function for {\code{\link[EpiEstim]{estimate_R}}} from the \code{EpiEs
 \code{fit_epiestim_model} currently supports the following epidemics: Influenza, RSV and COVID-19. The default serial intervals for the estimation of R were retrieved from
 Cowling et al., 2011, Vink et al., 2014 and Madewell et al., 2023 for Influenza A, Influenza B, RSV and COVID (BA.5 Omicron variant) respectively
 }
-\examples{
-fit_epiestim_model(data = weekly_transformed_plover_data, type = "flu_a")
-
-}

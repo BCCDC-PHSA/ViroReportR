@@ -59,22 +59,21 @@ test_that("Input file disease_type values correct", {
   )
 })
 
-#TODO:
 # Test output report file
-# test_that("Generate forecast report successfully",{
-#
-#   output_file <- tempfile()
-#
-#   expect_no_error(generate_forecast_report(input_data_dir = vri_temp_file_path,
-#                                            output_dir = output_file,
-#                                            n_days = 7,
-#                                            validate_window_size = 1,
-#                                            smooth = TRUE))
-#
-#   expect_true(file.exists(output_file))
-#
-#   unlink(output_file)
-# })
+test_that("Generate forecast report successfully",{
+
+  output_file <- tempdir()
+
+  expect_no_error(generate_forecast_report(input_data_dir = vri_temp_file_path,
+                                           output_dir = output_file,
+                                           n_days = 7,
+                                           validate_window_size = 1,
+                                           smooth = TRUE))
+
+  expect_true(file.exists(output_file))
+
+  unlink(output_file)
+})
 
 unlink(vri_temp_file_path)
 unlink(test_col_names_temp)

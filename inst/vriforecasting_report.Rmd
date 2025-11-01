@@ -21,6 +21,7 @@ library(ggplot2)
 library(here)
 library(DT)
 library(purrr)
+library(kableExtra)
 ```
 
 
