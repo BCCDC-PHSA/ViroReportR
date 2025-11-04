@@ -161,7 +161,6 @@ check_min_days <- function(data){
 #' modeling. It combines validation checks for input structure and time coverage
 #' with minimal data cleaning logic to ensure robust downstream estimation.
 #'
-#' @noRd
 
 clean_sample_data <- function(data,
                               start_date){

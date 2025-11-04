@@ -129,12 +129,12 @@ plot_forecast_comparison <- function(...) {
 
 
 #' Plot Mean Rt with time index (dates)
-#' @param time_period_result output from  \code{forecast_time_period}
+#' @param forecast_results output from  \code{generate_forecast}
 #' @return Mean Rt with time index plot
 #' @export
 plot_rt <- function(forecast_results) {
 
-  # check input from validation or forecast func
+  # check input from forecast func
   model_data_dates <- forecast_results$original_data$date
 
   rt_dat <-forecast_results$estimate_R$R

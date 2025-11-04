@@ -7,7 +7,7 @@
 plot_rt(forecast_results)
 }
 \arguments{
-\item{time_period_result}{output from  \code{forecast_time_period}}
+\item{forecast_results}{output from  \code{generate_forecast}}
 }
 \value{
 Mean Rt with time index plot
