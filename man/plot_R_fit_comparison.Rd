@@ -7,17 +7,27 @@
 plot_R_fit_comparison(...)
 }
 \arguments{
-\item{...}{Named EpiEstim output objects. Each object should contain a data frame
-\code{R}}
+\item{...}{Named EpiEstim output objects produced by \code{\link[=generate_forecast]{generate_forecast()}}.
+Each object should contain a data frame \code{estimate_R$R} with columns such as:
+\itemize{
+\item \code{t_start}, \code{t_end}: Time window indices
+\item \code{Median(R)}: Median estimated reproduction number
+\item \code{Quantile.0.025(R)} / \code{Quantile.0.975(R)}: 95\% credible interval bounds
+\item \code{Quantile.0.25(R)} / \code{Quantile.0.75(R)}: 50\% credible interval bounds
+}}
 }
 \value{
-A ggplot object showing median \(R\) estimates with 90\% credible intervals
-(as ribbons), colored by each result.
+A \strong{ggplot2} object showing median \eqn{R} estimates with 50\% and 95\% credible intervals,
+colored by input source (i.e., name).
 }
 \description{
-This function creates a ggplot comparing the estimated reproduction number \(R\)
-over time from multiple EpiEstim results. Each input should be an object from
-EpiEstim containing an \code{R} dataframe.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+
+This function is deprecated and may be removed in a future release.
+
+This function creates a ggplot comparing estimated reproduction numbers (\eqn{R})
+over time from multiple EpiEstim outputs. Each input should be a named object
+produced by EpiEstim containing an \code{estimate_R$R} data frame.
 }
 \examples{
 \dontrun{
@@ -26,3 +36,7 @@ plot_R_fit_comparison(Fit1 = fit1, Fit2 = fit2)
 }
 
 }
+\seealso{
+\code{\link[=generate_forecast]{generate_forecast()}}, \code{\link[EpiEstim:estimate_R]{EpiEstim::estimate_R()}}
+}
+\keyword{internal}

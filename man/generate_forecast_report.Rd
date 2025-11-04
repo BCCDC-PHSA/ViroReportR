@@ -2,16 +2,31 @@
 % Please edit documentation in R/generate_forecast_report.R
 \name{generate_forecast_report}
 \alias{generate_forecast_report}
-\title{Generate forecast report - Function to generate and knit report of forecasts for all supported viral respiratory diseases (Flu-A, Flu-B, RSV and SARS-CoV2)}
+\title{Generate Viral Respiratory Forecast Report}
 \usage{
-generate_forecast_report(input_data_dir = NULL, output_dir = NULL)
+generate_forecast_report(
+  input_data_dir = NULL,
+  output_dir = NULL,
+  n_days = 7,
+  validate_window_size = 7,
+  smooth = TRUE
+)
 }
 \arguments{
-\item{input_data_dir}{specify path to data for which report will be rendered. Data must contain the columns 'confirm', 'date' and 'disease_types'}
+\item{input_data_dir}{Path to input CSV data. Must contain columns: \code{date}, \code{confirm}, \code{disease_type}.
+Allowed values for \code{disease_type}: \code{"flu_a"}, \code{"flu_b"}, \code{"rsv"}, \code{"sars_cov2"}, \code{"custom"}.}
 
-\item{output_dir}{specify path to output directory that HTML report should be rendered in}
+\item{output_dir}{Path to output directory for the rendered HTML report.}
+
+\item{n_days}{Number of days ahead to forecast. Default is 7.}
+
+\item{validate_window_size}{The number of days between each validation window. Default is 7.}
+
+\item{smooth}{Logical indicating whether smoothing should be applied in the forecast. Default is \code{TRUE}.}
+}
+\value{
+Invisibly returns the path to the rendered HTML report.
 }
 \description{
-Function to render a full season viral respiratory report as an HTML document in the directory of your choice. The report includes plots of the observed trends and
-model produced forecasts
+Generates a full-season forecast report for viral respiratory diseases as an HTML document.
 }

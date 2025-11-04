@@ -1,4 +1,4 @@
-test_that("forecast_epiestim returns expected output structure", {
+test_that("generate_forecast returns expected output structure", {
   skip_if_not_installed("EpiEstim")
   skip_if_not_installed("projections")
   skip_if_not_installed("incidence")
@@ -14,7 +14,7 @@ test_that("forecast_epiestim returns expected output structure", {
   names(test_data) <- c("date","confirm")
 
   # run function
-  res <- forecast_epiestim(
+  res <- generate_forecast(
     data = test_data,
     start_date = as.Date("2024-01-01"),
     n_days = 7,
@@ -22,15 +22,15 @@ test_that("forecast_epiestim returns expected output structure", {
   )
 
   # check output type and columns
-  expect_s3_class(res, "data.frame")
-  expect_true(all(c("date", "p50", "p25", "p75", "p025", "p975", "min_sim", "max_sim") %in% names(res)))
+  expect_s3_class(res$forecast_res_quantiles, "data.frame")
+  expect_true(all(c("date", "p50","p10", "p25", "p75","p90", "p025", "p975", "min_sim", "max_sim") %in% names(res$forecast_res_quantiles)))
 
   # check that forecast includes requested horizon
-  expect_true(min(res$date) > max(test_data$date))
-  expect_true(max(res$date) == max(test_data$date) + 7)
+  expect_true(min(res$forecast_res_quantiles$date) > max(test_data$date))
+  expect_true(max(res$forecast_res_quantiles$date) == max(test_data$date) + 7)
 })
 
-test_that("forecast_epiestim respects smoothing option", {
+test_that("generate_forecast respects smoothing option", {
   test_data <- simulate_data(days = 30,
                              peaks = c(flua = 60),
                              amplitudes = c(flua = 90),
@@ -39,7 +39,7 @@ test_that("forecast_epiestim respects smoothing option", {
 
   names(test_data) <- c("date","confirm")
 
-  res_no_smooth <- forecast_epiestim(
+  res_no_smooth <- generate_forecast(
     data = test_data,
     start_date = as.Date("2024-01-01"),
     type = "flu_a",
@@ -47,7 +47,7 @@ test_that("forecast_epiestim respects smoothing option", {
     n_days = 3
   )
 
-  res_smooth <- forecast_epiestim(
+  res_smooth <- generate_forecast(
     data = test_data,
     start_date = as.Date("2024-01-01"),
     type = "flu_a",
@@ -55,20 +55,20 @@ test_that("forecast_epiestim respects smoothing option", {
     n_days = 3
   )
 
-  expect_s3_class(res_no_smooth, "data.frame")
-  expect_s3_class(res_smooth, "data.frame")
-  expect_true(all(c("date", "p50", "p25", "p75", "p025", "p975", "min_sim", "max_sim") %in% names(res_smooth)))
-  expect_true(all(c("date", "p50", "p25", "p75", "p025", "p975", "min_sim", "max_sim") %in% names(res_no_smooth)))
+  expect_s3_class(res_no_smooth$forecast_res_quantiles, "data.frame")
+  expect_s3_class(res_smooth$forecast_res_quantiles, "data.frame")
+  expect_true(all(c("date", "p50","p10", "p25", "p75","p90", "p025", "p975", "min_sim", "max_sim") %in% names(res_smooth$forecast_res_quantiles)))
+  expect_true(all(c("date", "p50","p10", "p25", "p75","p90", "p025", "p975", "min_sim", "max_sim") %in% names(res_no_smooth$forecast_res_quantiles)))
 })
 
-test_that("forecast_epiestim errors with invalid input", {
+test_that("generate_forecast errors with invalid input", {
   bad_data <- data.frame(
     time = seq(as.Date("2024-01-01"), by = "day", length.out = 10),
     cases = rpois(10, 5)
   )
 
   expect_error(
-    forecast_epiestim(
+    generate_forecast(
       data = bad_data,
       start_date = as.Date("2024-01-01"),
       type = "rsv"
@@ -77,7 +77,7 @@ test_that("forecast_epiestim errors with invalid input", {
   )
 
   expect_error(
-    forecast_epiestim(
+    generate_forecast(
       data = data.frame(date = Sys.Date(), confirm = 1),
       start_date = Sys.Date(),
       type = "rsv"

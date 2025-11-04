@@ -14,6 +14,9 @@ Authors@R:
            role = "aut"),
     person(given = "Rebeca",
            family = "Falcao",
+           role = "aut"),
+    person(given = "Nelson",
+           family = "Tang",
            role = "aut"))
 Description: BCCDC R package for forecasting viral respiratory infection cases and outcomes.
 License: GPL (>= 3)
@@ -47,7 +50,9 @@ Imports:
     emojifont,
     htmltools,
     bootstrap,
-    cli
+    cli,
+    mgcv,
+    kableExtra
 VignetteBuilder: knitr
 Depends: 
     R (>= 3.5)

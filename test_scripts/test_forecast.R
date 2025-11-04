@@ -14,8 +14,7 @@ formatted_data <- get_aggregated_data(
 )
 
 
-# TODO: something wrong with the modelling
-res_smooth <- forecast_epiestim(
+res_smooth <- generate_forecast(
   data = formatted_data,
   start_date = "2024-04-01",
   n_days = 7,
@@ -23,7 +22,7 @@ res_smooth <- forecast_epiestim(
   smooth_data = T
 )
 
-res_non_smooth <- forecast_epiestim(
+res_non_smooth <- generate_forecast(
   data = formatted_data,
   start_date = "2024-04-01",
   n_days = 7,
@@ -31,19 +30,31 @@ res_non_smooth <- forecast_epiestim(
   smooth_data = F
 )
 
-# cur_daily_samples <- res_non_smooth %>%
-#   dplyr::rename(daily_date = date, sim = sim, daily_incidence = incidence)
-#
-#
-# cur_samples_agg_quantiles <- cur_daily_samples %>%
-#   create_quantiles(daily_date, variable = "daily_incidence") %>%
-#   dplyr::rename(quantile_date = daily_date)
-
+plot_R_fit_comparison(smooth = res_smooth, non_smooth = res_non_smooth)
 
 plot_forecast_comparison(smooth = res_smooth, non_smooth = res_non_smooth)+
   geom_point(ggplot2::aes(x=date,y=confirm),data=formatted_data) +
   ggplot2::ggtitle(glue::glue("7 day windows"))+
   ggplot2::coord_cartesian(ylim=c(0,70),expand=FALSE)
 
+# params <- list()
+# params$filepath <- "u:/project/test_vri.csv"
+# params$start_date <- "2024-04-01"
+# params$n_days <- 7
+# params$smooth <- TRUE
+# params$validate_window_size <- 7
 
-# plot_validation(time_period_result = cur_samples_agg_quantiles, pred_plot = "ribbon")
+# generate_forecast_report(input_data_dir = "u:/project/test_vri.csv",
+#                          output_dir = "inst/",
+#                          n_days = 7,
+#                          validate_window_size = 1,
+#                          smooth = TRUE)
+#
+#
+# generate_forecast(
+#   data = data,
+#   start_date = "2024-04-01",
+#   n_days = 7,
+#   type = "flu_a",
+#   smooth_data = T
+# )

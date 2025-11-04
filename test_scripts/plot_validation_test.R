@@ -15,19 +15,18 @@ formatted_data <- get_aggregated_data(
 
 head(formatted_data)
 
-# TODO: something wrong with the modelling
-time_period_result_daily <- forecast_time_period(
+time_period_result_daily <- generate_validation(
   data = formatted_data,
-  start_date = "2024-04-10",
+  start_date = "2024-04-01",
   n_days = 7,
   type = "rsv",
-  time_period = "daily",
-  algorithm = "EpiEstim"
+  smooth_data = T,
+  validate_window_size = 1,
+  window_size = 7
 )
 
-plot_validation(time_period_result_daily, pred_plot = "ribbon") +
-  ggplot2::coord_cartesian(ylim=c(0,90),expand=FALSE)
-  
+plot_validation(data= formatted_data, time_period_result_daily, pred_plot = "ribbon")
+
 
 # plot_validation(time_period_result_daily, pred_plot = "error_bar") +
 #   ggplot2::coord_cartesian(ylim=c(0,70),expand=FALSE)

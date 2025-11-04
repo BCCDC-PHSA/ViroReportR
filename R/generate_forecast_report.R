@@ -1,11 +1,58 @@
-#' Generate forecast report - Function to generate and knit report of forecasts for all supported viral respiratory diseases (Flu-A, Flu-B, RSV and SARS-CoV2)
+#' Generate Viral Respiratory Forecast Report
 #'
-#' @description Function to render a full season viral respiratory report as an HTML document in the directory of your choice. The report includes plots of the observed trends and
-#' model produced forecasts
+#' Generates a full-season forecast report for viral respiratory diseases as an HTML document.
 #'
-#' @param input_data_dir specify path to data for which report will be rendered. Data must contain the columns 'confirm', 'date' and 'disease_types'
-#' @param output_dir specify path to output directory that HTML report should be rendered in
-generate_forecast_report <- function(input_data_dir = NULL, output_dir = NULL) {
-  rmarkdown::render(here::here("inst/ViroReportR_report.Rmd"), output_dir = output_dir,
-                    params = list(filepath = input_data_dir))
+#' @param input_data_dir Path to input CSV data. Must contain columns: `date`, `confirm`, `disease_type`.
+#'   Allowed values for `disease_type`: `"flu_a"`, `"flu_b"`, `"rsv"`, `"sars_cov2"`, `"custom"`.
+#' @param output_dir Path to output directory for the rendered HTML report.
+#' @param n_days Number of days ahead to forecast. Default is 7.
+#' @param validate_window_size The number of days between each validation window. Default is 7.
+#' @param smooth Logical indicating whether smoothing should be applied in the forecast. Default is `TRUE`.
+#'
+#' @import kableExtra
+#' @return Invisibly returns the path to the rendered HTML report.
+generate_forecast_report <- function(input_data_dir = NULL,
+                                     output_dir = NULL,
+                                     n_days = 7,
+                                     validate_window_size = 7,
+                                     smooth = TRUE) {
+
+  # check that input_data_dir exists
+  if (is.null(input_data_dir) || !file.exists(input_data_dir)) {
+    stop("`input_data_dir` must be a valid path to a CSV file.")
+  }
+
+  if (!requireNamespace("kableExtra", quietly = TRUE)) {
+    stop("Please install 'kableExtra' to generate this report.")
+  }
+
+  # read data
+  input_data <- read.csv(input_data_dir)
+
+  # required columns
+  required_cols <- c("date", "confirm", "disease_type")
+  missing_cols <- setdiff(required_cols, names(input_data))
+  if (length(missing_cols) > 0) {
+    stop(paste("Input data is missing required columns:", paste(missing_cols, collapse = ", ")))
+  }
+
+  # check disease_type values
+  allowed_disease_types <- c("flu_a", "flu_b", "rsv", "sars_cov2", "custom")
+  invalid_types <- setdiff(unique(input_data$disease_type), allowed_disease_types)
+  if (length(invalid_types) > 0) {
+    stop(paste("Invalid disease_type values found:", paste(invalid_types, collapse = ", "),
+               "\nAllowed values are:", paste(allowed_disease_types, collapse = ", ")))
+  }
+
+  # render report
+  rmarkdown::render(
+    # TODO:
+    system.file("vriforecasting_report.Rmd", package = "ViroReportR"),
+    output_dir = output_dir,
+    params = list(n_days = n_days,
+                  filepath = input_data_dir,
+                  validate_window_size = validate_window_size,
+                  smooth = smooth)
+  )
 }
+
