@@ -1,8 +1,8 @@
 ---
-title: "Model fitting and producing short-term forecasts using weekly data with EpiEstim"
+title: "Model fitting and producing short-term forecasts using daily data with EpiEstim"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Model Fitting and producing short-term forecasts using weekly data with EpiEstim}
+  %\VignetteIndexEntry{Model fitting and producing short-term forecasts using daily data with EpiEstim}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -18,100 +18,148 @@ knitr::opts_chunk$set(
 library(dplyr)
 library(ViroReportR)
 library(ggplot2)
+library(purrr)
+library(tidyr)
 ```
 
 ## Overview 
 
 This vignette provides a short demonstration of the model fitting functions in `ViroReportR` which extend the functionality and wrap the `estimate_R` function from the `EpiEstim` package to produce short-term forecasts. 
 
-## Loading in data
+## Loading data
 
-For this short demonstration, we will use weekly data for Influenza A, which is provided with the `ViroReportR` package. The input dataset must have two columns: `date` and `confirm` in accordance to format accepted by the model fitting functions.
+For this short demonstration, we will simulate daily data for Influenza A, RSV and Covid-19, using the function `simulate_data` which is provided with the `ViroReportR` package. The input dataset must have two columns: `date` and `confirm` in accordance to format accepted by the model fitting functions.
 
 ```{r }
-disease_type <- "rsv"
-test_data <- simulate_data(noise_sd=5)
-formatted_data <- get_aggregated_data(
-  test_data,
-  number_column = disease_type,
-  date_column = "date",
-  start_date = "2024-04-01",
-  end_date = "2024-05-01"
-)
+data <- simulate_data(days=365, #days spanning simulation
+                      peaks = c("flu_a"=90,"rsv"=110,"sars_cov2"=160), #peak day for each disease
+                      amplitudes=c("flu_a"=50,"rsv"=40,"sars_cov2"=20), #amplitude of peak for each disease
+                      scales = c("flu_a"=-0.004,"rsv"=-0.005,"sars_cov2"=-0.001), # spread of peak for each disease
+                      time_offset = 0, #number of days to offset start of simulation
+                      noise_sd = 5, #noise term
+                      start_date = "2024-01-07" #starting day (Sunday)
+                      )
 ```
-
-## Model fitting
-
-The model to estimate the reproduction number using `EpiEstim` can be fit using the `fit_epiestim_model` function as follows: 
 
 ```{r}
-mod_fit <- generate_forecast(
-  data = formatted_data,
-  start_date = "2024-04-01",
-  n_days = 7,
-  type = "rsv",
-  smooth_data = T
-)
+data$date <- lubridate::ymd(data$date)
 
-mod_fit$forecast_res_quantiles
+vri_data <- data %>% 
+            pivot_longer(cols = -date,  # all columns except 'date'
+                          names_to = "disease_type",
+                          values_to = "confirm") # <-- need ot be called confirm
+
+# VRI data set-up
+vri_name_list <- vri_data %>% 
+    dplyr::group_by(disease_type) %>% 
+  dplyr::group_keys() %>% pull()
+
+
+vri_data_list <- vri_data %>% 
+  dplyr::group_by(disease_type) %>% 
+  dplyr::group_map(~.x)
+
+names(vri_data_list) <- vri_name_list
+
 ```
 
-The function supports forecasting for SARS-CoV2, RSV and Influenza A and B primarily but also provides functionality to forecast other respiratory diseases. The type of viral respiratory disease to be forecasted can be specified by the `type` argument, which takes in the inputs `rsv`, `sars_cov2`, `flu_a` and `flu_b` respectively. Any other respiratory disease can be specified by setting `type = other`. If `type = other` is set, a user-specified `mean_si` and `std_si` must be passed to the function as well. 
+## Model fitting and forecasting
 
-
-## Fitting and forecasting over sliding windows 
-
-The primary function used to fit and produce the short-term forecasts is the `forecast_time_period` function which wraps the `fit_epiestim_model` function. We can specify that `EpiEstim` be used to fit the model using the argument `algorithm = "EpiEstim"`. This function can be used to produce both daily and weekly forecasts using weekly sliding windows. We first demonstrate how it can be used to produce daily forecasts for 14 days ahead. This is controlled by the `n_days` parameter.
-
-The `start_date` argument should be used to specify from which date in the dataset the forecasting should begin from. The function automatically checks to see if the incidence count on the specified start date is high enough to reliably estimate the reproduction number. If this is not the case, the function throws a warning which suggests an alternate start date. 
-
-The function provides progress updates as it is running about the current time period the model is being fit for. 
-
-
-We can produce forecasts aggregated by week by setting `time_period = "weekly"`. For the functionality, `n_days` must be a multiple of 7. Thus, specifying `n_days = 14` when `time_period = "weekly` produces 14/7 i.e. 2-week ahead forecasts. 
-
-
-```{r message = FALSE}
-time_period_result_daily <- generate_validation(
-  data = formatted_data,
-  start_date = "2024-04-01",
-  n_days = 7,
-  type = "rsv",
-  validate_window_size = 7,
-  smooth_data = T
-)
-```
-
-
-The forecasts can then be plotted  using the `plot` function which uses the output of `forecast_time_period`. The function takes in an object of of class `forecast_time_period`
-
-```{r forecast_plot, dpi = 300, out.width = "70%"}
-# plot(time_period_result_weekly) 
-```
-
-Finally, we can plot a validation violin plot using the `plot_validation` function. As the `EpiEstim` model fit is compatible with weekly forecasted data. this plot does not support daily forecasts. We can plot 1 week ahead forecasts for example by setting the `pred_horizon` argument. The function can produce either a `violin` or `ribbon` plot, which can be controlled by the `pred_plot` argument: 
-
-```{r validation_plot_ribbon, dpi = 300, fig.align = "center", fig.height = 5, fig.width = 5, out.width= '80%'}
-plot_validation(data = formatted_data,
-                validation_res = time_period_result_daily, 
-                pred_plot = "ribbon")
-```
-
-```{r validation_plot_violin, dpi = 300, fig.align = "center", fig.height = 5, fig.width = 5, out.width= '80%'}
-plot_validation(data = formatted_data,
-                validation_res = time_period_result_daily, 
-                pred_plot = "error_bar")
-```
-
-The object of class `forecast_time_period` produced by the `forecast_time_period` function also has a customized `summary` function. This function checks to see if the weekly data inputted fall into the ranges of the prediction quantiles and issues a warning if this is not the case. This can be a useful check to assess the forecasts produced and the model fit along with the validation plot. It takes in the same arguments as the `plot_validation` function above:
+The code below estimates the reproduction number using `EpiEstim` through the `generate_forecast()` function for each disease type via the `purrr::map2()` function. The `generate_forecast()` function prepares the data, estimates the reproduction number, and produces short-term forecasts of daily confirmed cases for an `n_days` forecast horizon.
 
 ```{r}
-# summary(time_period_result_weekly, pred_horizon_str = "1 week ahead")
+#parameters set-up
+start_date <- min(vri_data$date) + 13
+forecast_horizon <- 7
+smooth <- TRUE
+validate_window_size <- 7
+
+forecasts_results <- tibble(
+  vri_data_list,
+  forecasts = map2(
+    vri_data_list,
+    vri_name_list,
+    ~ generate_forecast(
+      data = .x,
+      smooth_data = smooth,
+      type = .y,
+      n_days = forecast_horizon,
+      start_date = start_date
+    )
+  )
+)
+
+names(forecasts_results$forecasts) <- vri_name_list
+names(forecasts_results$vri_data_list) <- vri_name_list
 ```
 
-Finally, the `ViroReportR` package can conveniently generate an automated report for the current season for all supported viral respiratory diseases (Influenza-A, Influenza-B, RSV and SARS-CoV2) using the `generate_forecast_report` function, which renders an HTML report.
+The function supports forecasting for SARS-CoV2, RSV and Influenza A primarily but also provides functionality to forecast other respiratory diseases. Any other respiratory disease can be specified by setting `type = other`. If `type = other` is set, a user-specified `mean_si` and `std_si` must be passed to the function as well. 
+
+## Validation
+
+The package provides validation functionality to support predictive performance evaluation. The forecasting model is trained on historical data and used to predict daily cases r `forecast_horizon` days ahead. Validation compares the model’s forecasted values with observed historical data, where overlap between prediction intervals and actual cases indicates good model performance. A rolling window approach is applied to the historical data to generate multiple validation datasets.
+
+
+
+```{r validation-plots, echo=FALSE, results='asis'}
+validation_results <- tibble(
+  vri_data_list,
+  validation = map2(
+    vri_data_list,
+    vri_name_list,
+    ~ generate_validation(
+      data = .x,
+      type = .y,
+      n_days = forecast_horizon,
+      start_date = min(.x$date, na.rm = T),
+      validate_window_size = validate_window_size,
+      window_size = 7,
+      smooth_data = smooth,
+      smoothing_cutoff = 10
+    )
+  )
+)
+names(validation_results$validation) <- vri_name_list
+names(validation_results$vri_data_list) <- vri_name_list
+
+for (vri in vri_name_list) {
+  cat("\n\n")                               # spacing
+  cat(glue::glue("#### {vri}\n\n"))         # subheading for each disease
+  print(
+    plot_validation(
+      data = vri_data_list[[vri]],
+      validation_results$validation[[vri]],
+      pred_plot = "ribbon"
+    )
+  )
+  cat("\n\n")
+}
+
+```
+
+## Forecast Report
+
+Finally, the `ViroReportR` package can conveniently generate an automated report for the current season for all supported viral respiratory diseases (Influenza-A, RSV and SARS-CoV2) using the `generate_forecast_report` function, which renders an HTML report.
 
 ```{r eval = FALSE}
-# generate_forecast_report(output_dir = "PATH OF DIRECTORY")
+tmp_dir <- tempdir()
+
+# Save the simulated data
+data_path <- file.path(tmp_dir, "simulated_data.csv")
+write.csv(vri_data, data_path, row.names = FALSE)
+
+output_path <- tempdir()
+generate_forecast_report(input_dir = data_path,
+                            output_dir = output_path,
+                            n_days = 7,
+                            validate_window_size = 7,
+                            smooth = TRUE)
+
+cat("Report saved to:", output_path, "\n")
+
+if (interactive() && file.exists(output_path)) {
+  utils::browseURL(output_path)
+}
+
 ```
 

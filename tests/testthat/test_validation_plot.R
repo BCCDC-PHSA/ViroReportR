@@ -1,11 +1,11 @@
 #################### Test validation_plot function ################################
 set.seed(123)
-daily_data <- simulate_data(days = 30, peaks = c(flua = 60),
-                            amplitudes = c(flua = 90),
-                            scales = c(flua = -0.01),
+daily_data <- simulate_data(days = 30, peaks = c(flu_a = 60),
+                            amplitudes = c(flu_a = 90),
+                            scales = c(flu_a = -0.01),
                             time_offset = 45)
 
-disease_type <- "flua"
+disease_type <- "flu_a"
 daily_flua <- data.frame(date = daily_data[["date"]],
                          confirm = daily_data[[disease_type]])
 

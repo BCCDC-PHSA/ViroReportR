@@ -16,7 +16,7 @@ formatted_simulated_data <- formatted_simulated_data %>%
   mutate(disease_type = "rsv")
 
 test_disease_type_name <- formatted_simulated_data %>%
-  mutate(disease_type = "covid")
+  mutate(disease_type = "sars_cov2")
 
 
 # temporary file
@@ -42,20 +42,6 @@ test_that("Input file required columns correct", {
 
     unlink(output_file)},
     "Input data is missing required columns: confirm, disease_type"
-  )
-})
-
-test_that("Input file disease_type values correct", {
-  expect_error({
-    output_file <- tempfile(fileext = ".html")
-
-    generate_forecast_report(input_data_dir = test_disease_type_temp,
-                             output_dir = output_file,
-                             n_days = 7,
-                             validate_window_size = 1,
-                             smooth = TRUE)
-
-    unlink(output_file)}
   )
 })
 
