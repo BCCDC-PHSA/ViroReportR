@@ -249,7 +249,7 @@ project_epiestim_model <- function(data, model_fit, n_days = 7, n_sim = 1000) {
 #'   start_date = "2024-04-01",
 #'   n_days = 7,
 #'   type = "rsv",
-#'   smooth_data = T
+#'   smooth_data = FALSE
 #' )
 #' }
 

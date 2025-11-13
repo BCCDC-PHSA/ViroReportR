@@ -15,7 +15,7 @@ generate_forecast_report <- function(input_data_dir = NULL,
                                      output_dir = NULL,
                                      n_days = 7,
                                      validate_window_size = 7,
-                                     smooth = TRUE) {
+                                     smooth = FALSE) {
 
   # check that input_data_dir exists
   if (is.null(input_data_dir) || !file.exists(input_data_dir)) {

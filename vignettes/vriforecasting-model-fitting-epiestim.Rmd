@@ -71,7 +71,7 @@ The code below estimates the reproduction number using `EpiEstim` through the `g
 #parameters set-up
 start_date <- min(vri_data$date) + 13
 forecast_horizon <- 7
-smooth <- TRUE
+smooth <- FALSE
 validate_window_size <- 7
 
 forecasts_results <- tibble(
