@@ -95,7 +95,7 @@ res_smooth <- generate_forecast(
   start_date = "2024-04-01",
   n_days = 7,
   type = "rsv",
-  smooth_data = T
+  smooth_data = FALSE
 )
 }
 }
