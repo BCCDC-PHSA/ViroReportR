@@ -15,8 +15,9 @@ names(formatted_simulated_data) <- c("date","confirm")
 formatted_simulated_data <- formatted_simulated_data %>%
   mutate(disease_type = "rsv")
 
+# wrong disease name for testing
 test_disease_type_name <- formatted_simulated_data %>%
-  mutate(disease_type = "sars_cov2")
+  mutate(disease_type = "covid")
 
 
 # temporary file
@@ -29,6 +30,20 @@ write.csv(test_col_names, file = test_col_names_temp, row.names = FALSE)
 write.csv(test_disease_type_name, file = test_disease_type_temp, row.names = FALSE)
 
 # Test function error handling  --------------------------------
+
+test_that("Input file disease_type values correct", {
+  expect_error({
+    output_file <- tempfile(fileext = ".html")
+
+    generate_forecast_report(input_data_dir = test_disease_type_temp,
+                             output_dir = output_file,
+                             n_days = 7,
+                             validate_window_size = 1,
+                             smooth = TRUE)
+
+    unlink(output_file)}
+  )
+})
 
 test_that("Input file required columns correct", {
   expect_error({
