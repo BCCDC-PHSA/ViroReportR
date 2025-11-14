@@ -10,6 +10,7 @@
 #' @param smooth Logical indicating whether smoothing should be applied in the forecast. Default is `TRUE`.
 #'
 #' @import kableExtra
+#' @importFrom cowplot get_legend plot_grid
 #' @return Invisibly returns the path to the rendered HTML report.
 generate_forecast_report <- function(input_data_dir = NULL,
                                      output_dir = NULL,
