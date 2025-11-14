@@ -21,7 +21,7 @@ test_that("invalid date column name handling correct", {
   expect_error(
     get_aggregated_data(
       test_data,
-      wrong_date_column, "flua",
+      wrong_date_column, "flu_a",
       "2024-01-07", "2024-12-08"
     ),
     "invalid date column name, not found in the input data"
@@ -47,7 +47,7 @@ test_that("invalid start date handling correct", {
   expect_error(
     get_aggregated_data(
       test_data,
-      "date", "flua",
+      "date", "flu_a",
       wrong_start_date, "2024-03-20"
     ),
     "start date is later than the end date"
@@ -63,7 +63,7 @@ test_that("non Sunday input start_date warning correct", {
   expect_warning(
     get_aggregated_data(
       test_data,
-      "date", "flua",
+      "date", "flu_a",
       non_sunday, "2024-12-08",
       unit = "week"
     ),
@@ -78,7 +78,7 @@ test_that("non Sunday input end_date warning correct", {
   expect_warning(
     get_aggregated_data(
       test_data,
-      "date", "flua",
+      "date", "flu_a",
       "2024-01-07", non_sunday,
       unit = "week"
     ),

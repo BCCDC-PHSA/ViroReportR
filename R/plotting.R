@@ -202,23 +202,12 @@ plot_validation <- function(data, validation_res, pred_plot = "ribbon") {
                                                p975 = .x$forecast_res_quantiles$p975,
                                                group_id = as.character(nrow(.x$estimate_R$R))))
 
-  # if smooth data
-  # smoothed_data <- validation_res[[length(validation_res)]]$smoothed_data
-  # smoothed_flag <- !is.null(smoothed_data)
-  # if(smoothed_flag){
-  #   smoothed_model_data <- data.frame(
-  #     date = smoothed_data$date,
-  #     confirm = smoothed_data$confirm
-  #   )
-  #   smoothed_model_data$point_type <- rep("Confirmed Case (Smoothed)", nrow(smoothed_model_data))
-  # }
-
   model_data <- filter(data, date <= max(forecast_dat$date, na.rm = T))
   model_data$point_type <- rep("Confirmed Case (Unsmoothed)", nrow(model_data))
 
   forecast_dat$point_type <- rep("Mean Prediction", nrow(forecast_dat))
-  # blue_grad_20 <- colorRampPalette(c("#08519c","#deebf7"))(20)
-  n_groups <- length(unique(forecast_dat$group_id))
+
+    n_groups <- length(unique(forecast_dat$group_id))
   blue_grad <- grDevices::colorRampPalette(c("#08519c","#00719b"))(n_groups)
 
   base_plot <- ggplot2::ggplot(
@@ -235,16 +224,6 @@ plot_validation <- function(data, validation_res, pred_plot = "ribbon") {
       legend.title = ggplot2::element_blank(), legend.position = "None",
       axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
     )
-  #+
-    # if (smoothed_flag) {
-    #   ggplot2::geom_line(
-    #     data = smoothed_model_data,
-    #     aes(x = date, y = confirm),
-    #     colour = "red",
-    #     linewidth = 1,
-    #     inherit.aes = FALSE
-    #   )
-    # }
 
   if (pred_plot == "error_bar") {
     p <- base_plot +

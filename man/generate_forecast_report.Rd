@@ -9,7 +9,7 @@ generate_forecast_report(
   output_dir = NULL,
   n_days = 7,
   validate_window_size = 7,
-  smooth = TRUE
+  smooth = FALSE
 )
 }
 \arguments{

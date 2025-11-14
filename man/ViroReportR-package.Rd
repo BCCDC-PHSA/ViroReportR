@@ -6,8 +6,6 @@
 \alias{ViroReportR-package}
 \title{ViroReportR: Miscellenous tools for generating forecasts from VRI data}
 \description{
-\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
-
 BCCDC R package for forecasting viral respiratory infection cases and outcomes.
 }
 \author{

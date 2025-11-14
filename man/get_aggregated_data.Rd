@@ -58,6 +58,6 @@ Assume the date column is the start of the epiweek.
 sim_data <- simulate_data()
 aggregated_data <- get_aggregated_data(
   sim_data,
-  "date", "flua", "2024-10-16", "2024-12-31"
+  "date", "flu_a", "2024-10-16", "2024-12-31"
 )
 }

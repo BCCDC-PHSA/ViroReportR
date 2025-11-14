@@ -6,33 +6,33 @@
 #'
 #' @param days Integer. Number of days to simulate (default is 365).
 #' @param peaks Named numeric vector. Peak day for each virus
-#' (e.g., `c("flua"=90,"rsv"=110,"covid"=160)`).
+#' (e.g., `c("flua"=90,"rsv"=110,"sars_cov2"=160)`).
 #' @param amplitudes Named numeric vector. Amplitude for each virus's peak
-#' (e.g., `c("flua"=50,"rsv"=40,"covid"=20)`).
+#' (e.g., `c("flua"=50,"rsv"=40,"sars_cov2"=20)`).
 #' @param scales Named numeric vector. Scale controlling spread of the peak
-#' for each virus (e.g., `c("flua"=-0.004,"rsv"=-0.005,"covid"=-0.001)`).
+#' for each virus (e.g., `c("flua"=-0.004,"rsv"=-0.005,"sars_cov2"=-0.001)`).
 #' @param time_offset Integer. Number of days to offset start of the simulation.
 #' useful if want to test data with larger values in the middle of a respiratory
 #' season.
 #' @param start_date string
 #' @param noise_sd numeric or named numeric.
 #' Gaussian noise applied to each virus signal. can either be a single value
-#' or named for each virus e.g., `c("flua"=2,"rsv"=5,"covid"=7)`
+#' or named for each virus e.g., `c("flu_a"=2,"rsv"=5,"sars_cov2"=7)`
 #'
 #' @return A data frame with daily simulated incidence counts for each virus,
 #' including a `date` column.
 #' @examples
 #' simulate_data()
-#' simulate_data(days = 100, peaks = c(flua = 30), amplitudes = c(flua = 60),
-#' scales = c(flua = -0.01), noise_sd = c(flua = 5))
+#' simulate_data(days = 100, peaks = c(flu_a = 30), amplitudes = c(flu_a = 60),
+#' scales = c(flu_a = -0.01), noise_sd = c(flu_a = 5))
 #' @export
 simulate_data <- function(days=365,
-                          peaks = c("flua"=90,"rsv"=110,"covid"=160),
-                          amplitudes=c("flua"=50,"rsv"=40,"covid"=20),
-                          scales = c("flua"=-0.004,"rsv"=-0.005,"covid"=-0.001),
+                          peaks = c("flu_a"=90,"rsv"=110,"sars_cov2"=160),
+                          amplitudes=c("flu_a"=50,"rsv"=40,"sars_cov2"=20),
+                          scales = c("flu_a"=-0.004,"rsv"=-0.005,"sars_cov2"=-0.001),
                           time_offset = 0,
                           noise_sd = 5,
-                          start_date = "2024-01-01"
+                          start_date = "2024-01-07"
                           ){
   check_match_names(peaks,amplitudes,scales)
   # Define start date

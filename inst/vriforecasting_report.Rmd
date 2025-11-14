@@ -7,7 +7,7 @@ params:
   filepath: NULL
   start_date: NULL
   n_days: 7
-  smooth: TRUE
+  smooth: FALSE
   validate_window_size: 7
 ---
 

@@ -97,7 +97,7 @@ get_data <- function(generic_data, date_column, number_column,unit = "day") {
 #' sim_data <- simulate_data()
 #' aggregated_data <- get_aggregated_data(
 #'   sim_data,
-#'   "date", "flua", "2024-10-16", "2024-12-31"
+#'   "date", "flu_a", "2024-10-16", "2024-12-31"
 #' )
 get_aggregated_data <- function(generic_data, date_column, number_column,
                                 start_date = NULL, end_date = NULL,
