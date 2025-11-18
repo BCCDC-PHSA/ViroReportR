@@ -159,8 +159,13 @@ generate_validation_metric <- function(data,
       left_join(model_data, by = "date")
 
     # SMAPE (symmetric MAPE) since actual values contain zero
-    smape = mean(abs(forecast_data$forecast_confirm - forecast_data$actual_confirm) / ((abs(forecast_data$actual_confirm) + abs(forecast_data$forecast_confirm)) / 2))
-    # MASE
+    smape <- mean(ifelse(
+      forecast_data$forecast_confirm == 0 & forecast_data$actual_confirm == 0,
+      0,  # define error as 0 when both are zero
+      abs(forecast_data$forecast_confirm - forecast_data$actual_confirm) /
+        ((abs(forecast_data$actual_confirm) + abs(forecast_data$forecast_confirm)) / 2)
+    ))
+
     mase = round(mean(abs(forecast_data$actual_confirm - forecast_data$forecast_confirm)) / mean(abs(diff(forecast_data$actual_confirm))),2)
 
     data.frame(
