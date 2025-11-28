@@ -8,8 +8,7 @@
 #' @param n_days Number of days ahead to forecast. Default is 7.
 #' @param validate_window_size The number of days between each validation window. Default is 7.
 #' @param smooth Logical indicating whether smoothing should be applied in the forecast. Default is `TRUE`.
-#'
-#' @import kableExtra
+#' @import kableExtra cowplot
 #' @return Invisibly returns the path to the rendered HTML report.
 generate_forecast_report <- function(input_data_dir = NULL,
                                      output_dir = NULL,
