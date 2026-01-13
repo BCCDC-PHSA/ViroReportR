@@ -39,7 +39,8 @@ test_that("Input file disease_type values correct", {
                              output_dir = output_file,
                              n_days = 7,
                              validate_window_size = 1,
-                             smooth = TRUE)
+                             smooth = TRUE,
+                             disease_season = NULL)
 
     unlink(output_file)}
   )
@@ -53,10 +54,29 @@ test_that("Input file required columns correct", {
                            output_dir = output_file,
                            n_days = 7,
                            validate_window_size = 1,
-                           smooth = TRUE)
+                           smooth = TRUE,
+                           disease_season = NULL)
 
     unlink(output_file)},
     "Input data is missing required columns: confirm, disease_type"
+  )
+})
+
+# Test Disease_season
+test_that("Disease season dates must be present in the input dataset", {
+  expect_error({
+    output_file <- tempfile(fileext = ".html")
+
+    generate_forecast_report(input_data_dir = vri_temp_file_path,
+                             output_dir = output_file,
+                             n_days = 7,
+                             validate_window_size = 1,
+                             smooth = TRUE,
+                             disease_season = list("rsv" = c("2024-11-01","2025-03-01"))
+    )
+
+    unlink(output_file)},
+    "Invalid season dates for 'rsv': 2024-11-01, 2025-03-01. All dates must be present in the input dataset."
   )
 })
 
@@ -69,12 +89,15 @@ test_that("Generate forecast report successfully",{
                                            output_dir = output_file,
                                            n_days = 7,
                                            validate_window_size = 1,
-                                           smooth = TRUE))
+                                           smooth = TRUE,
+                                           disease_season = NULL))
 
   expect_true(file.exists(output_file))
 
   unlink(output_file)
 })
+
+
 
 unlink(vri_temp_file_path)
 unlink(test_col_names_temp)

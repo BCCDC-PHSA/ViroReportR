@@ -9,6 +9,7 @@ params:
   n_days: 7
   smooth: FALSE
   validate_window_size: 7
+  disease_season: NULL
 ---
 
 
@@ -78,7 +79,7 @@ names(forecasts_results$vri_data_list) <- vri_name_list
 
 ## Description
 
-This report provides the forecast of `r forecast_horizon`-days ahead confirmed cases for the 3 prevalent respiratory viral cases in BC (Flu-A, RSV and SARS-CoV-2). Forecast reports were generated using the Provincial Lab (PLIS) data. `vriforecasting` uses `EpiEstim` as the backend to forecast weekly confirmed cases, which forecasts cases by estimating the instantaneous reproduction number using the [Cori method](https://academic.oup.com/aje/article/178/9/1505/89262) and then simulating the number of new cases using fixed exponential growth over a given time period. This is a short term prediction model, meaning that an increase in the time-period horizon over an optimal horizon of 1 or 2-weeks ahead results in a decline of prediction performance. The report is divided into two sections: `r forecast_horizon`-days forecast for the current season of respiratory cases as well as validation plots and metrics for the performance of the forecasting model on historical data to help in the assessment of model performance. 
+This report provides the forecast of `r forecast_horizon`-days ahead positive tests for the 3 prevalent respiratory viral tests in BC (Flu-A, RSV and SARS-CoV-2). Forecast reports were generated using the VRI data, the tests presents data on samples tested for different respiratory viruses. `vriforecasting` uses `EpiEstim` as the backend to forecast daily positive tests, which forecasts positive tests by estimating the instantaneous reproduction number using the [Cori method](https://academic.oup.com/aje/article/178/9/1505/89262) and then simulating the number of new positive tests using fixed exponential growth over a given time period. This is a short term prediction model, meaning that an increase in the time-period horizon over an optimal horizon of 1 or 2-weeks ahead results in a decline of prediction performance. The report is divided into two sections: `r forecast_horizon`-days forecast for the current season of respiratory positive tests as well as validation plots and metrics for the performance of the forecasting model on historical data to help in the assessment of model performance. 
 
 # `r forecast_horizon`-days ahead forecast {.tabset}
 
@@ -86,11 +87,11 @@ This report provides the forecast of `r forecast_horizon`-days ahead confirmed c
 
 This section presents the `r forecast_horizon`-days ahead forecasts for each virus. The forecasts include:
 
-- Median predicted cases (p50)
+- Median predicted positive tests (p50)
 - Prediction intervals (50% and 95%)
 - The last estimated Rₜ value with 95% confidence intervals
 
-Plots show the predicted cases alongside historical observations, helping visualize the expected trajectory of cases over the short-term forecast horizon.
+Plots show the predicted positive tests alongside historical observations, helping visualize the expected trajectory of positive tests over the short-term forecast horizon.
 
 ```{r forecast plots and info, results = "asis", out.width = '80%'}
 for (vri in vri_name_list) {
@@ -98,39 +99,122 @@ for (vri in vri_name_list) {
   cat("\n\n\n")
  
   forecast_plot <- ggplot() +
-    geom_ribbon(
-      data = forecasts_results$forecasts[[vri]][["forecast_res_quantiles"]],
-      aes(x = date, ymin = p10, ymax = p90, fill = "Prediction Interval"),
-      alpha = 0.4
-    ) +
-    geom_line(
-      data = forecasts_results$forecasts[[vri]][["forecast_res_quantiles"]],
-      aes(x = date, y = p50, color = "Median Forecast"),
-      size = 1
-    ) +
-    geom_point(
-      data = forecasts_results$vri_data_list[[vri]],
-      aes(x = date, y = confirm, 
-          shape = "Confirmed Case"),
-      size = 2,
-      color = 'black'
-    ) +
-    labs(
-      title = paste0(forecast_horizon, "-Day Forecast of Daily ", vri, " Cases"),
-      x = "Date", y = "Predicted Cases",
-      fill = "",
-      color = "",
-      shape = ""
-    ) +
-    scale_fill_manual(values = c("Prediction Interval" = "skyblue")) +
-    scale_color_manual(values = c("Median Forecast" = "blue")) +
-    scale_shape_manual(values = c("Confirmed Case" = 16)) +
-    theme_minimal() +
-    theme(legend.position = "top",legend.direction = "horizontal")
+  geom_ribbon(
+    data = forecasts_results$forecasts[[vri]][["forecast_res_quantiles"]],
+    aes(x = date, ymin = p10, ymax = p90, fill = "Prediction Interval"),
+    alpha = 0.4
+  ) +
+  geom_line(
+    data = forecasts_results$forecasts[[vri]][["forecast_res_quantiles"]],
+    aes(x = date, y = p50, color = "Median Forecast"),
+    linewidth = 1
+  ) +
+  geom_point(
+    data = forecasts_results$vri_data_list[[vri]],
+    aes(x = date, y = confirm, shape = "Positive Tests"),
+    size = 2,
+    color = "black"
+  )  +
+  
+  labs(
+    title = paste0(forecast_horizon, "-Day Forecast of Daily ", vri, " Positive Tests"),
+    x = "Date", y = "Predicted Tests",
+    fill = "", color = "", shape = ""
+  ) +
+  scale_fill_manual(values = c("Prediction Interval" = "skyblue")) +
+  scale_color_manual(values = c("Median Forecast" = "blue")) +
+  scale_shape_manual(values = c("Positive Tests" = 16)) +
+  theme_minimal() +
+  theme(legend.position = "top", legend.direction = "horizontal")
+  
+  # create Rt plot
+  rt_plot <- ViroReportR:::plot_rt(forecasts_results$forecasts[[vri]])
+  
+  if (!is.null(disease_season) || !is.null(disease_season[vri])) {
+    season_start <- as.Date(disease_season[[vri]][1])
+    season_end   <- as.Date(disease_season[[vri]][2])
+    
+    forecast_plot <- forecast_plot +
+      # season markers
+      geom_vline(
+        xintercept = season_start,
+        color = "grey",
+        linetype = "dashed",
+        linewidth = 0.8
+      ) +
+      geom_vline(
+        xintercept = season_end,
+        color = "grey",
+        linetype = "dashed",
+        linewidth = 0.8
+      ) +
+      
+      # labels for season lines
+      annotate(
+        "text",
+        x = season_start,
+        y = max(forecasts_results$vri_data_list[[vri]]$confirm, na.rm = TRUE),
+        label = "Season Start",
+        hjust = -0.1,
+        vjust = -0.5,
+        color = "grey",
+        size = 3
+      ) +
+      annotate(
+        "text",
+        x = season_end,
+        y = max(forecasts_results$vri_data_list[[vri]]$confirm, na.rm = TRUE),
+        label = "Season End",
+        hjust = -0.1,
+        vjust = -0.5,
+        color = "grey",
+        size = 3
+      )
+    
+    y_max <- max(ggplot2::layer_data(rt_plot)$ymax, na.rm = TRUE)
+    
+    
+    rt_plot <- rt_plot +
+      # season markers
+      geom_vline(
+        xintercept = season_start,
+        color = "grey",
+        linetype = "dashed",
+        linewidth = 0.8
+      ) +
+      geom_vline(
+        xintercept = season_end,
+        color = "grey",
+        linetype = "dashed",
+        linewidth = 0.8
+      ) +
+      
+      # labels for season lines
+      annotate(
+        "text",
+        x = season_start,
+        y = y_max,
+        label = "Season Start",
+        hjust = -0.1,
+        vjust = -0.5,
+        color = "grey",
+        size = 3
+      ) +
+      annotate(
+        "text",
+        x = season_end,
+        y = y_max,
+        label = "Season End",
+        hjust = -0.1,
+        vjust = -0.5,
+        color = "grey",
+        size = 3
+      )
+  }
    
   print(forecast_plot)
   cat("\n\n\n")
- print(ViroReportR:::plot_rt(forecasts_results$forecasts[[vri]]))
+  print(rt_plot)
   cat("\n\n\n")
   ViroReportR:::current_forecast_text(forecasts_results$forecasts[[vri]])
   cat("\n\n\n")
@@ -142,9 +226,35 @@ for (vri in vri_name_list) {
 
 ### Description {.tabset}
 
-The forecasting model is trained on historical data and used to predict daily cases `r forecast_horizon`-days ahead. Validation compares the model's forecasted values with observed historical data. Overlap between the prediction intervals and actual cases indicates good model performance.
+The forecasting model is trained on historical data and used to predict daily positive tests `r forecast_horizon`-days ahead. Validation compares the model's forecasted values with observed historical data. Overlap between the prediction intervals and actual positive tests indicates good model performance.
 
 ```{r forecast validation plots, results = "asis", out.width = '90%'}
+# Filter out validation that occurs outside of season
+if(!is.null(disease_season)){
+  for (vri in names(vri_data_list)) {
+  
+  if (is.null(disease_season[[vri]])) next
+  
+  season_dates <- as.Date(disease_season[[vri]])
+  season_start <- season_dates[1]
+  season_end   <- season_dates[2]
+  
+  df <- vri_data_list[[vri]]
+  
+  # Ensure date is Date (only once)
+  if (!inherits(df$date, "Date")) df$date <- as.Date(df$date)
+  
+  # includes 14 days before season start
+  # since forecast starting on the 14th day
+  lower_bound <- max(min(df$date, na.rm = TRUE), season_start - 14)
+  upper_bound <- season_end
+  
+  vri_data_list[[vri]] <- df %>%
+    dplyr::filter(date >= lower_bound, date <= upper_bound)
+  }
+}
+
+
 validation_results <- tibble(
   vri_data_list,
   validation = map2(
@@ -209,5 +319,4 @@ for (vri in vri_name_list) {
   cat(table_html, "\n\n")
 }
 ```
-
 

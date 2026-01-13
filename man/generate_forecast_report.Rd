@@ -9,7 +9,8 @@ generate_forecast_report(
   output_dir = NULL,
   n_days = 7,
   validate_window_size = 7,
-  smooth = FALSE
+  smooth = FALSE,
+  disease_season = NULL
 )
 }
 \arguments{
@@ -23,6 +24,24 @@ Allowed values for \code{disease_type}: \code{"flu_a"}, \code{"flu_b"}, \code{"r
 \item{validate_window_size}{The number of days between each validation window. Default is 7.}
 
 \item{smooth}{Logical indicating whether smoothing should be applied in the forecast. Default is \code{TRUE}.}
+
+\item{disease_season}{An optional named list specifying the seasonal date
+ranges for each disease. Each element should be either:
+\itemize{
+\item NULL (indicating no defined season), or
+\item a two-date vector in "YY-MM-DD" format (e.g., c("2024-09-01", "2025-03-01")) defining
+the start and end of the season for that disease.
+}
+
+For example:
+disease_season = list(
+flu_a     = c("2024-09-01", "2025-03-01"),
+rsv       = c("2024-09-01", "2025-03-01"),
+sars_cov2 = NULL
+)
+
+This will produce a report where influenza A and RSV seasons run from
+September 1, 2024 to March 1, 2025, while no season is defined for SARS-CoV-2.}
 }
 \value{
 Invisibly returns the path to the rendered HTML report.
