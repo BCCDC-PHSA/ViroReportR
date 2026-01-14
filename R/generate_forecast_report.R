@@ -42,7 +42,7 @@ generate_forecast_report <- function(input_data_dir = NULL,
   }
 
   # read data
-  input_data <- read.csv(input_data_dir)
+  input_data <- utils::read.csv(input_data_dir)
 
   # required columns
   required_cols <- c("date", "confirm", "disease_type")
