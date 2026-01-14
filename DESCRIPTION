@@ -45,9 +45,6 @@ Imports:
     tidyr,
     glue,
     here,
-    DT,
-    emojifont,
-    htmltools,
     mgcv,
     kableExtra,
     cowplot
