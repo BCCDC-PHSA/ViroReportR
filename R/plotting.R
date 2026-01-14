@@ -191,7 +191,7 @@ plot_validation <- function(data, validation_res, pred_plot = "ribbon") {
   }
 
   # combine each time window forecast results
-  forecast_dat <- purrr:::map_dfr(validation_res,
+  forecast_dat <- purrr::map_dfr(validation_res,
                                   ~ data.frame(date = .x$forecast_res_quantiles$date,
                                                p50 = .x$forecast_res_quantiles$p50,
                                                p10 = .x$forecast_res_quantiles$p10,
