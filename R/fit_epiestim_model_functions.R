@@ -348,7 +348,7 @@ smooth_model_data <- function(model_data, smoothing_cutoff = 10, n_reps = 10000)
     smoothed_estimates <- stats::predict(model_smooth, type = "response", se.fit = TRUE)
     smoothed_model_data$confirm <- round(smoothed_estimates$fit, 0)
     smoothed_model_data <- smoothed_model_data %>%
-      mutate(confirm = ifelse(confirm < 0, 0, confirm))
+      mutate(confirm = ifelse(.data$confirm < 0, 0, .data$confirm))
     smoothed_error <- data.frame(smoothed_error = smoothed_estimates$se.fit + uncertainity_se)
   } else {
     smoothed_error <- 0
