@@ -11,5 +11,3 @@
 ^\.vscode/$
 ^\.github$
 ^test_scripts$
-^LICENSE.md
-^LICENSE
