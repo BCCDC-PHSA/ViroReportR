@@ -52,7 +52,7 @@ vri_data <- data %>%
 # VRI data set-up
 vri_name_list <- vri_data %>% 
     dplyr::group_by(disease_type) %>% 
-  dplyr::group_keys() %>% pull()
+  dplyr::group_keys() %>% dplyr::pull()
 
 
 vri_data_list <- vri_data %>% 

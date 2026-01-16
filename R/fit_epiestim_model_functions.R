@@ -19,6 +19,7 @@
 #'
 #'
 #' @return Object of class {\code{\link[EpiEstim]{estimate_R}}} (see \code{EpiEstim} help page)
+#' @importFrom rlang .data
 #' @export
 
 fit_epiestim_model <- function(data, window_size = 7L,type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
@@ -226,6 +227,9 @@ project_epiestim_model <- function(data, model_fit, n_days = 7, n_sim = 1000) {
 #' @seealso
 #' \code{\link{fit_epiestim_model}} for reproduction number estimation,
 #' \code{\link{project_epiestim_model}} for forward simulations.
+#' 
+#' @importFrom incidence incidence
+#' @importFrom rlang .data
 #'
 #' @export
 #'

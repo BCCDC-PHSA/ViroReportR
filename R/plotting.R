@@ -114,7 +114,7 @@ plot_forecast_comparison <- function(...) {
   }
 
   g <- dplyr::bind_rows(plot_obj) |>
-    ggplot(aes(x=`date`,y=`p50`)) +
+   ggplot2:: ggplot(ggplot2::aes(x=`date`,y=`p50`)) +
     ggplot2::geom_ribbon(ggplot2::aes(
       ymin = `p10`, ymax = `p90`,
       fill = type
@@ -131,6 +131,7 @@ plot_forecast_comparison <- function(...) {
 #' Plot Mean Rt with time index (dates)
 #' @param forecast_results output from  \code{generate_forecast}
 #' @return Mean Rt with time index plot
+#' @importFrom rlang .data
 #' @export
 plot_rt <- function(forecast_results) {
 
@@ -153,11 +154,11 @@ plot_rt <- function(forecast_results) {
   p <- ggplot2::ggplot(rt_dat, ggplot2::aes(x = .data$weekly_date)) +
     ggplot2::geom_ribbon(ggplot2::aes(ymin = .data$weekly_ymin, ymax = .data$weekly_ymax), fill = "#08519C", alpha = 0.25) +
     ggplot2::geom_line(ggplot2::aes(y = .data$weekly_rt), color = "#08519C") +
-    theme_bw() +
-    labs(x = "Time", y = "mean(expression(R[t]))") +
+    ggplot2::theme_bw() +
+    ggplot2::labs(x = "Time", y = "mean(expression(R[t]))") +
     ggplot2::geom_line(ggplot2::aes(y = .data$weekly_rt), color = "#08519C") +
-    theme_bw() +
-    labs(x = "Time", y = "Mean(Rt)")
+    ggplot2::theme_bw() +
+    ggplot2::labs(x = "Time", y = "Mean(Rt)")
   return(p)
 }
 
@@ -183,6 +184,8 @@ plot_rt <- function(forecast_results) {
 #'
 #' @return error_bar validation plot or ribbon validation plot for a specific prediction horizon
 #'
+#' @importFrom rlang .data
+#' 
 #' @export
 plot_validation <- function(data, validation_res, pred_plot = "ribbon") {
 
@@ -202,7 +205,7 @@ plot_validation <- function(data, validation_res, pred_plot = "ribbon") {
                                                p975 = .x$forecast_res_quantiles$p975,
                                                group_id = as.character(nrow(.x$estimate_R$R))))
 
-  model_data <- filter(data, date <= max(forecast_dat$date, na.rm = T))
+  model_data <- dplyr::filter(data, date <= max(forecast_dat$date, na.rm = T))
   model_data$point_type <- rep("Confirmed Case (Unsmoothed)", nrow(model_data))
 
   forecast_dat$point_type <- rep("Mean Prediction", nrow(forecast_dat))

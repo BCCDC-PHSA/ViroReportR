@@ -35,7 +35,6 @@ Imports:
     ggplot2,
     incidence,
     lubridate,
-    magrittr,
     projections,
     purrr,
     rlang,
@@ -44,7 +43,6 @@ Imports:
     utils,
     tidyr,
     glue,
-    here,
     mgcv,
     kableExtra,
     cowplot

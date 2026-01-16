@@ -156,7 +156,7 @@ generate_validation_metric <- function(data,
       date = forecast_res$forecast_res_quantiles$date,
       forecast_confirm = forecast_res$forecast_res_quantiles$p50
     ) %>%
-      left_join(model_data, by = "date")
+      dplyr::left_join(model_data, by = "date")
 
     # SMAPE (symmetric MAPE) since actual values contain zero
     smape <- mean(ifelse(
