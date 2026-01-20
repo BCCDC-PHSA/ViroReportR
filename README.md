@@ -40,125 +40,167 @@ devtools::install_github("BCCDC-PHSA/ViroReportR")
 `ViroReportR` can be used to generate short-term forecasts with
 accompanied diagnostics in a few lines of code. We go through an example
 here where the `EpiEstim` backend is used to generate forecasts of
-Influenza-A.
+Influenza-A, RSV and SARS-CoV-2.
 
 ``` r
 library(ViroReportR)
-#> ================================================
-#> Welcome to ViroReportR! 
-#> Please run `pkgdown::build_site(lazy = TRUE)` in your console 
-#> to access documentation on the package website 
-#> ================================================
+library(tidyverse)
+library(ggplot2)
+library(here)
+library(DT)
+library(purrr)
+library(kableExtra)
 ```
 
-We will use the simulated data for Influenza A, which is included with
-the `ViroReportR` package. We then use the `get_aggregated_data` to
-transform into a dataset with two columns: `date` and `confirm` in
-accordance to format accepted by the model fitting functions.
+We will use `simulate_data` to simulate date for Influenza A, RSV, and
+SARS-CoV-2, which is included with the `ViroReportR` package. We then
+pivot the simulated data to transform into a dataset with three columns:
+`date`, `disease_type` and `confirm` in accordance to format accepted by
+the model fitting functions.
 
 ``` r
-disease_type <- "rsv"
-test_data <- simulate_data()
-formatted_data <- get_aggregated_data(
-  test_data,
-  number_column = disease_type,
-  date_column = "date",
-  start_date = "2024-04-01",
-  end_date = "2024-05-01"
-  )
+data <- simulate_data(days=365, #days spanning simulation
+                      peaks = c("flu_a"=90,"rsv"=110,"sars_cov2"=160), #peak day for each disease
+                      amplitudes=c("flu_a"=50,"rsv"=40,"sars_cov2"=20), #amplitude of peak for each disease
+                      scales = c("flu_a"=-0.004,"rsv"=-0.005,"sars_cov2"=-0.001), # spread of peak for each disease
+                      time_offset = 0, #number of days to offset start of simulation
+                      noise_sd = 5, #noise term
+                      start_date = "2024-01-07" #starting day (Sunday)
+                      )
 
-head(formatted_data)
-#> # A tibble: 6 × 2
-#>   date       confirm
-#>   <date>       <dbl>
-#> 1 2024-04-01      13
-#> 2 2024-04-02       4
-#> 3 2024-04-03      10
-#> 4 2024-04-04       4
-#> 5 2024-04-05      12
-#> 6 2024-04-06      10
+data$date <- lubridate::ymd(data$date)
+
+vri_data <- tidyr::pivot_longer(
+  data,
+  cols = -date,
+  names_to = "disease_type",
+  values_to = "confirm"
+)
+
+head(vri_data)
+#> # A tibble: 6 × 3
+#>   date       disease_type confirm
+#>   <date>     <chr>          <dbl>
+#> 1 2024-01-07 flu_a              4
+#> 2 2024-01-07 rsv                0
+#> 3 2024-01-07 sars_cov2          0
+#> 4 2024-01-08 flu_a              0
+#> 5 2024-01-08 rsv                1
+#> 6 2024-01-08 sars_cov2          2
 ```
 
-## Model fitting and forecasting over sliding windows
+## Model fitting and forecasting
 
-The `forecast_time_period_epiestim` can be used to produce both daily
-and weekly forecasts using weekly sliding windows. For this example, we
-produce forecasts using `EpiEstim` as the backend algorithm choice. The
+The code below estimates the reproduction number using `EpiEstim`
+through the `generate_forecast()` function for each disease type via the
+`purrr::map2()` function. The `generate_forecast()` function prepares
+the data, estimates the reproduction number, and produces short-term
+forecasts of daily confirmed cases for an `n_days` forecast horizon. The
 other current choice for the forecasting algorithm is `EpiFilter` (WIP).
 
-We can produce forecasts aggregated by day by setting
-`time_period = daily` and set the forecast time-horizon to 7 days (one
-week) by setting `n_days = 7`
+``` r
+# VRI data set-up
+vri_name_list <- vri_data %>% 
+    dplyr::group_by(disease_type) %>% 
+  dplyr::group_keys() %>% pull()
+
+vri_data_list <- vri_data %>% 
+  dplyr::group_by(disease_type) %>% 
+  dplyr::group_map(~.x)
+
+names(vri_data_list) <- vri_name_list
+
+# parameters set-up 
+start_date <- min(vri_data$date) + 13
+n_days <- 14 # number of days ahead to forecast (n_days)
+smooth <- FALSE # logical indicating whether smoothing should be applied in the forecast
+```
 
 ``` r
-time_period_result_daily <- forecast_time_period(
-  data = formatted_data, 
-start_date = "2024-04-10", n_days = 7, type = "rsv", 
-time_period = "daily" , algorithm = "EpiEstim"
+forecasts_results <- tibble(
+  vri_data_list,
+  forecasts = map2(
+    vri_data_list,
+    vri_name_list,
+    ~ generate_forecast(
+      data = .x,
+      smooth_data = smooth,
+      type = .y,
+      n_days = n_days,
+      start_date = start_date
+    )
+  )
 )
+
+names(forecasts_results$forecasts) <- vri_name_list
+names(forecasts_results$vri_data_list) <- vri_name_list
 ```
 
-Finally, we can plot a validation plot using the `plot_validation`
-function. We can plot 7 days ahead forecasts for example by setting the
-`pred_horizon` argument.
+## Plotting results
+
+The code below plots the forecasts results and the estimated $R_t$ for
+each disease. To plot $R_t$, the code below uses `plot_rt` function
+included in the package.
 
 ``` r
-plot_validation(time_period_result_daily, pred_horizon_str = "7 days ahead", pred_plot = "ribbon") +
-  ggplot2::coord_cartesian(ylim=c(0,500),expand=FALSE)
+for (vri in vri_name_list) {
+  forecast_plot <- ggplot() +
+  geom_ribbon(
+    data = forecasts_results$forecasts[[vri]][["forecast_res_quantiles"]],
+    aes(x = date, ymin = p10, ymax = p90, fill = "Prediction Interval"),
+    alpha = 0.4
+  ) +
+  geom_line(
+    data = forecasts_results$forecasts[[vri]][["forecast_res_quantiles"]],
+    aes(x = date, y = p50, color = "Median Forecast"),
+    linewidth = 1
+  ) +
+  geom_point(
+    data = forecasts_results$vri_data_list[[vri]],
+    aes(x = date, y = confirm, shape = "Positive Tests"),
+    size = 2,
+    color = "black"
+  )  +
+  
+  labs(
+    title = paste0(forecast_horizon, "-Day Forecast of Daily ", vri, " Positive Tests"),
+    x = "Date", y = "Predicted Tests",
+    fill = "", color = "", shape = ""
+  ) +
+  scale_fill_manual(values = c("Prediction Interval" = "skyblue")) +
+  scale_color_manual(values = c("Median Forecast" = "blue")) +
+  scale_shape_manual(values = c("Positive Tests" = 16)) +
+  theme_minimal() +
+  theme(legend.position = "top", legend.direction = "horizontal")
+  
+  # create Rt plot
+  rt_plot <- ViroReportR:::plot_rt(forecasts_results$forecasts[[vri]])
+  print(forecast_plot)
+  print(rt_plot)
+}
 ```
 
-<img src="man/figures/README-plot_validation-1.png" width="80%" style="display: block; margin: auto;" />
+<img src="man/figures/README-plotting-1.png" width="100%" /><img src="man/figures/README-plotting-2.png" width="100%" /><img src="man/figures/README-plotting-3.png" width="100%" /><img src="man/figures/README-plotting-4.png" width="100%" /><img src="man/figures/README-plotting-5.png" width="100%" /><img src="man/figures/README-plotting-6.png" width="100%" />
 
-The object of class `forecast_time_period` produced by the
-`forecast_time_period` function also has a customized `summary`
-function. This function checks to see if the weekly data inputted fall
-into the ranges of the prediction quantiles and issues a warning if this
-is not the case. This can be a useful check to assess the forecasts
-produced and the model fit along with the validation plot. It takes in
-the same arguments as the `plot_validation` function above:
-
-``` r
-summary(time_period_result_daily, pred_horizon_str = "7 days ahead")
-#> `mutate_if()` ignored the following grouping variables:
-#> • Column `date`
-#> Warning in summary.forecast_time_period(time_period_result_daily,
-#> pred_horizon_str = "7 days ahead"): Prediction percentile intervals do not
-#> cover some data-points in validation fits. Some forecasts may not be reliable
-#> $individual_quantiles
-#> # A tibble: 13 × 6
-#> # Groups:   date [13]
-#>    date       coverage                       `Confirmed cases` `Predicted cases`
-#>    <date>     <chr>                                      <dbl>             <dbl>
-#>  1 2024-04-19 Outside 95 percentile interval                45      341872241110
-#>  2 2024-04-20 Outside 95 percentile interval                33          21325901
-#>  3 2024-04-21 Outside 95 percentile interval                40            600558
-#>  4 2024-04-22 Outside 95 percentile interval                43              9278
-#>  5 2024-04-23 Outside 95 percentile interval                35              1477
-#>  6 2024-04-24 Outside 95 percentile interval                32               350
-#>  7 2024-04-25 Outside 95 percentile interval                27               163
-#>  8 2024-04-26 Outside 95 percentile interval                30               114
-#>  9 2024-04-27 Outside 95 percentile interval                25                56
-#> 10 2024-04-28 Outside 95 percentile interval                39                54
-#> 11 2024-04-29 Outside 95 percentile interval                25                53
-#> 12 2024-04-30 Outside 95 percentile interval                26                44
-#> 13 2024-05-01 95 percentile interval                        27                35
-#> # ℹ 2 more variables: `50 percentile interval bounds` <glue>,
-#> #   `95 percentile interval bounds` <glue>
-#> 
-#> $quantile_summary
-#> # A tibble: 2 × 3
-#>   coverage                       counts proportion
-#>   <fct>                           <int>      <dbl>
-#> 1 95 percentile interval              1       7.69
-#> 2 Outside 95 percentile interval     12      92.3 
-#> 
-```
+## Forecast report
 
 Finally, the `ViroReportR` package can conveniently generate an
 automated report for the current season for all supported viral
-respiratory diseases (Influenza-A, Influenza-B, RSV and SARS-CoV2) using
-the `generate_forecast_report` function, which renders an HTML report.
+respiratory diseases (Influenza-A, RSV and SARS-CoV2) using the
+`generate_forecast_report` function, which renders an HTML report.
 
 ``` r
-generate_forecast_report(output_dir = "PATH OF DIRECTORY")
+# rendering forecast report
+tmp_file <- tempfile(fileext = "simulated_data.csv")
+readr::write_csv(vri_data, tmp_file)
+
+output_path <- tempdir()
+
+generate_forecast_report(
+  input_data_dir = tmp_file, # input directory with data
+  output_dir = output_path, # output directory
+  n_days = 14, # number of days to forecast
+  validate_window_size = 7, # number of days between each validation window
+  smooth = FALSE, # logical indicating whether smoothing should be applied in the forecast
+)
 ```
