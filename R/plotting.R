@@ -114,7 +114,7 @@ plot_forecast_comparison <- function(...) {
   }
 
   g <- dplyr::bind_rows(plot_obj) |>
-    ggplot(aes(x=`date`,y=`p50`)) +
+   ggplot2:: ggplot(ggplot2::aes(x=`date`,y=`p50`)) +
     ggplot2::geom_ribbon(ggplot2::aes(
       ymin = `p10`, ymax = `p90`,
       fill = type
@@ -131,6 +131,7 @@ plot_forecast_comparison <- function(...) {
 #' Plot Mean Rt with time index (dates)
 #' @param forecast_results output from  \code{generate_forecast}
 #' @return Mean Rt with time index plot
+#' @importFrom rlang .data
 #' @export
 plot_rt <- function(forecast_results) {
 
@@ -145,19 +146,19 @@ plot_rt <- function(forecast_results) {
     dplyr::mutate(
       weekly_date = lubridate::floor_date(date, unit = "week")
     ) |>
-    dplyr::group_by(weekly_date) |>
+    dplyr::group_by(.data$weekly_date) |>
     dplyr::summarise(
-      weekly_rt = mean(`Mean(R)`), weekly_ymin = mean(`Quantile.0.025(R)`),
-      weekly_ymax = mean(`Quantile.0.975(R)`)
+      weekly_rt = mean(.data[["Mean(R)"]]), weekly_ymin = mean(.data[["Quantile.0.025(R)"]]),
+      weekly_ymax = mean(.data[["Quantile.0.975(R)"]])
     )
-  p <- ggplot(rt_dat, aes(x = `weekly_date`)) +
-    ggplot2::geom_ribbon(ggplot2::aes(ymin = `weekly_ymin`, ymax = `weekly_ymax`), fill = "#08519C", alpha = 0.25) +
-    ggplot2::geom_line(ggplot2::aes(y = `weekly_rt`), color = "#08519C") +
-    theme_bw() +
-    labs(x = "Time", y = "mean(expression(R[t]))") +
-    ggplot2::geom_line(ggplot2::aes(y = `weekly_rt`), color = "#08519C") +
-    theme_bw() +
-    labs(x = "Time", y = "Mean(Rt)")
+  p <- ggplot2::ggplot(rt_dat, ggplot2::aes(x = .data$weekly_date)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = .data$weekly_ymin, ymax = .data$weekly_ymax), fill = "#08519C", alpha = 0.25) +
+    ggplot2::geom_line(ggplot2::aes(y = .data$weekly_rt), color = "#08519C") +
+    ggplot2::theme_bw() +
+    ggplot2::labs(x = "Time", y = "mean(expression(R[t]))") +
+    ggplot2::geom_line(ggplot2::aes(y = .data$weekly_rt), color = "#08519C") +
+    ggplot2::theme_bw() +
+    ggplot2::labs(x = "Time", y = "Mean(Rt)")
   return(p)
 }
 
@@ -183,6 +184,8 @@ plot_rt <- function(forecast_results) {
 #'
 #' @return error_bar validation plot or ribbon validation plot for a specific prediction horizon
 #'
+#' @importFrom rlang .data
+#' 
 #' @export
 plot_validation <- function(data, validation_res, pred_plot = "ribbon") {
 
@@ -191,7 +194,7 @@ plot_validation <- function(data, validation_res, pred_plot = "ribbon") {
   }
 
   # combine each time window forecast results
-  forecast_dat <- purrr:::map_dfr(validation_res,
+  forecast_dat <- purrr::map_dfr(validation_res,
                                   ~ data.frame(date = .x$forecast_res_quantiles$date,
                                                p50 = .x$forecast_res_quantiles$p50,
                                                p10 = .x$forecast_res_quantiles$p10,
@@ -202,7 +205,7 @@ plot_validation <- function(data, validation_res, pred_plot = "ribbon") {
                                                p975 = .x$forecast_res_quantiles$p975,
                                                group_id = as.character(nrow(.x$estimate_R$R))))
 
-  model_data <- filter(data, date <= max(forecast_dat$date, na.rm = T))
+  model_data <- dplyr::filter(data, date <= max(forecast_dat$date, na.rm = T))
   model_data$point_type <- rep("Confirmed Case (Unsmoothed)", nrow(model_data))
 
   forecast_dat$point_type <- rep("Mean Prediction", nrow(forecast_dat))
@@ -213,10 +216,10 @@ plot_validation <- function(data, validation_res, pred_plot = "ribbon") {
   base_plot <- ggplot2::ggplot(
     data = forecast_dat,
     ggplot2::aes(
-      x = date, y = p50, group = group_id, color = group_id, fill = group_id
+      x = .data$date, y = .data$p50, group = .data$group_id, color = .data$group_id, fill = .data$group_id
     )
   ) +
-    ggplot2::geom_point(data = model_data, aes(x = date, y = confirm), colour = "black", inherit.aes = FALSE) +
+    ggplot2::geom_point(data = model_data, ggplot2::aes(x = .data$date, y = .data$confirm), colour = "black", inherit.aes = FALSE) +
     ggplot2::theme_bw() +
     ggplot2::labs(x = "Date", y = paste0("Prediction of confirmed cases", fill = "", colour = "")) +
     ggplot2::ggtitle(paste0(gsub("_"," ",paste0(toupper(substr(pred_plot, 1, 1)), substr(pred_plot, 2, nchar(pred_plot)))), " plot of predictions")) +
@@ -227,16 +230,16 @@ plot_validation <- function(data, validation_res, pred_plot = "ribbon") {
 
   if (pred_plot == "error_bar") {
     p <- base_plot +
-      ggplot2::geom_point(ggplot2::aes(y = p50), size = 2) +
-      ggplot2::geom_line(ggplot2::aes(y = p50)) +
-      ggplot2::geom_errorbar(ggplot2::aes(group = date, ymin = p10,
-                                          ymax = p90)) +
+      ggplot2::geom_point(ggplot2::aes(y = .data$p50), size = 2) +
+      ggplot2::geom_line(ggplot2::aes(y = .data$p50)) +
+      ggplot2::geom_errorbar(ggplot2::aes(group = .data$date, ymin = .data$p10,
+                                          ymax = .data$p90)) +
       ggplot2::scale_color_manual(values = blue_grad) +
       ggplot2::theme(legend.position = "None")
   } else if (pred_plot == "ribbon") {
     p <- base_plot +
-      ggplot2::geom_ribbon(aes(ymin = p10, ymax = p90), alpha = 0.3, color = NA) +
-      ggplot2::geom_line(ggplot2::aes(y = p50), linewidth = 1) +
+      ggplot2::geom_ribbon(ggplot2::aes(ymin = .data$p10, ymax = .data$p90), alpha = 0.3, color = NA) +
+      ggplot2::geom_line(ggplot2::aes(y = .data$p50), linewidth = 1) +
       ggplot2::scale_color_manual(values = blue_grad) +
       ggplot2::scale_fill_manual(values = blue_grad)
   }

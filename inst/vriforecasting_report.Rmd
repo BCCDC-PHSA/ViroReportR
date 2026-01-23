@@ -19,8 +19,6 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 library(dplyr)
 library(ViroReportR)
 library(ggplot2)
-library(here)
-library(DT)
 library(purrr)
 library(kableExtra)
 ```

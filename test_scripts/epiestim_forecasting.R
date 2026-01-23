@@ -78,8 +78,8 @@ forecast_one_week |>
   mutate(type = "two week")
   ) |>
   filter(sim < 30) |>
-  ggplot(aes(x=date,y=incidence,group=interaction(sim,type),color=type)) +
-  geom_line(alpha=0.2)
+  ggplot2::ggplot(ggplot2::aes(x=date,y=incidence,group=interaction(sim,type),color=type)) +
+  ggplot2::geom_line(alpha=0.2)
 
 # compare forecasts using different proportions of data throughout the
 # whole time series

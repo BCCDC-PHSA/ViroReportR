@@ -19,6 +19,7 @@
 #'
 #'
 #' @return Object of class {\code{\link[EpiEstim]{estimate_R}}} (see \code{EpiEstim} help page)
+#' @importFrom rlang .data
 #' @export
 
 fit_epiestim_model <- function(data, window_size = 7L,type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
@@ -78,7 +79,7 @@ fit_epiestim_model <- function(data, window_size = 7L,type = NULL, mean_si = NUL
 
   # configuring based on type
   incid <- data.frame(I = data$confirm, dates = data$date) %>%
-    dplyr::arrange(dates)
+    dplyr::arrange(.data$dates)
   # change window size to custom window_size
   # starting at 2 as conditional on the past observations
   n_t <- nrow(incid)
@@ -226,6 +227,9 @@ project_epiestim_model <- function(data, model_fit, n_days = 7, n_sim = 1000) {
 #' @seealso
 #' \code{\link{fit_epiestim_model}} for reproduction number estimation,
 #' \code{\link{project_epiestim_model}} for forward simulations.
+#' 
+#' @importFrom incidence incidence
+#' @importFrom rlang .data
 #'
 #' @export
 #'
@@ -291,8 +295,8 @@ generate_forecast <- function(
                                      n_days = n_days)
 
   forecast_res_quantiles <- forecast_res %>%
-    dplyr::rename(date = date, sim = sim, daily_incidence = incidence) %>%
-    create_quantiles(date, variable = "daily_incidence")
+    dplyr::rename(daily_incidence = incidence) %>%
+    create_quantiles(.data$date, variable = "daily_incidence")
 
 
 
@@ -332,12 +336,12 @@ smooth_model_data <- function(model_data, smoothing_cutoff = 10, n_reps = 10000)
     model_data$index <- index
     model_smooth <- mgcv::gam(confirm ~ s(index, bs = "ps", k = round(length(index) / 2, 0)), data = model_data)
     beta <- coef(model_smooth)
-    Vb <- vcov(model_smooth)
+    Vb <- stats::vcov(model_smooth)
     Cv <- chol(Vb)
 
     nb <- length(beta)
     br <- t(Cv) %*% matrix(rnorm(n_reps * nb), nb, n_reps) + beta
-    Xp <- suppressWarnings(predict(model_smooth, newdata = data.frame(index = index), type = "lpmatrix"))
+    Xp <- suppressWarnings(stats::predict(model_smooth, newdata = data.frame(index = index), type = "lpmatrix"))
     fv <- Xp %*% br
     yr <- matrix(rnorm(nrow(fv) * ncol(fv), mean = fv, sd = model_smooth$sig2),
       nrow = nrow(fv), ncol = ncol(fv)
@@ -345,10 +349,10 @@ smooth_model_data <- function(model_data, smoothing_cutoff = 10, n_reps = 10000)
     conf_int <- apply(yr, 1, quantile, prob = c(0.025, 0.975))
     diff <- conf_int[2, ] - conf_int[1, ]
     uncertainity_se <- diff / (qnorm(1 - 0.05 / 2) * 2)
-    smoothed_estimates <- predict(model_smooth, type = "response", se.fit = TRUE)
+    smoothed_estimates <- stats::predict(model_smooth, type = "response", se.fit = TRUE)
     smoothed_model_data$confirm <- round(smoothed_estimates$fit, 0)
     smoothed_model_data <- smoothed_model_data %>%
-      mutate(confirm = ifelse(confirm < 0, 0, confirm))
+      mutate(confirm = ifelse(.data$confirm < 0, 0, .data$confirm))
     smoothed_error <- data.frame(smoothed_error = smoothed_estimates$se.fit + uncertainity_se)
   } else {
     smoothed_error <- 0

@@ -6,11 +6,11 @@ daily_data <- simulate_data()
 
 # Plot results
 library(ggplot2)
-ggplot(daily_data, aes(x = date)) +
-  geom_line(aes(y = flua, color = "FluA")) +
-  geom_line(aes(y = rsv, color = "RSV")) +
-  geom_line(aes(y = covid, color = "COVID")) +
-  labs(title = "Simulated FluA, RSV, and COVID Incidence Over Time",
+ggplot2::ggplot(daily_data, aes(x = date)) +
+  ggplot2::geom_line(aes(y = flua, color = "FluA")) +
+  ggplot2::geom_line(aes(y = rsv, color = "RSV")) +
+  ggplot2::geom_line(aes(y = covid, color = "COVID")) +
+  ggplot2::labs(title = "Simulated FluA, RSV, and COVID Incidence Over Time",
        x = "Time (Days)",
        y = "Incidence (Cases per 100,000)",
        color = "Disease") +

@@ -173,8 +173,8 @@ clean_sample_data <- function(data,
 
   # exclude the first date if there are no confirmed cases
   non_zero_dates <- data %>%
-    dplyr::filter(confirm > 0) %>%
-    pull(date)
+    dplyr::filter(.data$confirm > 0) %>%
+    dplyr::pull(date)
   data <- data %>%
     dplyr::filter(date >= non_zero_dates[1]) %>%
     dplyr::arrange(date)
