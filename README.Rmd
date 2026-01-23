@@ -127,6 +127,8 @@ names(forecasts_results$vri_data_list) <- vri_name_list
 The code below plots the forecasts results and the estimated $R_t$ for each disease. To plot $R_t$, the code below uses `plot_rt` function included in the package.
 
 ```{r plotting}
+
+
 for (vri in vri_name_list) {
   forecast_plot <- ggplot() +
   geom_ribbon(
@@ -147,7 +149,7 @@ for (vri in vri_name_list) {
   )  +
   
   labs(
-    title = paste0(forecast_horizon, "-Day Forecast of Daily ", vri, " Positive Tests"),
+    title = paste0(n_days, "-Day Forecast of Daily ", vri, " Positive Tests"),
     x = "Date", y = "Predicted Tests",
     fill = "", color = "", shape = ""
   ) +
@@ -167,18 +169,16 @@ for (vri in vri_name_list) {
 
 ## Forecast report
 
-Finally, the `ViroReportR` package can conveniently generate an automated report for the current season for all supported viral respiratory diseases (Influenza-A, RSV and SARS-CoV2) using the `generate_forecast_report` function, which renders an HTML report.
+Finally, the `ViroReportR` package can generate an automated report for the current season across all supported respiratory viruses (Influenza A, RSV, and SARS-CoV-2) using the `generate_forecast_report()` function. This function renders an HTML report summarizing model outputs and forecasts.
+
+To use it, provide an input file (`input_file`) containing the required data with three columns—date, disease_type, and confirm—and specify an output directory (`output_directory)` where the report will be saved.
+
 
 ```{r rendering forecast report, eval=FALSE}
 # rendering forecast report
-tmp_file <- tempfile(fileext = "simulated_data.csv")
-readr::write_csv(vri_data, tmp_file)
-
-output_path <- tempdir()
-
 generate_forecast_report(
-  input_data_dir = tmp_file, # input directory with data
-  output_dir = output_path, # output directory
+  input_data_dir = input_file, # input file
+  output_dir = output_directory, # output directory
   n_days = 14, # number of days to forecast
   validate_window_size = 7, # number of days between each validation window
   smooth = FALSE, # logical indicating whether smoothing should be applied in the forecast

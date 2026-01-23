@@ -44,12 +44,34 @@ Influenza-A, RSV and SARS-CoV-2.
 
 ``` r
 library(ViroReportR)
+#> 
+#> ── ViroReportR ─────────────────────────────────────────────────────────────────
+#> Please run `pkgdown::build_site(lazy = TRUE)` in your console
+#> to access documentation on the package website
+#> ────────────────────────────────────────────────────────────────────────────────
 library(tidyverse)
+#> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+#> ✔ dplyr     1.1.4     ✔ readr     2.1.5
+#> ✔ forcats   1.0.0     ✔ stringr   1.6.0
+#> ✔ ggplot2   4.0.0     ✔ tibble    3.2.1
+#> ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+#> ✔ purrr     1.0.2
+#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+#> ✖ dplyr::filter() masks stats::filter()
+#> ✖ dplyr::lag()    masks stats::lag()
+#> ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
 library(ggplot2)
 library(here)
+#> here() starts at C:/Users/rebeca.falcao/ViroReportR
 library(DT)
 library(purrr)
 library(kableExtra)
+#> 
+#> Attaching package: 'kableExtra'
+#> 
+#> The following object is masked from 'package:dplyr':
+#> 
+#>     group_rows
 ```
 
 We will use `simulate_data` to simulate date for Influenza A, RSV, and
@@ -81,12 +103,12 @@ head(vri_data)
 #> # A tibble: 6 × 3
 #>   date       disease_type confirm
 #>   <date>     <chr>          <dbl>
-#> 1 2024-01-07 flu_a              4
+#> 1 2024-01-07 flu_a              0
 #> 2 2024-01-07 rsv                0
 #> 3 2024-01-07 sars_cov2          0
-#> 4 2024-01-08 flu_a              0
-#> 5 2024-01-08 rsv                1
-#> 6 2024-01-08 sars_cov2          2
+#> 4 2024-01-08 flu_a              1
+#> 5 2024-01-08 rsv                0
+#> 6 2024-01-08 sars_cov2          1
 ```
 
 ## Model fitting and forecasting
@@ -143,6 +165,8 @@ each disease. To plot $R_t$, the code below uses `plot_rt` function
 included in the package.
 
 ``` r
+
+
 for (vri in vri_name_list) {
   forecast_plot <- ggplot() +
   geom_ribbon(
@@ -163,7 +187,7 @@ for (vri in vri_name_list) {
   )  +
   
   labs(
-    title = paste0(forecast_horizon, "-Day Forecast of Daily ", vri, " Positive Tests"),
+    title = paste0(n_days, "-Day Forecast of Daily ", vri, " Positive Tests"),
     x = "Date", y = "Predicted Tests",
     fill = "", color = "", shape = ""
   ) +
@@ -184,21 +208,21 @@ for (vri in vri_name_list) {
 
 ## Forecast report
 
-Finally, the `ViroReportR` package can conveniently generate an
-automated report for the current season for all supported viral
-respiratory diseases (Influenza-A, RSV and SARS-CoV2) using the
-`generate_forecast_report` function, which renders an HTML report.
+Finally, the `ViroReportR` package can generate an automated report for
+the current season across all supported respiratory viruses (Influenza
+A, RSV, and SARS-CoV-2) using the `generate_forecast_report()` function.
+This function renders an HTML report summarizing model outputs and
+forecasts.
+
+To use it, provide an input file (`input_file`) containing the required
+data with three columns—date, disease_type, and confirm—and specify an
+output directory (`output_directory)` where the report will be saved.
 
 ``` r
 # rendering forecast report
-tmp_file <- tempfile(fileext = "simulated_data.csv")
-readr::write_csv(vri_data, tmp_file)
-
-output_path <- tempdir()
-
 generate_forecast_report(
-  input_data_dir = tmp_file, # input directory with data
-  output_dir = output_path, # output directory
+  input_data_dir = input_file, # input file
+  output_dir = output_directory, # output directory
   n_days = 14, # number of days to forecast
   validate_window_size = 7, # number of days between each validation window
   smooth = FALSE, # logical indicating whether smoothing should be applied in the forecast
