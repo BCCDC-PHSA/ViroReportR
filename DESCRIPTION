@@ -1,10 +1,10 @@
 Package: ViroReportR
-Title: Miscellenous tools for generating forecasts from VRI data
+Title: Respiratory Viral Infection Forecast Reporting
 Version: 0.0.0.9000
 Authors@R: 
     c(person(given = "Mike",
            family = "Irvine",
-           role = c("aut", "cre"),
+           role = c("aut", "cre", "cph"),
            email = "mike.irvine@bccdc.ca"),
     person(given = "Caesar",
            family = "Wong",
@@ -18,7 +18,9 @@ Authors@R:
     person(given = "Nelson",
            family = "Tang",
            role = "aut"))
-Description: BCCDC R package for forecasting viral respiratory infection cases and outcomes.
+Description: Tools for reporting and forecasting viral respiratory infections,
+    using case surveillance data. Report generation tools for short-term forecasts,
+    and validation metrics for an arbitrary number of customizable respiratory viruses.
 License: GPL (>= 3)
 Suggests: 
     knitr,
