@@ -69,6 +69,14 @@ temporal conditions. Starting from the earliest date, the function repeatedly:
 This results in a set of forecasts that can be compared to observed data to
 evaluate predictive performance across time.
 }
+\examples{
+\dontrun{
+# Assume `data` has two columns `date` and `confirm` with daily confirmed cases of 'rsv' for 2023.
+start_date <- as.Date("2023-01-15")
+validation_results <- generate_validation(data, start_date)
+}
+
+}
 \seealso{
 \code{\link[=clean_sample_data]{clean_sample_data()}}, \code{\link[=generate_forecast]{generate_forecast()}}
 }

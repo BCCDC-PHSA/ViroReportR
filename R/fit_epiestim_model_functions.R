@@ -32,7 +32,12 @@
 #' # Example using custom serial intervals.
 #' # Assuming `data` is a dataframe with two columns: `date` and `confirm`.
 #' type <- 'custom'
-#' fit_epiestim_model(data, type=type, mean_si = 2.0, std_si = 0.95, mean_prior = 3.0, std_prior = 1.0 )
+#' fit_epiestim_model(data, 
+#'                    type=type, 
+#'                    mean_si = 2.0, 
+#'                    std_si = 0.95, 
+#'                    mean_prior = 3.0, 
+#'                    std_prior = 1.0 )
 #' }
 #' @export
 

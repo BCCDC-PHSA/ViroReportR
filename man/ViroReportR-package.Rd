@@ -4,12 +4,12 @@
 \name{ViroReportR-package}
 \alias{ViroReportR}
 \alias{ViroReportR-package}
-\title{ViroReportR: Miscellenous tools for generating forecasts from VRI data}
+\title{ViroReportR: Respiratory Viral Infection Forecast Reporting}
 \description{
-BCCDC R package for forecasting viral respiratory infection cases and outcomes.
+Tools for reporting and forecasting viral respiratory infections, using case surveillance data. Report generation tools for short-term forecasts, and validation metrics for an arbitrary number of customizable respiratory viruses.
 }
 \author{
-\strong{Maintainer}: Mike Irvine \email{mike.irvine@bccdc.ca}
+\strong{Maintainer}: Mike Irvine \email{mike.irvine@bccdc.ca} [copyright holder]
 
 Authors:
 \itemize{
