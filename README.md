@@ -44,18 +44,13 @@ Influenza-A, RSV and SARS-CoV-2.
 
 ``` r
 library(ViroReportR)
-#> 
-#> ── ViroReportR ─────────────────────────────────────────────────────────────────
-#> Please run `pkgdown::build_site(lazy = TRUE)` in your console
-#> to access documentation on the package website
-#> ────────────────────────────────────────────────────────────────────────────────
 library(tidyverse)
 #> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
 #> ✔ dplyr     1.1.4     ✔ readr     2.1.5
 #> ✔ forcats   1.0.0     ✔ stringr   1.6.0
 #> ✔ ggplot2   4.0.0     ✔ tibble    3.2.1
 #> ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
-#> ✔ purrr     1.0.2
+#> ✔ purrr     1.0.2     
 #> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 #> ✖ dplyr::filter() masks stats::filter()
 #> ✖ dplyr::lag()    masks stats::lag()
@@ -103,12 +98,12 @@ head(vri_data)
 #> # A tibble: 6 × 3
 #>   date       disease_type confirm
 #>   <date>     <chr>          <dbl>
-#> 1 2024-01-07 flu_a              0
+#> 1 2024-01-07 flu_a             11
 #> 2 2024-01-07 rsv                0
-#> 3 2024-01-07 sars_cov2          0
-#> 4 2024-01-08 flu_a              1
+#> 3 2024-01-07 sars_cov2          5
+#> 4 2024-01-08 flu_a              0
 #> 5 2024-01-08 rsv                0
-#> 6 2024-01-08 sars_cov2          1
+#> 6 2024-01-08 sars_cov2          0
 ```
 
 ## Model fitting and forecasting

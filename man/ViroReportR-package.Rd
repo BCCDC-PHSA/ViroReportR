@@ -8,6 +8,14 @@
 \description{
 Tools for reporting and forecasting viral respiratory infections, using case surveillance data. Report generation tools for short-term forecasts, and validation metrics for an arbitrary number of customizable respiratory viruses.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/BCCDC-PHSA/ViroReportR}
+  \item Report bugs at \url{https://github.com/BCCDC-PHSA/ViroReportR/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Mike Irvine \email{mike.irvine@bccdc.ca} [copyright holder]
 

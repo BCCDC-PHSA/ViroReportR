@@ -1,23 +1,13 @@
 Package: ViroReportR
 Title: Respiratory Viral Infection Forecast Reporting
 Version: 0.1.0
-Authors@R: 
-    c(person(given = "Mike",
-           family = "Irvine",
-           role = c("aut", "cre", "cph"),
-           email = "mike.irvine@bccdc.ca"),
-    person(given = "Caesar",
-           family = "Wong",
-           role = "aut"),
-    person(given = "Nirupama",
-           family = "Tamvada",
-           role = "aut"),
-    person(given = "Rebeca",
-           family = "Falcao",
-           role = "aut"),
-    person(given = "Nelson",
-           family = "Tang",
-           role = "aut"))
+Authors@R: c(
+    person("Mike", "Irvine", , "your.email@example.com", role = c("aut", "cre", "cph")),
+    person("Caesar", "Wong", role = "aut"),
+    person("Nirupama", "Tamvada", role = "aut"),
+    person("Rebeca", "Falcao", role = "aut"),
+    person("Nelson", "Tang", role = "aut")
+  )
 Description: Tools for reporting and forecasting viral respiratory infections,
     using case surveillance data. Report generation tools for short-term forecasts,
     and validation metrics for an arbitrary number of customizable respiratory viruses.
