@@ -10,3 +10,4 @@
 ^\.vscode/$
 ^\.github$
 ^test_scripts$
+^CRAN-SUBMISSION$
