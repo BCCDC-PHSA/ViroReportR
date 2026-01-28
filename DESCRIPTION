@@ -1,6 +1,6 @@
 Package: ViroReportR
 Title: Respiratory Viral Infection Forecast Reporting
-Version: 0.1.0
+Version: 1.0.0
 Authors@R: c(
     person("Mike", "Irvine", , "your.email@example.com", role = c("aut", "cre", "cph")),
     person("Caesar", "Wong", role = "aut"),
