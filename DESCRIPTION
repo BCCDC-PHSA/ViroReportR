@@ -40,7 +40,7 @@ Imports:
     cowplot
 VignetteBuilder: knitr
 Depends: 
-    R (>= 3.5)
+    R (>= 4.1.0)
 LazyData: true
 URL: https://github.com/BCCDC-PHSA/ViroReportR
 BugReports: https://github.com/BCCDC-PHSA/ViroReportR/issues
