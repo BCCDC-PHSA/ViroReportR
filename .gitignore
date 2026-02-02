@@ -51,4 +51,7 @@ inst/doc
 inst/rsconnect
 docs
 
+# preview of JOSS paper
+*.html
+
 
