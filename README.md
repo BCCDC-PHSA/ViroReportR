@@ -76,6 +76,7 @@ pivot the simulated data to transform into a dataset with three columns:
 the model fitting functions.
 
 ``` r
+diseases<-c("flu_a", "rsv", "sars_cov2")
 data <- simulate_data(days=365, #days spanning simulation
                       peaks = c("flu_a"=90,"rsv"=110,"sars_cov2"=160), #peak day for each disease
                       amplitudes=c("flu_a"=50,"rsv"=40,"sars_cov2"=20), #amplitude of peak for each disease
@@ -87,23 +88,57 @@ data <- simulate_data(days=365, #days spanning simulation
 
 data$date <- lubridate::ymd(data$date)
 
-vri_data <- tidyr::pivot_longer(
-  data,
-  cols = -date,
-  names_to = "disease_type",
-  values_to = "confirm"
-)
+vri_data_list <- map2(rep(list(data), length(diseases)),
+  diseases,~ get_aggregated_data(.x, "date", .y)) %>% set_names(diseases)
 
-head(vri_data)
-#> # A tibble: 6 × 3
-#>   date       disease_type confirm
-#>   <date>     <chr>          <dbl>
-#> 1 2024-01-07 flu_a             11
-#> 2 2024-01-07 rsv                0
-#> 3 2024-01-07 sars_cov2          5
-#> 4 2024-01-08 flu_a              0
-#> 5 2024-01-08 rsv                0
-#> 6 2024-01-08 sars_cov2          0
+head(vri_data_list)
+#> $flu_a
+#> # A tibble: 366 × 2
+#>    date       confirm
+#>    <date>       <dbl>
+#>  1 2024-01-07       0
+#>  2 2024-01-08       5
+#>  3 2024-01-09       0
+#>  4 2024-01-10       5
+#>  5 2024-01-11       0
+#>  6 2024-01-12       0
+#>  7 2024-01-13       0
+#>  8 2024-01-14       0
+#>  9 2024-01-15       0
+#> 10 2024-01-16       0
+#> # ℹ 356 more rows
+#> 
+#> $rsv
+#> # A tibble: 366 × 2
+#>    date       confirm
+#>    <date>       <dbl>
+#>  1 2024-01-07       0
+#>  2 2024-01-08       0
+#>  3 2024-01-09       3
+#>  4 2024-01-10       1
+#>  5 2024-01-11       0
+#>  6 2024-01-12       3
+#>  7 2024-01-13       0
+#>  8 2024-01-14       0
+#>  9 2024-01-15       6
+#> 10 2024-01-16       0
+#> # ℹ 356 more rows
+#> 
+#> $sars_cov2
+#> # A tibble: 366 × 2
+#>    date       confirm
+#>    <date>       <dbl>
+#>  1 2024-01-07       3
+#>  2 2024-01-08       0
+#>  3 2024-01-09       2
+#>  4 2024-01-10       0
+#>  5 2024-01-11       0
+#>  6 2024-01-12       0
+#>  7 2024-01-13       0
+#>  8 2024-01-14       1
+#>  9 2024-01-15       3
+#> 10 2024-01-16       0
+#> # ℹ 356 more rows
 ```
 
 ## Model fitting and forecasting
@@ -116,19 +151,8 @@ forecasts of daily confirmed cases for an `n_days` forecast horizon. The
 other current choice for the forecasting algorithm is `EpiFilter` (WIP).
 
 ``` r
-# VRI data set-up
-vri_name_list <- vri_data %>% 
-    dplyr::group_by(disease_type) %>% 
-  dplyr::group_keys() %>% pull()
-
-vri_data_list <- vri_data %>% 
-  dplyr::group_by(disease_type) %>% 
-  dplyr::group_map(~.x)
-
-names(vri_data_list) <- vri_name_list
-
 # parameters set-up 
-start_date <- min(vri_data$date) + 13
+start_date <- min(data$date) + 13
 n_days <- 14 # number of days ahead to forecast (n_days)
 smooth <- FALSE # logical indicating whether smoothing should be applied in the forecast
 ```
@@ -138,7 +162,7 @@ forecasts_results <- tibble(
   vri_data_list,
   forecasts = map2(
     vri_data_list,
-    vri_name_list,
+    diseases,
     ~ generate_forecast(
       data = .x,
       smooth_data = smooth,
@@ -149,8 +173,9 @@ forecasts_results <- tibble(
   )
 )
 
-names(forecasts_results$forecasts) <- vri_name_list
-names(forecasts_results$vri_data_list) <- vri_name_list
+
+names(forecasts_results$forecasts) <- diseases
+names(forecasts_results$vri_data_list) <- diseases
 ```
 
 ## Plotting results
@@ -162,7 +187,7 @@ included in the package.
 ``` r
 
 
-for (vri in vri_name_list) {
+for (vri in diseases) {
   forecast_plot <- ggplot() +
   geom_ribbon(
     data = forecasts_results$forecasts[[vri]][["forecast_res_quantiles"]],
@@ -215,6 +240,9 @@ output directory (`output_directory)` where the report will be saved.
 
 ``` r
 # rendering forecast report
+# df <- imap_dfr(vri_data_list, ~ .x %>% mutate(disease_type = .y))
+
+#' write.csv(df, "simulated_data.csv", row.names = FALSE)
 generate_forecast_report(
   input_data_dir = input_file, # input file
   output_dir = output_directory, # output directory
