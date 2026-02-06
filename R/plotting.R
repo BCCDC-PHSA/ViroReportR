@@ -20,16 +20,9 @@
 #' A **ggplot2** object showing median \eqn{R} estimates with 50% and 95% credible intervals,
 #' colored by input source (i.e., name).
 #'
-#'
-#' @examples
-#' \dontrun{
-#' # Assuming `fit1` and `fit2` are valid EpiEstim outputs with R data frames:
-#' plot_R_fit_comparison(Fit1 = fit1, Fit2 = fit2)
-#' }
-#'
 #' @seealso [generate_forecast()], [EpiEstim::estimate_R()]
 #' @keywords internal
-#' @export
+
 plot_R_fit_comparison <- function(...) {
   warning("plot_R_fit_comparison() is deprecated and may be removed in a future release.")
   # lifecycle::deprecate_warn()
@@ -88,15 +81,8 @@ plot_R_fit_comparison <- function(...) {
 #' A **ggplot2** object showing forecasted median incidences over time with shaded
 #' prediction intervals, colored by input source (i.e., model name).
 #'
-#' @examples
-#' \dontrun{
-#' # Assuming `forecast1` and `forecast2` are valid generate_forecast() outputs:
-#' plot_forecast_comparison(ModelA = forecast1, ModelB = forecast2)
-#' }
-#'
 #' @seealso [generate_forecast()], [ggplot2::ggplot()]
 #' @keywords internal
-#' @export
 plot_forecast_comparison <- function(...) {
   warning("plot_forecast_comparison() is deprecated and may be removed in a future release.")
   `p50` <- `p10` <- `p90` <- NULL
@@ -207,10 +193,10 @@ plot_rt <- function(forecast_results) {
 #' @return error_bar validation plot or ribbon validation plot for a specific prediction horizon
 #'
 #' @examples 
-#' data <- simulate_date()
-#' formatted_data <- get_aggregated_data(sim_data,"date", "flu_a", "2024-10-16", "2024-12-31")
+#' data <- simulate_data()
+#' formatted_data <- get_aggregated_data(data,"date", "flu_a", "2024-10-16", "2024-12-31")
 #' start_date <- ("2024-10-16")
-#' validation_results <- generate_validation(formatted_data, start_date)
+#' validation_results <- generate_validation(formatted_data, start_date, type ="flu_a")
 #' plot_validation(formatted_data, validation_results)
 #' 
 #' @importFrom rlang .data

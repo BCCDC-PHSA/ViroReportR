@@ -11,3 +11,4 @@
 ^\.github$
 ^test_scripts$
 ^CRAN-SUBMISSION$
+^paper_preview.html$

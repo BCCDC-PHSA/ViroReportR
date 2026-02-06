@@ -42,10 +42,10 @@
 #' evaluate predictive performance across time.
 #' 
 #' @examples
-#' data <- simulate_date()
-#' formatted_data <- get_aggregated_data(sim_data,"date", "flu_a", "2024-10-16", "2024-12-31")
+#' data <- simulate_data()
+#' formatted_data <- get_aggregated_data(data,"date", "flu_a", "2024-10-16", "2024-12-31")
 #' start_date <- as.Date("2024-10-16")
-#' validation_results <- generate_validation(formatted_data, start_date)
+#' validation_results <- generate_validation(formatted_data, start_date, type="flu_a")
 #'
 #' @seealso [clean_sample_data()], [generate_forecast()]
 #' @export
@@ -143,11 +143,11 @@ generate_validation <- function(
 #' date in the observed model data.
 #' 
 #' @examples 
-#' data <- simulate_date()
-#' formatted_data <- get_aggregated_data(sim_data,"date", "flu_a", "2024-10-16", "2024-12-31")
+#' data <- simulate_data()
+#' formatted_data <- get_aggregated_data(data,"date", "flu_a", "2024-10-16", "2024-12-31")
 #' start_date <- ("2024-10-16")
-#' validation_results <- generate_validation(formatted_data, start_date)
-#' generate_validation_metric(formatted_data, validation_res)
+#' validation_results <- generate_validation(formatted_data, start_date, type ="flu_a")
+#' generate_validation_metric(formatted_data, validation_results)
 #' 
 #' @seealso [generate_validation()], [generate_forecast()]
 #' @export

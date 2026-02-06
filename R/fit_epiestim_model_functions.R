@@ -20,26 +20,6 @@
 #'
 #' @return Object of class {\code{\link[EpiEstim]{estimate_R}}} (see \code{EpiEstim} help page)
 #' @importFrom rlang .data
-#' @examples
-#' \donttest{
-#' # Example using serial intervals included in the package.
-#' # Assuming `data` is a dataframe with two columns: `date` and `confirm`.
-#' type <- 'rsv'
-#' fit_epiestim_model(data, type=type)
-#' }
-#' 
-#' \donttest{
-#' # Example using custom serial intervals.
-#' # Assuming `data` is a dataframe with two columns: `date` and `confirm`.
-#' type <- 'custom'
-#' fit_epiestim_model(data, 
-#'                    type=type, 
-#'                    mean_si = 2.0, 
-#'                    std_si = 0.95, 
-#'                    mean_prior = 3.0, 
-#'                    std_prior = 1.0 )
-#' }
-#' @export
 
 fit_epiestim_model <- function(data, window_size = 7L,type = NULL, mean_si = NULL, std_si = NULL, recon_opt = "match",
                                method = "parametric_si", mean_prior = NULL, std_prior = NULL) {
@@ -274,7 +254,7 @@ project_epiestim_model <- function(data, model_fit, n_days = 7, n_sim = 1000) {
 #'   type = "rsv",
 #'   smooth_data = FALSE
 #' )
-#' }
+#' 
 
 generate_forecast <- function(
     data,
