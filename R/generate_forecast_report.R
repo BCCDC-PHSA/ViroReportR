@@ -25,6 +25,27 @@
 #'   September 1, 2024 to March 1, 2025, while no season is defined for SARS-CoV-2.
 #' @import kableExtra cowplot
 #' @return Invisibly returns the path to the rendered HTML report.
+#' @export
+#' @examples
+#' data <- simulate_data(days=365, #days spanning simulation
+#'                      peaks = c("flu_a"=90), #peak day for each disease
+#'                      amplitudes=c("flu_a"=50), #amplitude of peak for each disease
+#'                      scales = c("flu_a"=-0.004), # spread of peak for each disease
+#'                      time_offset = 0, #number of days to offset start of simulation
+#'                      noise_sd = 5, #noise term
+#'                      start_date = "2024-01-07" #starting day (Sunday))
+#' aggregated_data <- get_aggregated_data(sim_data, date", "flu_a", "2024-01-16", "2024-12-31")
+#' tmp_dir <- tempdir() # temporary directory for example for saving data
+#' # Save the simulated data
+#' data_path <- file.path(tmp_dir, "simulated_data.csv")
+#' write.csv(vri_data, data_path, row.names = FALSE)
+#' output_path <- tempdir() # output directory for report (temporary as example)
+#' generate_forecast_report(input_dir = data_path,
+#'                          output_dir = output_path,
+#'                          n_days = 7,
+#'                          validate_window_size = 7,
+#'                          smooth = TRUE)
+
 generate_forecast_report <- function(input_data_dir = NULL,
                                      output_dir = NULL,
                                      n_days = 7,

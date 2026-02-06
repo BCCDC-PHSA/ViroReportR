@@ -21,14 +21,14 @@
 #' @return Object of class {\code{\link[EpiEstim]{estimate_R}}} (see \code{EpiEstim} help page)
 #' @importFrom rlang .data
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # Example using serial intervals included in the package.
 #' # Assuming `data` is a dataframe with two columns: `date` and `confirm`.
 #' type <- 'rsv'
 #' fit_epiestim_model(data, type=type)
 #' }
 #' 
-#' \dontrun{
+#' \donttest{
 #' # Example using custom serial intervals.
 #' # Assuming `data` is a dataframe with two columns: `date` and `confirm`.
 #' type <- 'custom'
@@ -146,6 +146,7 @@ fit_epiestim_model <- function(data, window_size = 7L,type = NULL, mean_si = NUL
 #'   \item{incidence}{projected number of daily confirmed cases}
 #'   \item{sim}{simulation run number}
 #' }
+#' 
 project_epiestim_model <- function(data, model_fit, n_days = 7, n_sim = 1000) {
   confirm <- NULL
 
@@ -253,7 +254,6 @@ project_epiestim_model <- function(data, model_fit, n_days = 7, n_sim = 1000) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #'
 #' # Create sample test rsv data
 #' disease_type <- "rsv"
@@ -275,7 +275,6 @@ project_epiestim_model <- function(data, model_fit, n_days = 7, n_sim = 1000) {
 #'   smooth_data = FALSE
 #' )
 #' }
-
 
 generate_forecast <- function(
     data,

@@ -58,6 +58,7 @@ library(kableExtra)
 We will use `simulate_data` to simulate date for Influenza A, RSV, and SARS-CoV-2, which is included with the `ViroReportR` package. We then pivot the simulated data to transform into a dataset with three columns: `date`, `disease_type` and `confirm` in accordance to format accepted by the model fitting functions. 
 
 ```{r simulate data}
+diseases<-c("flu_a", "rsv", "sars_cov2")
 data <- simulate_data(days=365, #days spanning simulation
                       peaks = c("flu_a"=90,"rsv"=110,"sars_cov2"=160), #peak day for each disease
                       amplitudes=c("flu_a"=50,"rsv"=40,"sars_cov2"=20), #amplitude of peak for each disease
@@ -69,14 +70,10 @@ data <- simulate_data(days=365, #days spanning simulation
 
 data$date <- lubridate::ymd(data$date)
 
-vri_data <- tidyr::pivot_longer(
-  data,
-  cols = -date,
-  names_to = "disease_type",
-  values_to = "confirm"
-)
+vri_data_list <- map2(rep(list(data), length(diseases)),
+  diseases,~ get_aggregated_data(.x, "date", .y)) %>% set_names(diseases)
 
-head(vri_data)
+head(vri_data_list)
 ```
 
 ## Model fitting and forecasting
@@ -85,19 +82,8 @@ The code below estimates the reproduction number using `EpiEstim` through the `g
 
 
 ```{r forecasts parameter defitinions}
-# VRI data set-up
-vri_name_list <- vri_data %>% 
-    dplyr::group_by(disease_type) %>% 
-  dplyr::group_keys() %>% pull()
-
-vri_data_list <- vri_data %>% 
-  dplyr::group_by(disease_type) %>% 
-  dplyr::group_map(~.x)
-
-names(vri_data_list) <- vri_name_list
-
 # parameters set-up 
-start_date <- min(vri_data$date) + 13
+start_date <- min(data$date) + 13
 n_days <- 14 # number of days ahead to forecast (n_days)
 smooth <- FALSE # logical indicating whether smoothing should be applied in the forecast
 ```
@@ -107,7 +93,7 @@ forecasts_results <- tibble(
   vri_data_list,
   forecasts = map2(
     vri_data_list,
-    vri_name_list,
+    diseases,
     ~ generate_forecast(
       data = .x,
       smooth_data = smooth,
@@ -118,8 +104,9 @@ forecasts_results <- tibble(
   )
 )
 
-names(forecasts_results$forecasts) <- vri_name_list
-names(forecasts_results$vri_data_list) <- vri_name_list
+
+names(forecasts_results$forecasts) <- diseases
+names(forecasts_results$vri_data_list) <- diseases
 ```
  
 ## Plotting results
@@ -129,7 +116,7 @@ The code below plots the forecasts results and the estimated $R_t$ for each dise
 ```{r plotting}
 
 
-for (vri in vri_name_list) {
+for (vri in diseases) {
   forecast_plot <- ggplot() +
   geom_ribbon(
     data = forecasts_results$forecasts[[vri]][["forecast_res_quantiles"]],
