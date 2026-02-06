@@ -97,15 +97,15 @@ head(vri_data_list)
 #>    date       confirm
 #>    <date>       <dbl>
 #>  1 2024-01-07       0
-#>  2 2024-01-08       5
-#>  3 2024-01-09       0
-#>  4 2024-01-10       5
+#>  2 2024-01-08       0
+#>  3 2024-01-09       5
+#>  4 2024-01-10       0
 #>  5 2024-01-11       0
 #>  6 2024-01-12       0
-#>  7 2024-01-13       0
+#>  7 2024-01-13       4
 #>  8 2024-01-14       0
 #>  9 2024-01-15       0
-#> 10 2024-01-16       0
+#> 10 2024-01-16       9
 #> # ℹ 356 more rows
 #> 
 #> $rsv
@@ -114,29 +114,29 @@ head(vri_data_list)
 #>    <date>       <dbl>
 #>  1 2024-01-07       0
 #>  2 2024-01-08       0
-#>  3 2024-01-09       3
-#>  4 2024-01-10       1
+#>  3 2024-01-09       7
+#>  4 2024-01-10       0
 #>  5 2024-01-11       0
-#>  6 2024-01-12       3
-#>  7 2024-01-13       0
-#>  8 2024-01-14       0
-#>  9 2024-01-15       6
-#> 10 2024-01-16       0
+#>  6 2024-01-12       4
+#>  7 2024-01-13       1
+#>  8 2024-01-14       7
+#>  9 2024-01-15       0
+#> 10 2024-01-16       3
 #> # ℹ 356 more rows
 #> 
 #> $sars_cov2
 #> # A tibble: 366 × 2
 #>    date       confirm
 #>    <date>       <dbl>
-#>  1 2024-01-07       3
-#>  2 2024-01-08       0
-#>  3 2024-01-09       2
-#>  4 2024-01-10       0
-#>  5 2024-01-11       0
-#>  6 2024-01-12       0
-#>  7 2024-01-13       0
-#>  8 2024-01-14       1
-#>  9 2024-01-15       3
+#>  1 2024-01-07       1
+#>  2 2024-01-08       1
+#>  3 2024-01-09       3
+#>  4 2024-01-10       1
+#>  5 2024-01-11       8
+#>  6 2024-01-12       1
+#>  7 2024-01-13       2
+#>  8 2024-01-14       0
+#>  9 2024-01-15       0
 #> 10 2024-01-16       0
 #> # ℹ 356 more rows
 ```
@@ -240,9 +240,8 @@ output directory (`output_directory)` where the report will be saved.
 
 ``` r
 # rendering forecast report
-# df <- imap_dfr(vri_data_list, ~ .x %>% mutate(disease_type = .y))
-
-#' write.csv(df, "simulated_data.csv", row.names = FALSE)
+df <- imap_dfr(vri_data_list, ~ .x %>% mutate(disease_type = .y))
+write.csv(df, "simulated_data.csv", row.names = FALSE)
 generate_forecast_report(
   input_data_dir = input_file, # input file
   output_dir = output_directory, # output directory

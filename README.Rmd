@@ -163,9 +163,8 @@ To use it, provide an input file (`input_file`) containing the required data wit
 
 ```{r rendering forecast report, eval=FALSE}
 # rendering forecast report
-# df <- imap_dfr(vri_data_list, ~ .x %>% mutate(disease_type = .y))
-
-#' write.csv(df, "simulated_data.csv", row.names = FALSE)
+df <- imap_dfr(vri_data_list, ~ .x %>% mutate(disease_type = .y))
+write.csv(df, "simulated_data.csv", row.names = FALSE)
 generate_forecast_report(
   input_data_dir = input_file, # input file
   output_dir = output_directory, # output directory
