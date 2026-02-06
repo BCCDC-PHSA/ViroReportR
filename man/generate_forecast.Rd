@@ -76,7 +76,6 @@ quantiles (2.5\%, 25\%, 50\%, 75\%, 97.5\%), minimum, and maximum.
 }
 }
 \examples{
-\dontrun{
 
 # Create sample test rsv data
 disease_type <- "rsv"
@@ -97,7 +96,7 @@ res_smooth <- generate_forecast(
   type = "rsv",
   smooth_data = FALSE
 )
-}
+
 }
 \seealso{
 \code{\link{fit_epiestim_model}} for reproduction number estimation,

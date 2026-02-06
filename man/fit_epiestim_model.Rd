@@ -45,23 +45,3 @@ A wrapper function for {\code{\link[EpiEstim]{estimate_R}}} from the \code{EpiEs
 \code{fit_epiestim_model} currently supports the following epidemics: Influenza, RSV and COVID-19. The default serial intervals for the estimation of R were retrieved from
 Cowling et al., 2011, Vink et al., 2014 and Madewell et al., 2023 for Influenza A, Influenza B, RSV and COVID (BA.5 Omicron variant) respectively
 }
-\examples{
-\dontrun{
-# Example using serial intervals included in the package.
-# Assuming `data` is a dataframe with two columns: `date` and `confirm`.
-type <- 'rsv'
-fit_epiestim_model(data, type=type)
-}
-
-\dontrun{
-# Example using custom serial intervals.
-# Assuming `data` is a dataframe with two columns: `date` and `confirm`.
-type <- 'custom'
-fit_epiestim_model(data, 
-                   type=type, 
-                   mean_si = 2.0, 
-                   std_si = 0.95, 
-                   mean_prior = 3.0, 
-                   std_prior = 1.0 )
-}
-}

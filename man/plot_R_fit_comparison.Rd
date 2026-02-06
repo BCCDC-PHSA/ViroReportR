@@ -29,13 +29,6 @@ This function creates a ggplot comparing estimated reproduction numbers (\eqn{R}
 over time from multiple EpiEstim outputs. Each input should be a named object
 produced by EpiEstim containing an \code{estimate_R$R} data frame.
 }
-\examples{
-\dontrun{
-# Assuming `fit1` and `fit2` are valid EpiEstim outputs with R data frames:
-plot_R_fit_comparison(Fit1 = fit1, Fit2 = fit2)
-}
-
-}
 \seealso{
 \code{\link[=generate_forecast]{generate_forecast()}}, \code{\link[EpiEstim:estimate_R]{EpiEstim::estimate_R()}}
 }
