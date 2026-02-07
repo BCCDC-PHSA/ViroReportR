@@ -97,46 +97,46 @@ head(vri_data_list)
 #>    date       confirm
 #>    <date>       <dbl>
 #>  1 2024-01-07       1
-#>  2 2024-01-08       5
+#>  2 2024-01-08       9
 #>  3 2024-01-09       0
-#>  4 2024-01-10       6
-#>  5 2024-01-11       0
-#>  6 2024-01-12       6
+#>  4 2024-01-10       0
+#>  5 2024-01-11       1
+#>  6 2024-01-12       0
 #>  7 2024-01-13       0
 #>  8 2024-01-14       0
 #>  9 2024-01-15       0
-#> 10 2024-01-16      14
+#> 10 2024-01-16       4
 #> # ℹ 356 more rows
 #> 
 #> $rsv
 #> # A tibble: 366 × 2
 #>    date       confirm
 #>    <date>       <dbl>
-#>  1 2024-01-07       0
+#>  1 2024-01-07       1
 #>  2 2024-01-08       8
-#>  3 2024-01-09      11
-#>  4 2024-01-10       6
-#>  5 2024-01-11       0
-#>  6 2024-01-12       0
+#>  3 2024-01-09       0
+#>  4 2024-01-10       0
+#>  5 2024-01-11       4
+#>  6 2024-01-12       6
 #>  7 2024-01-13       0
-#>  8 2024-01-14       0
-#>  9 2024-01-15       6
-#> 10 2024-01-16       7
+#>  8 2024-01-14       3
+#>  9 2024-01-15       0
+#> 10 2024-01-16       0
 #> # ℹ 356 more rows
 #> 
 #> $sars_cov2
 #> # A tibble: 366 × 2
 #>    date       confirm
 #>    <date>       <dbl>
-#>  1 2024-01-07       3
-#>  2 2024-01-08       0
-#>  3 2024-01-09       7
-#>  4 2024-01-10       0
-#>  5 2024-01-11       8
-#>  6 2024-01-12       6
+#>  1 2024-01-07       0
+#>  2 2024-01-08       3
+#>  3 2024-01-09       0
+#>  4 2024-01-10       8
+#>  5 2024-01-11       0
+#>  6 2024-01-12       2
 #>  7 2024-01-13       0
-#>  8 2024-01-14       0
-#>  9 2024-01-15       5
+#>  8 2024-01-14       2
+#>  9 2024-01-15       0
 #> 10 2024-01-16       2
 #> # ℹ 356 more rows
 ```
@@ -241,9 +241,10 @@ output directory (`output_directory)` where the report will be saved.
 ``` r
 # rendering forecast report
 df <- imap_dfr(vri_data_list, ~ .x %>% mutate(disease_type = .y))
-write.csv(df, "simulated_data.csv", row.names = FALSE)
+input_file<-"simulated_data.csv"
+write.csv(df, input_file, row.names = FALSE)
 generate_forecast_report(
-  input_data_dir = "simulated_data.csv", # input filepath
+  input_data_dir =  input_file, # input filepath
   output_dir = output_directory, # output directory
   n_days = 14, # number of days to forecast
   validate_window_size = 7, # number of days between each validation window

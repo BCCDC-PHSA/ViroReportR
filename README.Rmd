@@ -164,9 +164,10 @@ To use it, provide an input file (`input_file`) containing the required data wit
 ```{r rendering forecast report, eval=FALSE}
 # rendering forecast report
 df <- imap_dfr(vri_data_list, ~ .x %>% mutate(disease_type = .y))
-write.csv(df, "simulated_data.csv", row.names = FALSE)
+input_file<-"simulated_data.csv"
+write.csv(df, input_file, row.names = FALSE)
 generate_forecast_report(
-  input_data_dir = "simulated_data.csv", # input filepath
+  input_data_dir =  input_file, # input filepath
   output_dir = output_directory, # output directory
   n_days = 14, # number of days to forecast
   validate_window_size = 7, # number of days between each validation window
