@@ -50,7 +50,7 @@ Invisibly returns the path to the rendered HTML report.
 Generates a full-season forecast report for viral respiratory diseases as an HTML document.
 }
 \examples{
-\dontrun{
+\donttest{
 data <- simulate_data(start_date = "2024-01-07", #starting Sunday
 )
 diseases <- c("flu_a", "rsv", "sars_cov2")

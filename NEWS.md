@@ -1,7 +1,7 @@
 # ViroReportR 1.0.3
 
 * Add `\donttest{}` in `generate_forecast_report()` examples because it takes longer than 5s.
-* Single-quote package name and author name in reference to avoid mispelling issues.
+* Single-quote package name and author name in description to avoid mispelling issues.
   
 # ViroReportR 1.0.2
 
