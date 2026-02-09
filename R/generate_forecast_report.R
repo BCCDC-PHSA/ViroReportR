@@ -27,6 +27,7 @@
 #' @return Invisibly returns the path to the rendered HTML report.
 #' @export
 #' @examples
+#' \dontrun{
 #' data <- simulate_data(start_date = "2024-01-07", #starting Sunday
 #' )
 #' diseases <- c("flu_a", "rsv", "sars_cov2")
@@ -53,6 +54,7 @@
 #'                          n_days = 7,
 #'                          validate_window_size = 7,
 #'                          smooth = FALSE)
+#' }
 
 generate_forecast_report <- function(input_data_dir = NULL,
                                      output_dir = NULL,
