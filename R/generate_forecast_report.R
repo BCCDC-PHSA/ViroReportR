@@ -27,7 +27,7 @@
 #' @return Invisibly returns the path to the rendered HTML report.
 #' @export
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data <- simulate_data(start_date = "2024-01-07", #starting Sunday
 #' )
 #' diseases <- c("flu_a", "rsv", "sars_cov2")
