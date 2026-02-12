@@ -62,16 +62,19 @@ estimation methods [@coriNewFrameworkSoftware2013] , it provides real-time
 projections across different time horizons and disease types.
 
 # Statement of need
-...
+Respiratory viruses are continuously contributing for outbreaks and epidemics, requiring a constant need for forecast of future cases. During and before respiratory seasons, these forecasts can support better public health response and planning. Communicating forecasts and model results is always challenging, and transparency is essential for build trust and capacity. ViroReportR tackles this issue by providing an automated forecast reporting tool for respiratory viruses, including Influenza A, SARS-CoV2 and Respiratory Syncytial. The final deliverable provides forecasts of future cases with the inclusion of model uncertainity and validation metrics. Therefore, ViroReportR provides a timely, transparent and reliably tool to support public heatlh respondes and epidemiologists with planning and capacity around respiratory viral infections.
 
 # State of the field                                                                                                                  
 ...
 
 # Software design
-...
+
+We want to provide a flexible and easy to use report generation tool, maintaining the overall structure of the report fixed. ViroReportR package works around a main function `generate_forecast_report()` that calls all other functions for data processing, fitting, forecasting, validation and render a final markdown file (`inst/vriforecasting_report.Rmd`).
+The data input is fairly simple and consists of the daily counts of a respiratory virues. Given that jurisdictions might be insterested in different respiratory viruses, we allow users to add or remove viruses. All of this can be done by the data input. The required format of the data is 3 columns with `date`, `disease_type` and `confirm` (confirmed cases). If the user has added any additional viruses other than Influenza A, SARS-CoV2 and RSV, they will also need to add serial interval distribution parameters for those viruses. The overall text and explanations on the report are not dependent on results. Adding new virus provides more tabs, plots and summary tables on the final html report.  In addition, some respiratory viruses follow a clear respiratory season, whereas others may not. Thus, we include an option for users to provide seasonal period for each virus if needed. Currently, we provide estimations using the `EpiEstim` packages [@coriNewFrameworkSoftware2013], but we design `ViroReportR` to allow for inclusion of other model techniques in the future. 
+
 
 # Research impact statement
-...
+Currently, ViroReportR is being deployed in pipeline for internal use within BCCDC. 
 
 # AI usage disclosure
 ...
