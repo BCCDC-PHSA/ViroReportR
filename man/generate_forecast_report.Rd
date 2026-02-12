@@ -49,3 +49,32 @@ Invisibly returns the path to the rendered HTML report.
 \description{
 Generates a full-season forecast report for viral respiratory diseases as an HTML document.
 }
+\examples{
+\donttest{
+data <- simulate_data(start_date = "2024-01-07", #starting Sunday
+)
+diseases <- c("flu_a", "rsv", "sars_cov2")
+data$date <- lubridate::ymd(data$date)
+vri_data_list <- purrr::set_names( purrr::map2( rep(list(data), length(diseases)),
+                                  diseases,
+                                  ~ get_aggregated_data(.x, "date", .y)
+                                 ),
+                            diseases
+)
+# Save the simulated data
+df <- purrr::imap_dfr(
+vri_data_list,
+\(df, disease) dplyr::mutate(df, disease_type = disease)
+)
+tmp_dir <- tempdir() # temporary directory for example for saving data
+data_path <- file.path(tmp_dir, "simulated_data.csv")
+write.csv(df, data_path, row.names = FALSE)
+
+output_path <- tempdir() # output directory for report (temporary as example)
+generate_forecast_report(input_data_dir = data_path,
+                         output_dir = output_path,
+                         n_days = 7,
+                         validate_window_size = 7,
+                         smooth = FALSE)
+}
+}

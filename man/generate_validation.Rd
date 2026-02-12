@@ -70,11 +70,10 @@ This results in a set of forecasts that can be compared to observed data to
 evaluate predictive performance across time.
 }
 \examples{
-\dontrun{
-# Assume `data` has two columns `date` and `confirm` with daily confirmed cases of 'rsv' for 2023.
-start_date <- as.Date("2023-01-15")
-validation_results <- generate_validation(data, start_date)
-}
+data <- simulate_data()
+formatted_data <- get_aggregated_data(data,"date", "flu_a", "2024-10-16", "2024-12-31")
+start_date <- as.Date("2024-10-16")
+validation_results <- generate_validation(formatted_data, start_date, type="flu_a")
 
 }
 \seealso{

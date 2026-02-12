@@ -11,5 +11,3 @@
 ^\.github$
 ^test_scripts$
 ^CRAN-SUBMISSION$
-^paper\.md$
-^paper\.bib$
