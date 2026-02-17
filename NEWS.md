@@ -1,5 +1,9 @@
 # ViroReportR 1.0.4
 
+* Fixed CRAN Debian write-permission issue in report rendering.
+* Replaced T/F with TRUE/FALSE throughout package.
+* Improved report rendering environment isolation.
+
 # ViroReportR 1.0.3
 
 * Add `\donttest{}` in `generate_forecast_report()` examples because it takes longer than 5s.
