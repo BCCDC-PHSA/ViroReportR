@@ -17,7 +17,7 @@ test_that("generate_validation works for flu_a", {
     type = "flu_a",
     validate_window_size = 7,
     window_size = 7,
-    smooth_data = T,
+    smooth_data = TRUE,
     smoothing_cutoff = 10
   )
 
@@ -37,7 +37,7 @@ test_that("generate_validation works for flu_a", {
     type = "flu_a",
     validate_window_size = 7,
     window_size = 7,
-    smooth_data = T,
+    smooth_data = TRUE,
     smoothing_cutoff = 10
   ),
   "Not enough data for number of days to forecast in validation 14")

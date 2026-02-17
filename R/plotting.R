@@ -220,7 +220,7 @@ plot_validation <- function(data, validation_res, pred_plot = "ribbon") {
                                                p975 = .x$forecast_res_quantiles$p975,
                                                group_id = as.character(nrow(.x$estimate_R$R))))
 
-  model_data <- dplyr::filter(data, date <= max(forecast_dat$date, na.rm = T))
+  model_data <- dplyr::filter(data, date <= max(forecast_dat$date, na.rm = TRUE))
   model_data$point_type <- rep("Confirmed Case (Unsmoothed)", nrow(model_data))
 
   forecast_dat$point_type <- rep("Mean Prediction", nrow(forecast_dat))

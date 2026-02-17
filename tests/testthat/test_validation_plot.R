@@ -17,7 +17,7 @@ forecast_obj <- generate_validation(
   type = "flu_a",
   validate_window_size = 7,
   window_size = 7,
-  smooth_data = T,
+  smooth_data = TRUE,
   smoothing_cutoff = 10
 )
 

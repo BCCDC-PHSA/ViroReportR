@@ -138,15 +138,27 @@ generate_forecast_report <- function(input_data_dir = NULL,
     }
   }
 
-  # render report
-  rmarkdown::render(
-    system.file("vriforecasting_report.Rmd", package = "ViroReportR"),
-    output_dir = output_dir,
-    params = list(n_days = n_days,
-                  filepath = input_data_dir,
-                  validate_window_size = validate_window_size,
-                  smooth = smooth,
-                  disease_season = disease_season)
-  )
+  template <- system.file("vriforecasting_report.Rmd", package = "ViroReportR") 
+  stopifnot(nzchar(template)) 
+  tmp_rmd <- tempfile(fileext = ".Rmd") 
+  file.copy(template, tmp_rmd, overwrite = TRUE) 
+  dir.create(output_dir, showWarnings = FALSE, recursive = TRUE) 
+  out_file <- file.path(output_dir, "vriforecasting_report.html") 
+  rendered_path <- rmarkdown::render( 
+    input = tmp_rmd, 
+    output_file = basename(out_file), 
+    output_dir = dirname(out_file), 
+    intermediates_dir = tempdir(), 
+    clean = TRUE, 
+    params = list( 
+      n_days = n_days, 
+      filepath = input_data_dir, 
+      validate_window_size = validate_window_size, 
+      smooth = smooth, 
+      disease_season = disease_season 
+      ), 
+    envir = new.env(parent = globalenv()),
+    quiet = TRUE ) 
+  return(rendered_path) 
 }
 

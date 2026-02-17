@@ -127,8 +127,8 @@ for (vri in vri_name_list) {
   
   # create Rt plot
   rt_plot <- ViroReportR:::plot_rt(forecasts_results$forecasts[[vri]])
-  
-  if (!is.null(disease_season) || !is.null(disease_season[vri])) {
+  disease_season <- params$disease_season
+  if (!is.null(disease_season) && !is.null(disease_season[[vri]])) {
     season_start <- as.Date(disease_season[[vri]][1])
     season_end   <- as.Date(disease_season[[vri]][2])
     
@@ -262,7 +262,7 @@ validation_results <- tibble(
       data = .x,
       type = .y,
       n_days = forecast_horizon,
-      start_date = min(.x$date, na.rm = T),
+      start_date = min(.x$date, na.rm = TRUE),
       validate_window_size = params$validate_window_size,
       window_size = 7,
       smooth_data = smooth,

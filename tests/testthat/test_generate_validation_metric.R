@@ -17,7 +17,7 @@ test_that("generate_validation_metric returns expected list structure", {
     type = "flu_a",
     validate_window_size = 7,
     window_size = 7,
-    smooth_data = T,
+    smooth_data = TRUE,
     smoothing_cutoff = 10
   )
   result <- generate_validation_metric(data = daily_flua,

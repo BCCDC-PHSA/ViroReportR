@@ -19,7 +19,7 @@ res_smooth <- generate_forecast(
   start_date = "2024-04-01",
   n_days = 7,
   type = "rsv",
-  smooth_data = T
+  smooth_data = TRUE
 )
 
 res_non_smooth <- generate_forecast(
@@ -56,5 +56,5 @@ plot_forecast_comparison(smooth = res_smooth, non_smooth = res_non_smooth)+
 #   start_date = "2024-04-01",
 #   n_days = 7,
 #   type = "flu_a",
-#   smooth_data = T
+#   smooth_data = TRUE
 # )

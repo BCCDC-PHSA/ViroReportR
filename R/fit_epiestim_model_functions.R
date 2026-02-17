@@ -140,8 +140,8 @@ project_epiestim_model <- function(data, model_fit, n_days = 7, n_sim = 1000) {
     dplyr::pull(date)
 
   incidence_obj <- incidence::incidence(date_list,
-                                        first_date = min(data$date, na.rm = T),
-                                        last_date = max(data$date, na.rm = T),
+                                        first_date = min(data$date, na.rm = TRUE),
+                                        last_date = max(data$date, na.rm = TRUE),
                                         standard = FALSE)
   r_vals <- utils::tail(model_fit$R, n = 1)
 

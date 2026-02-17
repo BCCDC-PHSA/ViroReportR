@@ -85,16 +85,16 @@ test_that("Generate forecast report successfully",{
 
   output_file <- tempdir()
 
-  expect_no_error(generate_forecast_report(input_data_dir = vri_temp_file_path,
-                                           output_dir = output_file,
-                                           n_days = 7,
-                                           validate_window_size = 1,
-                                           smooth = TRUE,
-                                           disease_season = NULL))
+  out_file <- expect_no_error(generate_forecast_report(input_data_dir = vri_temp_file_path,
+                                              output_dir = output_file,
+                                              n_days = 7,
+                                              validate_window_size = 1,
+                                              smooth = TRUE,
+                                              disease_season = NULL))
 
-  expect_true(file.exists(output_file))
+  expect_true(file.exists(out_file))
 
-  unlink(output_file)
+  unlink(out_file)
 })
 
 

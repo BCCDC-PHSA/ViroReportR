@@ -20,7 +20,7 @@ time_period_result_daily <- generate_validation(
   start_date = "2024-04-01",
   n_days = 7,
   type = "rsv",
-  smooth_data = T,
+  smooth_data = TRUE,
   validate_window_size = 1,
   window_size = 7
 )
