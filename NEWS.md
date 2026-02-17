@@ -1,3 +1,5 @@
+# ViroReportR 1.0.4
+
 # ViroReportR 1.0.3
 
 * Add `\donttest{}` in `generate_forecast_report()` examples because it takes longer than 5s.
