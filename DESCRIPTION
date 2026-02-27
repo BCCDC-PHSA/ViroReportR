@@ -44,5 +44,5 @@ VignetteBuilder: knitr
 Depends: 
     R (>= 4.1.0)
 LazyData: true
-URL: https://github.com/BCCDC-PHSA/ViroReportR
+URL: https://github.com/BCCDC-PHSA/ViroReportR, https://bccdc-phsa.github.io/ViroReportR/
 BugReports: https://github.com/BCCDC-PHSA/ViroReportR/issues
