@@ -32,6 +32,7 @@ Install the released version from CRAN:
 
 ```r
 install.packages("ViroReportR")
+```
 
 You can then install the development version of `ViroReportR` from [GitHub](https://github.com/) with:
 
