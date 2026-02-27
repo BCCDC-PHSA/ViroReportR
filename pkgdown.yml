@@ -3,7 +3,7 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   vriforecasting-model-fitting-epiestim: vriforecasting-model-fitting-epiestim.html
-last_built: 2026-02-27T21:45Z
+last_built: 2026-02-27T21:59Z
 urls:
   reference: https://bccdc-phsa.github.io/ViroReportR/reference
   article: https://bccdc-phsa.github.io/ViroReportR/articles
