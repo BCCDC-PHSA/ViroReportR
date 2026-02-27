@@ -13,7 +13,7 @@ Description: Tools for reporting and forecasting viral respiratory infections,
     and validation metrics for an arbitrary number of customizable respiratory viruses.
     Estimation of the effective reproduction number is based on the 'EpiEstim' framework 
     described in work by 'Cori' and colleagues. (2013) <doi:10.1093/aje/kwt133>.
-License: GPL (>= 3)s
+License: GPL (>= 3)
 Suggests: 
     knitr,
     rmarkdown,
@@ -44,5 +44,5 @@ VignetteBuilder: knitr
 Depends: 
     R (>= 4.1.0)
 LazyData: true
-URL: https://github.com/BCCDC-PHSA/ViroReportR
+URL: https://github.com/BCCDC-PHSA/ViroReportR, https://bccdc-phsa.github.io/ViroReportR/
 BugReports: https://github.com/BCCDC-PHSA/ViroReportR/issues
