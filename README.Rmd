@@ -26,13 +26,12 @@ The goal of `ViroReportR` is to provide a toolbox to conveniently generate short
 
 ## Installation
 
-`ViroReportR` depends on the latest version of the `EpiEstim` package (2.4). Thus, this version of the package must be installed from GitHub prior to installing the `ViroReportR` package using: 
+### CRAN (recommended)
 
-``` r
-# install.packages("devtools")
-install.packages('EpiEstim', repos = c('https://mrc-ide.r-universe.dev', 'https://cloud.r-project.org'))
-```
+Install the released version from CRAN:
 
+```r
+install.packages("ViroReportR")
 
 You can then install the development version of `ViroReportR` from [GitHub](https://github.com/) with:
 

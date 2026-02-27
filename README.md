@@ -18,17 +18,14 @@ respiratory diseases.
 
 ## Installation
 
-`ViroReportR` depends on the latest version of the `EpiEstim` package
-(2.4). Thus, this version of the package must be installed from GitHub
-prior to installing the `ViroReportR` package using:
+### CRAN (recommended)
+
+Install the released version from CRAN:
 
 ``` r
-# install.packages("devtools")
-install.packages('EpiEstim', repos = c('https://mrc-ide.r-universe.dev', 'https://cloud.r-project.org'))
-```
+install.packages("ViroReportR")
 
-You can then install the development version of `ViroReportR` from
-[GitHub](https://github.com/) with:
+You can then install the development version of `ViroReportR` from [GitHub](https://github.com/) with:
 
 ``` r
 
@@ -97,14 +94,14 @@ head(vri_data_list)
 #>    date       confirm
 #>    <date>       <dbl>
 #>  1 2024-01-07       0
-#>  2 2024-01-08       8
+#>  2 2024-01-08       6
 #>  3 2024-01-09       0
-#>  4 2024-01-10       5
+#>  4 2024-01-10       0
 #>  5 2024-01-11       0
-#>  6 2024-01-12       8
-#>  7 2024-01-13       9
+#>  6 2024-01-12       0
+#>  7 2024-01-13       4
 #>  8 2024-01-14       0
-#>  9 2024-01-15       4
+#>  9 2024-01-15       2
 #> 10 2024-01-16       0
 #> # ℹ 356 more rows
 #> 
@@ -114,12 +111,12 @@ head(vri_data_list)
 #>    <date>       <dbl>
 #>  1 2024-01-07       0
 #>  2 2024-01-08       0
-#>  3 2024-01-09       0
+#>  3 2024-01-09       1
 #>  4 2024-01-10       0
-#>  5 2024-01-11       5
+#>  5 2024-01-11       9
 #>  6 2024-01-12       0
 #>  7 2024-01-13       0
-#>  8 2024-01-14       1
+#>  8 2024-01-14       0
 #>  9 2024-01-15       0
 #> 10 2024-01-16       0
 #> # ℹ 356 more rows
@@ -128,16 +125,16 @@ head(vri_data_list)
 #> # A tibble: 366 × 2
 #>    date       confirm
 #>    <date>       <dbl>
-#>  1 2024-01-07       9
-#>  2 2024-01-08       0
+#>  1 2024-01-07       8
+#>  2 2024-01-08       3
 #>  3 2024-01-09       0
 #>  4 2024-01-10       0
 #>  5 2024-01-11       0
 #>  6 2024-01-12       0
 #>  7 2024-01-13       0
-#>  8 2024-01-14       3
-#>  9 2024-01-15       0
-#> 10 2024-01-16       0
+#>  8 2024-01-14       0
+#>  9 2024-01-15       2
+#> 10 2024-01-16       3
 #> # ℹ 356 more rows
 ```
 
