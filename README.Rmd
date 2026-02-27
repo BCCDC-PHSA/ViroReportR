@@ -20,7 +20,11 @@ knitr::opts_chunk$set(
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![CRAN status](https://www.r-pkg.org/badges/version/ViroReportR)](https://CRAN.R-project.org/package=ViroReportR)
 [![R-CMD-check](https://github.com/BCCDC-PHSA/ViroReportR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/BCCDC-PHSA/ViroReportR/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://github.com/BCCDC-PHSA/ViroReportR/actions/workflows/pkgdown.yaml/badge.svg)](https://bccdc-phsa.github.io/ViroReportR/)
 <!-- badges: end -->
+
+📘 **Documentation website:**  
+https://bccdc-phsa.github.io/ViroReportR/
 
 The goal of `ViroReportR` is to provide a toolbox to conveniently generate short-term forecasts (with accompanied diagnostics) for viral respiratory diseases.
 

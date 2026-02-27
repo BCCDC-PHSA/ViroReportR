@@ -10,7 +10,11 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 [![CRAN
 status](https://www.r-pkg.org/badges/version/ViroReportR)](https://CRAN.R-project.org/package=ViroReportR)
 [![R-CMD-check](https://github.com/BCCDC-PHSA/ViroReportR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/BCCDC-PHSA/ViroReportR/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://github.com/BCCDC-PHSA/ViroReportR/actions/workflows/pkgdown.yaml/badge.svg)](https://bccdc-phsa.github.io/ViroReportR/)
 <!-- badges: end -->
+
+📘 **Documentation website:**  
+<https://bccdc-phsa.github.io/ViroReportR/>
 
 The goal of `ViroReportR` is to provide a toolbox to conveniently
 generate short-term forecasts (with accompanied diagnostics) for viral
@@ -95,32 +99,32 @@ head(vri_data_list)
 #> # A tibble: 366 × 2
 #>    date       confirm
 #>    <date>       <dbl>
-#>  1 2024-01-07      10
-#>  2 2024-01-08       5
-#>  3 2024-01-09      10
-#>  4 2024-01-10       0
+#>  1 2024-01-07       1
+#>  2 2024-01-08       0
+#>  3 2024-01-09       3
+#>  4 2024-01-10       3
 #>  5 2024-01-11       0
-#>  6 2024-01-12       1
-#>  7 2024-01-13       0
+#>  6 2024-01-12       0
+#>  7 2024-01-13       6
 #>  8 2024-01-14       0
 #>  9 2024-01-15       0
-#> 10 2024-01-16       2
+#> 10 2024-01-16       1
 #> # ℹ 356 more rows
 #> 
 #> $rsv
 #> # A tibble: 366 × 2
 #>    date       confirm
 #>    <date>       <dbl>
-#>  1 2024-01-07       1
-#>  2 2024-01-08       0
-#>  3 2024-01-09       4
+#>  1 2024-01-07       0
+#>  2 2024-01-08       5
+#>  3 2024-01-09       0
 #>  4 2024-01-10       0
-#>  5 2024-01-11       8
+#>  5 2024-01-11       0
 #>  6 2024-01-12       0
-#>  7 2024-01-13       0
-#>  8 2024-01-14       0
+#>  7 2024-01-13       6
+#>  8 2024-01-14       8
 #>  9 2024-01-15       0
-#> 10 2024-01-16       1
+#> 10 2024-01-16       0
 #> # ℹ 356 more rows
 #> 
 #> $sars_cov2
@@ -128,15 +132,15 @@ head(vri_data_list)
 #>    date       confirm
 #>    <date>       <dbl>
 #>  1 2024-01-07       0
-#>  2 2024-01-08       1
+#>  2 2024-01-08       2
 #>  3 2024-01-09       0
-#>  4 2024-01-10       0
-#>  5 2024-01-11       6
-#>  6 2024-01-12       0
+#>  4 2024-01-10       4
+#>  5 2024-01-11       1
+#>  6 2024-01-12       1
 #>  7 2024-01-13       3
-#>  8 2024-01-14       0
-#>  9 2024-01-15       5
-#> 10 2024-01-16       0
+#>  8 2024-01-14       4
+#>  9 2024-01-15       0
+#> 10 2024-01-16       2
 #> # ℹ 356 more rows
 ```
 
