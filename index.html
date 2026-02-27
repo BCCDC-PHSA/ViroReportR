@@ -57,6 +57,7 @@
 </h1></div>
 <!-- badges: start -->
 
+<p>📘 <strong>Documentation website:</strong><br><a href="https://bccdc-phsa.github.io/ViroReportR/" class="uri">https://bccdc-phsa.github.io/ViroReportR/</a></p>
 <p>The goal of <code>ViroReportR</code> is to provide a toolbox to conveniently generate short-term forecasts (with accompanied diagnostics) for viral respiratory diseases.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -124,32 +125,32 @@
 <span><span class="co">#&gt; # A tibble: 366 × 2</span></span>
 <span><span class="co">#&gt;    date       confirm</span></span>
 <span><span class="co">#&gt;    &lt;date&gt;       &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt;  1 2024-01-07      10</span></span>
-<span><span class="co">#&gt;  2 2024-01-08       5</span></span>
-<span><span class="co">#&gt;  3 2024-01-09      10</span></span>
-<span><span class="co">#&gt;  4 2024-01-10       0</span></span>
+<span><span class="co">#&gt;  1 2024-01-07       1</span></span>
+<span><span class="co">#&gt;  2 2024-01-08       0</span></span>
+<span><span class="co">#&gt;  3 2024-01-09       3</span></span>
+<span><span class="co">#&gt;  4 2024-01-10       3</span></span>
 <span><span class="co">#&gt;  5 2024-01-11       0</span></span>
-<span><span class="co">#&gt;  6 2024-01-12       1</span></span>
-<span><span class="co">#&gt;  7 2024-01-13       0</span></span>
+<span><span class="co">#&gt;  6 2024-01-12       0</span></span>
+<span><span class="co">#&gt;  7 2024-01-13       6</span></span>
 <span><span class="co">#&gt;  8 2024-01-14       0</span></span>
 <span><span class="co">#&gt;  9 2024-01-15       0</span></span>
-<span><span class="co">#&gt; 10 2024-01-16       2</span></span>
+<span><span class="co">#&gt; 10 2024-01-16       1</span></span>
 <span><span class="co">#&gt; # ℹ 356 more rows</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $rsv</span></span>
 <span><span class="co">#&gt; # A tibble: 366 × 2</span></span>
 <span><span class="co">#&gt;    date       confirm</span></span>
 <span><span class="co">#&gt;    &lt;date&gt;       &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt;  1 2024-01-07       1</span></span>
-<span><span class="co">#&gt;  2 2024-01-08       0</span></span>
-<span><span class="co">#&gt;  3 2024-01-09       4</span></span>
+<span><span class="co">#&gt;  1 2024-01-07       0</span></span>
+<span><span class="co">#&gt;  2 2024-01-08       5</span></span>
+<span><span class="co">#&gt;  3 2024-01-09       0</span></span>
 <span><span class="co">#&gt;  4 2024-01-10       0</span></span>
-<span><span class="co">#&gt;  5 2024-01-11       8</span></span>
+<span><span class="co">#&gt;  5 2024-01-11       0</span></span>
 <span><span class="co">#&gt;  6 2024-01-12       0</span></span>
-<span><span class="co">#&gt;  7 2024-01-13       0</span></span>
-<span><span class="co">#&gt;  8 2024-01-14       0</span></span>
+<span><span class="co">#&gt;  7 2024-01-13       6</span></span>
+<span><span class="co">#&gt;  8 2024-01-14       8</span></span>
 <span><span class="co">#&gt;  9 2024-01-15       0</span></span>
-<span><span class="co">#&gt; 10 2024-01-16       1</span></span>
+<span><span class="co">#&gt; 10 2024-01-16       0</span></span>
 <span><span class="co">#&gt; # ℹ 356 more rows</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $sars_cov2</span></span>
@@ -157,15 +158,15 @@
 <span><span class="co">#&gt;    date       confirm</span></span>
 <span><span class="co">#&gt;    &lt;date&gt;       &lt;dbl&gt;</span></span>
 <span><span class="co">#&gt;  1 2024-01-07       0</span></span>
-<span><span class="co">#&gt;  2 2024-01-08       1</span></span>
+<span><span class="co">#&gt;  2 2024-01-08       2</span></span>
 <span><span class="co">#&gt;  3 2024-01-09       0</span></span>
-<span><span class="co">#&gt;  4 2024-01-10       0</span></span>
-<span><span class="co">#&gt;  5 2024-01-11       6</span></span>
-<span><span class="co">#&gt;  6 2024-01-12       0</span></span>
+<span><span class="co">#&gt;  4 2024-01-10       4</span></span>
+<span><span class="co">#&gt;  5 2024-01-11       1</span></span>
+<span><span class="co">#&gt;  6 2024-01-12       1</span></span>
 <span><span class="co">#&gt;  7 2024-01-13       3</span></span>
-<span><span class="co">#&gt;  8 2024-01-14       0</span></span>
-<span><span class="co">#&gt;  9 2024-01-15       5</span></span>
-<span><span class="co">#&gt; 10 2024-01-16       0</span></span>
+<span><span class="co">#&gt;  8 2024-01-14       4</span></span>
+<span><span class="co">#&gt;  9 2024-01-15       0</span></span>
+<span><span class="co">#&gt; 10 2024-01-16       2</span></span>
 <span><span class="co">#&gt; # ℹ 356 more rows</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -302,6 +303,7 @@
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
 <li><a href="https://CRAN.R-project.org/package=ViroReportR" class="external-link"><img src="https://www.r-pkg.org/badges/version/ViroReportR" alt="CRAN status"></a></li>
 <li><a href="https://github.com/BCCDC-PHSA/ViroReportR/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/BCCDC-PHSA/ViroReportR/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://bccdc-phsa.github.io/ViroReportR/"><img src="https://github.com/BCCDC-PHSA/ViroReportR/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a></li>
 </ul>
 </div>
 
