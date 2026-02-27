@@ -1,3 +1,5 @@
+# ViroReportR (development version)
+
 # ViroReportR 1.0.4
 
 * Fixed CRAN Debian write-permission issue in report rendering.
