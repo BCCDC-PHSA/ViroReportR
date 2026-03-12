@@ -57,10 +57,10 @@ Respiratory viruses causes recurrent stress in health system, especially during 
 # State of the field                                              
 There are a variety of packages that provides tools for surveillance, epidemic parameters estimation, nowcasting, or time-series forecasting. However, they usually target a different userbase or layer of the analytic stack.
 
-1. `Epinow` and `EpiNow2`
-2. `surveillance`
-3. `site_re`
-4. `epi_predict`
+1. `EpiNow` and `EpiNow2`: both packages estimate time-varying reproduction number, growth rate and doubling time using a range of open-source tools. `EpiNow` is now deprecated in favor of `EpiNow2`. The aim of these packages is to provide a framework that is informed by community feedback and actively supported, avoiding limitations of naive implementation by the users. Forecasting is also available, by extending the approach used for estimation. However, they do not deliver a standardized multi-pathogen report intended for operational public health use.
+2. `surveillance`: package focus on statistical methods for monitoring and modelling of time series of counts, proportion and categorical data, common in epidemiological settings. With a specific focus on aberration detection in count time series of communicable diseases, outbreak detection, and endemic-epidemic modelling framework, including visualization and simulation tools, this package doesn't offer short-term forecasts reporting tools.
+3. `site_re`: it provides report templates for epidemiological surveys and outbreaks reports. The templates are intended for *Medecins Sans Frontieres* analyses, however, they are very generic and can be used by general epidemiological community. Their reports focuses on epidemiological indicators and standardize common epidemiological analyses, such as attack rates, descriptive analyses of outbreak data, it does  not provide short-term forecasts of daily counts across pathogens. 
+4. `epi_predict`: 
 5. `PROF`
 
 # Software design
