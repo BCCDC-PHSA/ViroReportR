@@ -126,12 +126,14 @@ for (vri in vri_name_list) {
   theme(legend.position = "top", legend.direction = "horizontal")
   
   # create Rt plot
-  rt_plot <- ViroReportR:::plot_rt(forecasts_results$forecasts[[vri]])
   disease_season <- params$disease_season
+  
+  rt_plot <- ViroReportR:::plot_rt(forecasts_results$forecasts[[vri]])
+  
   if (!is.null(disease_season) && !is.null(disease_season[[vri]])) {
     season_start <- as.Date(disease_season[[vri]][1])
     season_end   <- as.Date(disease_season[[vri]][2])
-    
+
     forecast_plot <- forecast_plot +
       # season markers
       geom_vline(
@@ -146,7 +148,7 @@ for (vri in vri_name_list) {
         linetype = "dashed",
         linewidth = 0.8
       ) +
-      
+
       # labels for season lines
       annotate(
         "text",
@@ -168,10 +170,10 @@ for (vri in vri_name_list) {
         color = "grey",
         size = 3
       )
-    
+
     y_max <- max(ggplot2::layer_data(rt_plot)$ymax, na.rm = TRUE)
-    
-    
+
+
     rt_plot <- rt_plot +
       # season markers
       geom_vline(
@@ -186,7 +188,7 @@ for (vri in vri_name_list) {
         linetype = "dashed",
         linewidth = 0.8
       ) +
-      
+
       # labels for season lines
       annotate(
         "text",
@@ -214,7 +216,7 @@ for (vri in vri_name_list) {
   cat("\n\n\n")
   print(rt_plot)
   cat("\n\n\n")
-  ViroReportR:::current_forecast_text(forecasts_results$forecasts[[vri]])
+  ViroReportR:::current_forecast_text(forecasts_results$forecasts[[vri]], n_days = forecast_horizon)
   cat("\n\n\n")
 }
 ```

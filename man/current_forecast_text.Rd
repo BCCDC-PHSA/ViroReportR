@@ -4,10 +4,12 @@
 \alias{current_forecast_text}
 \title{Print out text output for ViroReportR report detailing current number of case visits, last value of Rt and corresponding intervals}
 \usage{
-current_forecast_text(time_period_result, ...)
+current_forecast_text(time_period_result, n_days, ...)
 }
 \arguments{
 \item{time_period_result}{output from  \code{forecast_time_period}}
+
+\item{n_days}{The number of days to run simulations for. Defaults to 14}
 
 \item{...}{optional arguments to be passed on to \code{forecast_metrics}}
 }

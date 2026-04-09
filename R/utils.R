@@ -72,13 +72,14 @@ forecast_metrics <- function(time_period_result, iter = 10) {
 
 #' Print out text output for ViroReportR report detailing current number of case visits, last value of Rt and corresponding intervals
 #' @param time_period_result output from  \code{forecast_time_period}
+#' @param n_days The number of days to run simulations for. Defaults to 14
 #' @param ... optional arguments to be passed on to \code{forecast_metrics}
 #' @return current forecast metrics
-current_forecast_text <- function(time_period_result, ...) {
+current_forecast_text <- function(time_period_result, n_days, ...) {
   forecast_metrics <- forecast_metrics(time_period_result, ...)
   cat(
-    "The 1-week ahead forecast value of confirmed cases for", format(as.Date(forecast_metrics$forecast_date)),
-    "is:", forecast_metrics$prediction, "cases/week \n\n",
+    "The", n_days," days ahead forecast value of confirmed tests for", format(as.Date(forecast_metrics$forecast_date)),
+    "is:", forecast_metrics$prediction, "tests/week \n\n",
     "The 95 % prediction interval for this forecast is", glue::glue("({forecast_metrics$interval_90[1]})"),
     "\n\n The 50 % prediction interval for this forecast is", glue::glue("({forecast_metrics$interval_50[1]})"),
     "\n\n The last estimated Rt value with the 95% confidence interval is:", forecast_metrics$Rt_mean, glue::glue("({forecast_metrics$Rt_interval})")
@@ -120,7 +121,7 @@ check_epiestim_format <- function(data){
 #' Ensure that the input `data` includes at least 14 valid days.
 #'
 #' This function verifies that the input data frame contains a minimum of
-#' 14 days of records. Days at the start with zero confirmed cases are not
+#' 14 days of records. Days at the start with zero confirmed tests are not
 #' included in the count.
 #'
 #' @param data A data frame
@@ -153,7 +154,7 @@ check_min_days <- function(data){
 #'   starting date for analysis. Must exist within the `"date"` column.
 #'
 #' @return A cleaned data frame filtered from `start_date`, starting at the
-#'   first date with non-zero confirmed cases, and containing at least 14 days
+#'   first date with non-zero confirmed tests, and containing at least 14 days
 #'   of data.
 #'
 #' @details
@@ -171,7 +172,7 @@ clean_sample_data <- function(data,
   data <- data %>%
     dplyr::filter(date >= start_date)
 
-  # exclude the first date if there are no confirmed cases
+  # exclude the first date if there are no confirmed tests
   non_zero_dates <- data %>%
     dplyr::filter(.data$confirm > 0) %>%
     dplyr::pull(date)

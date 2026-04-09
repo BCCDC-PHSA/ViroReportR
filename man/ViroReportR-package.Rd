@@ -12,6 +12,7 @@ Tools for reporting and forecasting viral respiratory infections, using case sur
 Useful links:
 \itemize{
   \item \url{https://github.com/BCCDC-PHSA/ViroReportR}
+  \item \url{https://bccdc-phsa.github.io/ViroReportR/}
   \item Report bugs at \url{https://github.com/BCCDC-PHSA/ViroReportR/issues}
 }
 

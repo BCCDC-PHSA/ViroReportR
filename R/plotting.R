@@ -140,7 +140,7 @@ plot_forecast_comparison <- function(...) {
 #' )
 #' plot_rt(forecast_results)
 #' @export
-#' 
+#'
 plot_rt <- function(forecast_results) {
 
   # check input from forecast func
@@ -166,7 +166,13 @@ plot_rt <- function(forecast_results) {
     ggplot2::labs(x = "Time", y = "mean(expression(R[t]))") +
     ggplot2::geom_line(ggplot2::aes(y = .data$weekly_rt), color = "#08519C") +
     ggplot2::theme_bw() +
-    ggplot2::labs(x = "Time", y = "Mean(Rt)")
+    ggplot2::labs(x = "Time", y = "Mean(Rt)")+
+    ggplot2::geom_hline(
+      yintercept = 1,
+      linetype = "dashed",
+      colour = "black",
+      linewidth = 0.6
+    )
   return(p)
 }
 
@@ -192,15 +198,15 @@ plot_rt <- function(forecast_results) {
 #'
 #' @return error_bar validation plot or ribbon validation plot for a specific prediction horizon
 #'
-#' @examples 
+#' @examples
 #' data <- simulate_data()
 #' formatted_data <- get_aggregated_data(data,"date", "flu_a", "2024-10-16", "2024-12-31")
 #' start_date <- ("2024-10-16")
 #' validation_results <- generate_validation(formatted_data, start_date, type ="flu_a")
 #' plot_validation(formatted_data, validation_results)
-#' 
+#'
 #' @importFrom rlang .data
-#' 
+#'
 #' @export
 plot_validation <- function(data, validation_res, pred_plot = "ribbon") {
 
