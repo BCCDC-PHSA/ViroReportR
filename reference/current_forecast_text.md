@@ -6,7 +6,7 @@ case visits, last value of Rt and corresponding intervals
 ## Usage
 
 ``` r
-current_forecast_text(time_period_result, ...)
+current_forecast_text(time_period_result, n_days, ...)
 ```
 
 ## Arguments
@@ -14,6 +14,10 @@ current_forecast_text(time_period_result, ...)
 - time_period_result:
 
   output from `forecast_time_period`
+
+- n_days:
+
+  The number of days to run simulations for. Defaults to 14
 
 - ...:
 

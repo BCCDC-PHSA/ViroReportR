@@ -14,6 +14,8 @@ Useful links:
 
 - <https://github.com/BCCDC-PHSA/ViroReportR>
 
+- <https://bccdc-phsa.github.io/ViroReportR/>
+
 - Report bugs at <https://github.com/BCCDC-PHSA/ViroReportR/issues>
 
 ## Author

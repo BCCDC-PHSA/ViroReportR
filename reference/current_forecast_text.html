@@ -43,7 +43,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">current_forecast_text</span><span class="op">(</span><span class="va">time_period_result</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">current_forecast_text</span><span class="op">(</span><span class="va">time_period_result</span>, <span class="va">n_days</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -52,6 +52,10 @@
 
 <dl><dt id="arg-time-period-result">time_period_result<a class="anchor" aria-label="anchor" href="#arg-time-period-result"></a></dt>
 <dd><p>output from  <code>forecast_time_period</code></p></dd>
+
+
+<dt id="arg-n-days">n_days<a class="anchor" aria-label="anchor" href="#arg-n-days"></a></dt>
+<dd><p>The number of days to run simulations for. Defaults to 14</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

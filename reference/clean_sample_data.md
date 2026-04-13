@@ -25,7 +25,7 @@ clean_sample_data(data, start_date)
 ## Value
 
 A cleaned data frame filtered from `start_date`, starting at the first
-date with non-zero confirmed cases, and containing at least 14 days of
+date with non-zero confirmed tests, and containing at least 14 days of
 data.
 
 ## Details
