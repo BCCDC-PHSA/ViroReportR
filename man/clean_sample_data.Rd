@@ -16,7 +16,7 @@ starting date for analysis. Must exist within the \code{"date"} column.}
 }
 \value{
 A cleaned data frame filtered from \code{start_date}, starting at the
-first date with non-zero confirmed cases, and containing at least 14 days
+first date with non-zero confirmed tests, and containing at least 14 days
 of data.
 }
 \description{
