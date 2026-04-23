@@ -126,7 +126,7 @@ fit_epiestim_model <- function(data, window_size = 7L,type = NULL, mean_si = NUL
 #'   \item{incidence}{projected number of daily confirmed cases}
 #'   \item{sim}{simulation run number}
 #' }
-#' 
+#'
 project_epiestim_model <- function(data, model_fit, n_days = 7, n_sim = 1000) {
   confirm <- NULL
 
@@ -216,6 +216,13 @@ project_epiestim_model <- function(data, model_fit, n_days = 7, n_sim = 1000) {
 #'   Cutoff parameter for smoothing. Only used if \code{smooth_data = TRUE}.
 #'   Default is 10.
 #'
+#' @param seed *Integer or NULL*
+#'   Random seed used to ensure reproducibility of the forecast.
+#'   If provided, the same input data will produce identical results across runs.
+#'   If set to \code{NULL}, results may vary between runs due to stochastic
+#'   sampling in reproduction number estimation and projection steps.
+#'   Default is \code{123}.
+#'
 #' @param ...
 #'   Additional arguments passed to \code{\link{fit_epiestim_model}}.
 #'
@@ -227,7 +234,7 @@ project_epiestim_model <- function(data, model_fit, n_days = 7, n_sim = 1000) {
 #' @seealso
 #' \code{\link{fit_epiestim_model}} for reproduction number estimation,
 #' \code{\link{project_epiestim_model}} for forward simulations.
-#' 
+#'
 #' @importFrom incidence incidence
 #' @importFrom rlang .data
 #'
@@ -254,7 +261,7 @@ project_epiestim_model <- function(data, model_fit, n_days = 7, n_sim = 1000) {
 #'   type = "rsv",
 #'   smooth_data = FALSE
 #' )
-#' 
+#'
 
 generate_forecast <- function(
     data,
@@ -264,8 +271,12 @@ generate_forecast <- function(
     type = NULL,
     smooth_data = FALSE,
     smoothing_cutoff = 10,
+    seed = 123,
     ...
 ){
+
+  # Set random seed for reproducibility (controls stochastic components in Rt estimation and projection simulation)
+  if (!is.null(seed)) set.seed(seed)
 
   data <- clean_sample_data(data,
                             start_date)
