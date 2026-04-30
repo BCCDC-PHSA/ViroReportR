@@ -24,6 +24,12 @@
 #'   to forecasting (default: `FALSE`).
 #' @param smoothing_cutoff Numeric. Threshold used for smoothing when
 #'   `smooth_data = TRUE` (default: `10`).
+#' @param seed *Integer or NULL*
+#'   Random seed used to ensure reproducibility of the forecast.
+#'   If provided, the same input data will produce identical results across runs.
+#'   If set to \code{NULL}, results may vary between runs due to stochastic
+#'   sampling in reproduction number estimation and projection steps.
+#'   Default is \code{123}.
 #' @param ... Additional arguments passed to `generate_forecast()`.
 #'
 #' @return A list of forecast results, each element corresponding to one
@@ -40,7 +46,7 @@
 #'
 #' This results in a set of forecasts that can be compared to observed data to
 #' evaluate predictive performance across time.
-#' 
+#'
 #' @examples
 #' data <- simulate_data()
 #' formatted_data <- get_aggregated_data(data,"date", "flu_a", "2024-10-16", "2024-12-31")
@@ -49,7 +55,7 @@
 #'
 #' @seealso [clean_sample_data()], [generate_forecast()]
 #' @export
-#' 
+#'
 
 generate_validation <- function(
     data,
@@ -60,6 +66,7 @@ generate_validation <- function(
     type = NULL,
     smooth_data = FALSE,
     smoothing_cutoff = 10,
+    seed = 123,
     ...
 ) {
   # clean and validate input
@@ -87,6 +94,7 @@ generate_validation <- function(
       type = type,
       smooth_data = smooth_data,
       smoothing_cutoff = smoothing_cutoff,
+      seed = seed,
       ...
     )
   })
@@ -141,14 +149,14 @@ generate_validation <- function(
 #'
 #' The function automatically excludes forecasts extending beyond the latest
 #' date in the observed model data.
-#' 
-#' @examples 
+#'
+#' @examples
 #' data <- simulate_data()
 #' formatted_data <- get_aggregated_data(data,"date", "flu_a", "2024-10-16", "2024-12-31")
 #' start_date <- ("2024-10-16")
 #' validation_results <- generate_validation(formatted_data, start_date, type ="flu_a")
 #' generate_validation_metric(formatted_data, validation_results)
-#' 
+#'
 #' @seealso [generate_validation()], [generate_forecast()]
 #' @export
 
