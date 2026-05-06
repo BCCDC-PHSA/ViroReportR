@@ -8,7 +8,7 @@ tags:
   - automated reporting
 authors:
   - name: Rebeca Cardim Falcao
-    orcid: 0000-0000-0000-0000
+    orcid: 0000-0001-8793-9675
     corresponding: true
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
   - name: Nelson Tang
@@ -18,15 +18,17 @@ authors:
   - name: Cesar Wong
     affiliation: 1
   - name: Michael A. Irvine
-    orcid: 0000-0000-0000-0000
-    affiliation: "1, 3"
+    orcid: 0000-0003-4785-8998
+    affiliation: "1, 3, 4"
 affiliations:
  - name: BC Centre for Disease Control, Canada
    index: 1
- - name: University of British Columbia, Canada
+ - name: Department of Mathematics, University of British Columbia, Canada
    index: 2
- - name: Simon Fraser University, Canada
+ - name: Faculty of Health Sciences, Simon Fraser University, Canada
    index: 3
+ - name: Department of Statistics, University of British Columbia, Canada
+   index: 4
 date: 6 May 2026
 bibliography: paper.bib
 
