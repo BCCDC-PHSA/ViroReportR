@@ -128,8 +128,15 @@ check_epiestim_format <- function(data){
 #'
 #' @noRd
 check_min_days <- function(data){
-  if(nrow(data) < 14){
-    stop("At least 14 days of data are needed.")
+  n_days <- nrow(data)
+
+  if(n_days < 14){
+    stop(
+      sprintf(
+        "After removing leading zero-confirmation dates, only %s days of data remain. At least 14 days are required.",
+        n_days
+      )
+    )
   }
 }
 

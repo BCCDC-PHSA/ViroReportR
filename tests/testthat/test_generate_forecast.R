@@ -81,7 +81,7 @@ test_that("generate_forecast errors with invalid input", {
       start_date = Sys.Date(),
       type = "rsv"
     ),
-    "At least 14 days of data are needed."
+    "After removing leading zero-confirmation dates, only 1 days of data remain. At least 14 days are required."
   )
 })
 
