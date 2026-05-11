@@ -4,7 +4,6 @@ test_that("generate_forecast returns expected output structure", {
   skip_if_not_installed("incidence")
 
   # create test data
-  set.seed(123)
   test_data <- simulate_data(days = 30,
                              peaks = c(flua = 60),
                              amplitudes = c(flua = 90),
@@ -83,5 +82,60 @@ test_that("generate_forecast errors with invalid input", {
       type = "rsv"
     ),
     "At least 14 days of data are needed."
+  )
+})
+
+test_that("generate_forecast is reproducible with seed", {
+  skip_if_not_installed("EpiEstim")
+  skip_if_not_installed("projections")
+  skip_if_not_installed("incidence")
+
+  # create test data
+  test_data <- simulate_data(
+    days = 30,
+    peaks = c(flua = 60),
+    amplitudes = c(flua = 90),
+    scales = c(flua = -0.01),
+    time_offset = 45
+  )
+
+  names(test_data) <- c("date", "confirm")
+
+  # same seed expect same result
+  res1 <- generate_forecast(
+    data = test_data,
+    start_date = as.Date("2024-01-07"),
+    n_days = 7,
+    type = "flu_a",
+    seed = 123
+  )
+
+  res2 <- generate_forecast(
+    data = test_data,
+    start_date = as.Date("2024-01-07"),
+    n_days = 7,
+    type = "flu_a",
+    seed = 123
+  )
+
+  expect_equal(
+    res1$forecast_res_quantiles,
+    res2$forecast_res_quantiles
+  )
+
+  # different seed expect different result
+  res3 <- generate_forecast(
+    data = test_data,
+    start_date = as.Date("2024-01-07"),
+    n_days = 7,
+    type = "flu_a",
+    seed = 456
+  )
+
+  expect_false(
+    identical(
+      res1$forecast_res_quantiles,
+      res3$forecast_res_quantiles
+    )
   )
 })
