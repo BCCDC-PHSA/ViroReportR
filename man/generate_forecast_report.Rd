@@ -10,7 +10,8 @@ generate_forecast_report(
   n_days = 7,
   validate_window_size = 7,
   smooth = FALSE,
-  disease_season = NULL
+  disease_season = NULL,
+  seed = 123
 )
 }
 \arguments{
@@ -42,6 +43,13 @@ sars_cov2 = NULL
 
 This will produce a report where influenza A and RSV seasons run from
 September 1, 2024 to March 1, 2025, while no season is defined for SARS-CoV-2.}
+
+\item{seed}{\emph{Integer or NULL}
+Random seed used to ensure reproducibility of the forecast.
+If provided, the same input data will produce identical results across runs.
+If set to \code{NULL}, results may vary between runs due to stochastic
+sampling in reproduction number estimation and projection steps.
+Default is \code{123}.}
 }
 \value{
 Invisibly returns the path to the rendered HTML report.

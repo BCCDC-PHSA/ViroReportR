@@ -23,6 +23,14 @@
 #'
 #'   This will produce a report where influenza A and RSV seasons run from
 #'   September 1, 2024 to March 1, 2025, while no season is defined for SARS-CoV-2.
+#'
+#' @param seed *Integer or NULL*
+#'   Random seed used to ensure reproducibility of the forecast.
+#'   If provided, the same input data will produce identical results across runs.
+#'   If set to \code{NULL}, results may vary between runs due to stochastic
+#'   sampling in reproduction number estimation and projection steps.
+#'   Default is \code{123}.
+#'
 #' @import kableExtra cowplot
 #' @return Invisibly returns the path to the rendered HTML report.
 #' @export
@@ -47,7 +55,7 @@
 #' tmp_dir <- tempdir() # temporary directory for example for saving data
 #' data_path <- file.path(tmp_dir, "simulated_data.csv")
 #' write.csv(df, data_path, row.names = FALSE)
-#' 
+#'
 #' output_path <- tempdir() # output directory for report (temporary as example)
 #' generate_forecast_report(input_data_dir = data_path,
 #'                          output_dir = output_path,
@@ -61,7 +69,8 @@ generate_forecast_report <- function(input_data_dir = NULL,
                                      n_days = 7,
                                      validate_window_size = 7,
                                      smooth = FALSE,
-                                     disease_season = NULL) {
+                                     disease_season = NULL,
+                                     seed = 123) {
 
   # check that input_data_dir exists
   if (is.null(input_data_dir) || !file.exists(input_data_dir)) {
@@ -138,27 +147,28 @@ generate_forecast_report <- function(input_data_dir = NULL,
     }
   }
 
-  template <- system.file("vriforecasting_report.Rmd", package = "ViroReportR") 
-  stopifnot(nzchar(template)) 
-  tmp_rmd <- tempfile(fileext = ".Rmd") 
-  file.copy(template, tmp_rmd, overwrite = TRUE) 
-  dir.create(output_dir, showWarnings = FALSE, recursive = TRUE) 
-  out_file <- file.path(output_dir, "vriforecasting_report.html") 
-  rendered_path <- rmarkdown::render( 
-    input = tmp_rmd, 
-    output_file = basename(out_file), 
-    output_dir = dirname(out_file), 
-    intermediates_dir = tempdir(), 
-    clean = TRUE, 
-    params = list( 
-      n_days = n_days, 
-      filepath = input_data_dir, 
-      validate_window_size = validate_window_size, 
-      smooth = smooth, 
-      disease_season = disease_season 
-      ), 
+  template <- system.file("vriforecasting_report.Rmd", package = "ViroReportR")
+  stopifnot(nzchar(template))
+  tmp_rmd <- tempfile(fileext = ".Rmd")
+  file.copy(template, tmp_rmd, overwrite = TRUE)
+  dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+  out_file <- file.path(output_dir, "vriforecasting_report.html")
+  rendered_path <- rmarkdown::render(
+    input = tmp_rmd,
+    output_file = basename(out_file),
+    output_dir = dirname(out_file),
+    intermediates_dir = tempdir(),
+    clean = TRUE,
+    params = list(
+      n_days = n_days,
+      filepath = input_data_dir,
+      validate_window_size = validate_window_size,
+      smooth = smooth,
+      disease_season = disease_season,
+      seed = seed
+      ),
     envir = new.env(parent = globalenv()),
-    quiet = TRUE ) 
-  return(rendered_path) 
+    quiet = TRUE )
+  return(rendered_path)
 }
 

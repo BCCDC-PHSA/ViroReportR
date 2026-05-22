@@ -10,6 +10,7 @@ params:
   smooth: FALSE
   validate_window_size: 7
   disease_season: NULL
+  seed: 123
 ---
 
 
@@ -51,6 +52,7 @@ if(is.null(start_date)){
 forecast_horizon <- params$n_days
 smooth <- params$smooth
 validate_window_size <- params$validate_window_size
+seed <- params$seed
 ```
 
 
@@ -66,7 +68,8 @@ forecasts_results <- tibble(
       smooth_data = smooth,
       type = .y,
       n_days = forecast_horizon,
-      start_date = start_date
+      start_date = start_date,
+      seed = seed
     )
   )
 )
@@ -268,7 +271,8 @@ validation_results <- tibble(
       validate_window_size = params$validate_window_size,
       window_size = 7,
       smooth_data = smooth,
-      smoothing_cutoff = 10
+      smoothing_cutoff = 10,
+      seed = seed
     )
   )
 )

@@ -12,6 +12,7 @@ generate_forecast(
   type = NULL,
   smooth_data = FALSE,
   smoothing_cutoff = 10,
+  seed = 123,
   ...
 )
 }
@@ -46,6 +47,13 @@ is \code{FALSE}.}
 \item{smoothing_cutoff}{\emph{Integer}
 Cutoff parameter for smoothing. Only used if \code{smooth_data = TRUE}.
 Default is 10.}
+
+\item{seed}{\emph{Integer or NULL}
+Random seed used to ensure reproducibility of the forecast.
+If provided, the same input data will produce identical results across runs.
+If set to \code{NULL}, results may vary between runs due to stochastic
+sampling in reproduction number estimation and projection steps.
+Default is \code{123}.}
 
 \item{...}{Additional arguments passed to \code{\link{fit_epiestim_model}}.}
 }
