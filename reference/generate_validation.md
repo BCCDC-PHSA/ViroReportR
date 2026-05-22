@@ -17,6 +17,7 @@ generate_validation(
   type = NULL,
   smooth_data = FALSE,
   smoothing_cutoff = 10,
+  seed = 123,
   ...
 )
 ```
@@ -64,6 +65,14 @@ generate_validation(
 
   Numeric. Threshold used for smoothing when `smooth_data = TRUE`
   (default: `10`).
+
+- seed:
+
+  *Integer or NULL* Random seed used to ensure reproducibility of the
+  forecast. If provided, the same input data will produce identical
+  results across runs. If set to `NULL`, results may vary between runs
+  due to stochastic sampling in reproduction number estimation and
+  projection steps. Default is `123`.
 
 - ...:
 

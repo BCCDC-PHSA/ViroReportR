@@ -1,6 +1,7 @@
 # Model fitting and producing short-term forecasts using daily data with EpiEstim
 
 ``` r
+
 library(dplyr)
 #> 
 #> Attaching package: 'dplyr'
@@ -32,6 +33,7 @@ columns: `date` and `confirm` in accordance to format accepted by the
 model fitting functions.
 
 ``` r
+
 data <- simulate_data(days=365, #days spanning simulation
                       peaks = c("flu_a"=90,"rsv"=110,"sars_cov2"=160), #peak day for each disease
                       amplitudes=c("flu_a"=50,"rsv"=40,"sars_cov2"=20), #amplitude of peak for each disease
@@ -43,6 +45,7 @@ data <- simulate_data(days=365, #days spanning simulation
 ```
 
 ``` r
+
 data$date <- lubridate::ymd(data$date)
 
 vri_data <- data %>% 
@@ -77,6 +80,7 @@ produces short-term forecasts of daily confirmed cases for an `n_days`
 forecast horizon.
 
 ``` r
+
 #parameters set-up
 start_date <- min(vri_data$date) + 13
 forecast_horizon <- 7
@@ -138,6 +142,7 @@ respiratory diseases (Influenza-A, RSV and SARS-CoV2) using the
 `generate_forecast_report` function, which renders an HTML report.
 
 ``` r
+
 tmp_dir <- tempdir()
 
 # Save the simulated data

@@ -14,6 +14,7 @@ respiratory diseases.
 Install the released version from CRAN:
 
 ``` r
+
 install.packages("ViroReportR")
 ```
 
@@ -21,6 +22,7 @@ You can then install the development version of `ViroReportR` from
 [GitHub](https://github.com/) with:
 
 ``` r
+
 
 devtools::install_github("BCCDC-PHSA/ViroReportR")
 ```
@@ -33,6 +35,7 @@ here where the `EpiEstim` backend is used to generate forecasts of
 Influenza-A, RSV and SARS-CoV-2.
 
 ``` r
+
 library(ViroReportR)
 library(tidyverse)
 #> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
@@ -66,6 +69,7 @@ pivot the simulated data to transform into a dataset with three columns:
 the model fitting functions.
 
 ``` r
+
 diseases<-c("flu_a", "rsv", "sars_cov2")
 data <- simulate_data(days=365, #days spanning simulation
                       peaks = c("flu_a"=90,"rsv"=110,"sars_cov2"=160), #peak day for each disease
@@ -146,6 +150,7 @@ forecast horizon. The other current choice for the forecasting algorithm
 is `EpiFilter` (WIP).
 
 ``` r
+
 # parameters set-up 
 start_date <- min(data$date) + 13
 n_days <- 14 # number of days ahead to forecast (n_days)
@@ -153,6 +158,7 @@ smooth <- FALSE # logical indicating whether smoothing should be applied in the 
 ```
 
 ``` r
+
 forecasts_results <- tibble(
   vri_data_list,
   forecasts = map2(
@@ -175,11 +181,12 @@ names(forecasts_results$vri_data_list) <- diseases
 
 ## Plotting results
 
-The code below plots the forecasts results and the estimated $R_{t}$ for
-each disease. To plot $R_{t}$, the code below uses `plot_rt` function
+The code below plots the forecasts results and the estimated $`R_t`$ for
+each disease. To plot $`R_t`$, the code below uses `plot_rt` function
 included in the package.
 
 ``` r
+
 
 
 for (vri in diseases) {
@@ -235,6 +242,7 @@ data with three columns—date, disease_type, and confirm—and specify an
 output directory (`output_directory)` where the report will be saved.
 
 ``` r
+
 # rendering forecast report
 df <- imap_dfr(vri_data_list, ~ .x %>% mutate(disease_type = .y))
 input_file<-"simulated_data.csv"

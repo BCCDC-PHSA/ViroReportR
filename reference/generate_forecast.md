@@ -21,6 +21,7 @@ generate_forecast(
   type = NULL,
   smooth_data = FALSE,
   smoothing_cutoff = 10,
+  seed = 123,
   ...
 )
 ```
@@ -65,6 +66,14 @@ generate_forecast(
   *Integer* Cutoff parameter for smoothing. Only used if
   `smooth_data = TRUE`. Default is 10.
 
+- seed:
+
+  *Integer or NULL* Random seed used to ensure reproducibility of the
+  forecast. If provided, the same input data will produce identical
+  results across runs. If set to `NULL`, results may vary between runs
+  due to stochastic sampling in reproduction number estimation and
+  projection steps. Default is `123`.
+
 - ...:
 
   Additional arguments passed to
@@ -101,6 +110,7 @@ for forward simulations.
 ## Examples
 
 ``` r
+
 # Create sample test rsv data
 disease_type <- "rsv"
 test_data <- simulate_data()

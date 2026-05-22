@@ -12,7 +12,8 @@ generate_forecast_report(
   n_days = 7,
   validate_window_size = 7,
   smooth = FALSE,
-  disease_season = NULL
+  disease_season = NULL,
+  seed = 123
 )
 ```
 
@@ -59,6 +60,14 @@ generate_forecast_report(
   September 1, 2024 to March 1, 2025, while no season is defined for
   SARS-CoV-2.
 
+- seed:
+
+  *Integer or NULL* Random seed used to ensure reproducibility of the
+  forecast. If provided, the same input data will produce identical
+  results across runs. If set to `NULL`, results may vary between runs
+  due to stochastic sampling in reproduction number estimation and
+  projection steps. Default is `123`.
+
 ## Value
 
 Invisibly returns the path to the rendered HTML report.
@@ -92,6 +101,6 @@ generate_forecast_report(input_data_dir = data_path,
                          n_days = 7,
                          validate_window_size = 7,
                          smooth = FALSE)
-#> [1] "/tmp/RtmpFbkrRH/vriforecasting_report.html"
+#> [1] "/tmp/RtmpmNCPyT/vriforecasting_report.html"
 # }
 ```
