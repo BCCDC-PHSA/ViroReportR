@@ -101,6 +101,6 @@ generate_forecast_report(input_data_dir = data_path,
                          n_days = 7,
                          validate_window_size = 7,
                          smooth = FALSE)
-#> [1] "/tmp/RtmpSw5LsF/vriforecasting_report.html"
+#> [1] "/tmp/RtmpscsfB0/vriforecasting_report.html"
 # }
 ```
