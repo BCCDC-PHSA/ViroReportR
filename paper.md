@@ -34,21 +34,6 @@ bibliography: paper.bib
 
 ---
 
-**authors list and order not finalized**
-
-*Your paper must include the following required sections:*
-**Summary**: A description of the high-level functionality and purpose of the software for a diverse, non-specialist audience.
-
-**Statement of need**: A section that clearly illustrates the research purpose of the software and places it in the context of related work. This should clearly state what problems the software is designed to solve, who the target audience is, and its relation to other work.
-
-**State of the field**: A description of how this software compares to other commonly-used packages in the research area. If related tools exist, provide a clear “build vs. contribute” justification explaining your unique scholarly contribution and why existing alternatives are insufficient.
-
-**Software design**: An explanation of the trade-offs you weighed, the design/architecture you chose, and why it matters for your research application. This should demonstrate meaningful design thinking beyond a superficial code structure description.
-
-**Research impact statement**: Evidence of realized impact (publications, external use, integrations) or credible near-term significance (benchmarks, reproducible materials, community-readiness signals). The evidence should be compelling and specific, not aspirational.
-
-**AI usage disclosure**: Transparent disclosure of any use of generative AI in the software creation, documentation, or paper authoring. If no AI tools were used, state this explicitly. If AI tools were used, describe how they were used and how the quality and correctness of AI-generated content was verified.*
-
 # Summary
 
 Respiratory viruses can circulate year-round with some showing strong seasonal patterns. Consistent and reliable forecasts are essential for public health to provide information for healthcare planning, interventions such as vaccination, and public communication about population level risks. ViroReportR is an R package that automates short-term forecasts and end-to-end routine report generation for common respiratory viruses (e.g. Sars-CoV-2, Influenza A and Respiratory Syncytial Virus) from routine surveillance data. Its implementation lies on using a renewal equation approach to estimate the instantaneous time-varying reproduction number \(R_t\) via the EpiEstim package  [@coriNewFrameworkSoftware2013], and provides projections at specific time  horizons defined by the user with validation metrics in a standardized HTML format. The tool is formulated for operational use by surveillance teams and public health officials, whose needs comprise robust, transparent, and reproducible results with minimal configuration. The package is available on CRAN and Github with documentation, examples, and vignettes.
