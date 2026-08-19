@@ -138,13 +138,15 @@ methods in future releases.
 # Research impact statement
 
 The `ViroReportR` package was developed primarily to streamline
-forecasting and reporting at the BC Centre for Disease Control. As such,
-it has been deployed for monitoring by the Public Health Response team
-during the 2025/26 respiratory season and hosted on the Centre’s Posit
-Connect infrastrcture. It has also been deployed to monitor and forecast
-the number of COVID-19, Influenza A, and Respiratory Syncytial Virus at
-mass gathering events within Vancouver, British Columbia during the 2026
-FIFA world cup.
+forecasting and reporting at the BC Centre for Disease Control (BCCDC).
+As such, it has been deployed for monitoring by the Public Health
+Response team during the 2025/26 respiratory season and hosted on the
+Centre’s Posit Connect infrastrcture. In addition, a separate team
+within the BCCDC Public Health Laboratory has independently implemented
+`ViroReportR` within their infectious disease forecasting workflow. It
+has also been deployed to monitor and forecast the number of COVID-19,
+Influenza A, and Respiratory Syncytial Virus at mass gathering events
+within Vancouver, British Columbia during the 2026 FIFA world cup.
 
 # AI usage disclosure
 
