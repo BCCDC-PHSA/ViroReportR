@@ -55,4 +55,6 @@ docs
 # preview of JOSS paper
 *.html
 
+# test script
+test_scripts/run_forecast_report.R
 
