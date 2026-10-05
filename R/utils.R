@@ -61,10 +61,10 @@ forecast_metrics <- function(time_period_result, iter = 10) {
   return(list(
     Rt_mean = Rt_mean,
     Rt_interval = Rt_interval,
-    prediction = unname(data_proj$p50[1]),
+    prediction = unname(data_proj$p50[nrow(data_proj)]),
     interval_90 = data_proj$`95 percentile interval`,
     interval_50 = data_proj$`50 percentile interval`,
-    forecast_date = unname(format(as.Date(data_proj$date[1])))
+    forecast_date = unname(format(as.Date(data_proj$date[nrow(data_proj)])))
   ))
 }
 
@@ -78,8 +78,9 @@ forecast_metrics <- function(time_period_result, iter = 10) {
 current_forecast_text <- function(time_period_result, n_days, ...) {
   forecast_metrics <- forecast_metrics(time_period_result, ...)
   cat(
-    "The", n_days," days ahead forecast value of confirmed tests for", format(as.Date(forecast_metrics$forecast_date)),
-    "is:", forecast_metrics$prediction, "tests/week \n\n",
+    "The", n_days," days ahead forecast value of daily incidence for",
+    format(as.Date(forecast_metrics$forecast_date)),
+    "is:", forecast_metrics$prediction, "cases/day \n\n",
     "The 95 % prediction interval for this forecast is", glue::glue("({forecast_metrics$interval_90[1]})"),
     "\n\n The 50 % prediction interval for this forecast is", glue::glue("({forecast_metrics$interval_50[1]})"),
     "\n\n The last estimated Rt value with the 95% confidence interval is:", forecast_metrics$Rt_mean, glue::glue("({forecast_metrics$Rt_interval})")

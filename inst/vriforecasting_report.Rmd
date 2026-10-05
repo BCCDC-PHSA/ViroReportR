@@ -80,7 +80,7 @@ names(forecasts_results$vri_data_list) <- vri_name_list
 
 ## Description
 
-This report provides the forecast of `r forecast_horizon`-days ahead positive tests for the 3 prevalent respiratory viral tests in BC (Flu-A, RSV and SARS-CoV-2). Forecast reports were generated using the VRI data, the tests presents data on samples tested for different respiratory viruses. `vriforecasting` uses `EpiEstim` as the backend to forecast daily positive tests, which forecasts positive tests by estimating the instantaneous reproduction number using the [Cori method](https://academic.oup.com/aje/article/178/9/1505/89262) and then simulating the number of new positive tests using fixed exponential growth over a given time period. This is a short term prediction model, meaning that an increase in the time-period horizon over an optimal horizon of 1 or 2-weeks ahead results in a decline of prediction performance. The report is divided into two sections: `r forecast_horizon`-days forecast for the current season of respiratory positive tests as well as validation plots and metrics for the performance of the forecasting model on historical data to help in the assessment of model performance. 
+This report provides the forecast of `r forecast_horizon`-days ahead positive cases for the 3 prevalent respiratory viral cases in BC (Flu-A, RSV and SARS-CoV-2). Forecast reports were generated using the VRI data, the cases presents data on samples caseed for different respiratory viruses. `vriforecasting` uses `EpiEstim` as the backend to forecast daily positive cases, which forecasts positive cases by estimating the instantaneous reproduction number using the [Cori method](https://academic.oup.com/aje/article/178/9/1505/89262) and then simulating the number of new positive cases using fixed exponential growth over a given time period. This is a short term prediction model, meaning that an increase in the time-period horizon over an optimal horizon of 1 or 2-weeks ahead results in a decline of prediction performance. The report is divided into two sections: `r forecast_horizon`-days forecast for the current season of respiratory positive cases as well as validation plots and metrics for the performance of the forecasting model on historical data to help in the assessment of model performance. 
 
 # `r forecast_horizon`-days ahead forecast {.tabset}
 
@@ -88,14 +88,19 @@ This report provides the forecast of `r forecast_horizon`-days ahead positive te
 
 This section presents the `r forecast_horizon`-days ahead forecasts for each virus. The forecasts include:
 
-- Median predicted positive tests (p50)
+- Median predicted positive cases (p50)
 - Prediction intervals (50% and 95%)
 - The last estimated Rₜ value with 95% confidence intervals
 
-Plots show the predicted positive tests alongside historical observations, helping visualize the expected trajectory of positive tests over the short-term forecast horizon.
+Plots show the predicted positive cases alongside historical observations, helping visualize the expected trajectory of positive cases over the short-term forecast horizon.
 
 ```{r forecast plots and info, results = "asis", out.width = '80%'}
 for (vri in vri_name_list) {
+  
+  common_start <- min(forecasts_results$vri_data_list[[vri]]$date, na.rm = TRUE)
+  common_end <- max(forecasts_results$forecasts[[vri]]$forecast_res_quantiles$date,
+                    na.rm = TRUE)
+  
   cat(glue::glue("#### {vri} "))
   cat("\n\n\n")
  
@@ -112,26 +117,28 @@ for (vri in vri_name_list) {
   ) +
   geom_point(
     data = forecasts_results$vri_data_list[[vri]],
-    aes(x = date, y = confirm, shape = "Positive Tests"),
+    aes(x = date, y = confirm, shape = "Positive Cases"),
     size = 2,
     color = "black"
   )  +
   
   labs(
-    title = paste0(forecast_horizon, "-Day Forecast of Daily ", vri, " Positive Tests"),
-    x = "Date", y = "Predicted Tests",
+    title = paste0(forecast_horizon, "-Day Forecast of Daily ", vri, " Positive cases"),
+    x = "Date", y = "Predicted Cases",
     fill = "", color = "", shape = ""
   ) +
   scale_fill_manual(values = c("Prediction Interval" = "skyblue")) +
   scale_color_manual(values = c("Median Forecast" = "blue")) +
-  scale_shape_manual(values = c("Positive Tests" = 16)) +
+  scale_shape_manual(values = c("Positive Cases" = 16)) +
   theme_minimal() +
-  theme(legend.position = "top", legend.direction = "horizontal")
+  theme(legend.position = "top", legend.direction = "horizontal") +
+  scale_x_date(limits = c(common_start, common_end))
   
   # create Rt plot
   disease_season <- params$disease_season
   
-  rt_plot <- ViroReportR:::plot_rt(forecasts_results$forecasts[[vri]])
+  rt_plot <- ViroReportR:::plot_rt(forecasts_results$forecasts[[vri]]) +
+  scale_x_date(limits = c(common_start, common_end))
   
   if (!is.null(disease_season) && !is.null(disease_season[[vri]])) {
     season_start <- as.Date(disease_season[[vri]][1])
@@ -172,7 +179,8 @@ for (vri in vri_name_list) {
         vjust = -0.5,
         color = "grey",
         size = 3
-      )
+      ) +
+    scale_x_date(limits = c(common_start, common_end))
 
     y_max <- max(ggplot2::layer_data(rt_plot)$ymax, na.rm = TRUE)
 
@@ -212,12 +220,62 @@ for (vri in vri_name_list) {
         vjust = -0.5,
         color = "grey",
         size = 3
-      )
+      ) +
+    scale_x_date(limits = c(common_start, common_end))
   }
+  
+  
+  
    
   print(forecast_plot)
   cat("\n\n\n")
   print(rt_plot)
+  cat("\n\n\n")
+  
+  
+ # Zoomed plots
+  forecast_end <- max(
+    forecasts_results$forecasts[[vri]]$forecast_res_quantiles$date,
+    na.rm = TRUE
+  )
+  
+  zoom_start <- forecast_end - 42 - forecast_horizon
+  zoom_xlim <- c(zoom_start, forecast_end)
+  
+  # Data in zoom window
+  zoom_observed <- forecasts_results$forecasts[[vri]]$original_data |>
+    dplyr::filter(date >= zoom_xlim[1], date <= zoom_xlim[2])
+  
+  zoom_forecast <- forecasts_results$forecasts[[vri]]$forecast_res_quantiles |>
+    dplyr::filter(date >= zoom_xlim[1], date <= zoom_xlim[2])
+  
+  # Dynamic y-axis limit
+  forecast_ymax <- max(
+    zoom_observed$confirm,
+    zoom_forecast$p975,
+    na.rm = TRUE
+  ) * 1.1
+  
+  forecast_plot_zoom <- forecast_plot +
+    coord_cartesian(
+      xlim = zoom_xlim,
+      ylim = c(0, forecast_ymax)
+    ) +
+    labs(
+      title = paste0(
+        forecast_horizon,
+        "-Day Forecast of Daily ",
+        vri,
+        " Positive Cases — Recent 6 Weeks"
+      )
+    )
+  
+  rt_plot_zoom <- rt_plot +
+    coord_cartesian(xlim = zoom_xlim)
+  
+  print(forecast_plot_zoom)
+  cat("\n\n\n")
+  print(rt_plot_zoom)
   cat("\n\n\n")
   ViroReportR:::current_forecast_text(forecasts_results$forecasts[[vri]], n_days = forecast_horizon)
   cat("\n\n\n")
@@ -229,7 +287,7 @@ for (vri in vri_name_list) {
 
 ### Description {.tabset}
 
-The forecasting model is trained on historical data and used to predict daily positive tests `r forecast_horizon`-days ahead. Validation compares the model's forecasted values with observed historical data. Overlap between the prediction intervals and actual positive tests indicates good model performance.
+The forecasting model is trained on historical data and used to predict daily positive cases `r forecast_horizon`-days ahead. Validation compares the model's forecasted values with observed historical data. Overlap between the prediction intervals and actual positive cases indicates good model performance.
 
 ```{r forecast validation plots, results = "asis", out.width = '90%'}
 # Filter out validation that occurs outside of season

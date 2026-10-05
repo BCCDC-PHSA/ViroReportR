@@ -141,41 +141,79 @@ plot_forecast_comparison <- function(...) {
 #' plot_rt(forecast_results)
 #' @export
 #'
+# plot_rt <- function(forecast_results) {
+#
+#   # check input from forecast func
+#   model_data_dates <- forecast_results$original_data$date
+#
+#   rt_dat <-forecast_results$estimate_R$R
+#   # Map Rt estimate to the END of its estimation window
+#   rt_dat$date <- model_data_dates[rt_dat$t_end]
+#
+#   rt_dat <- rt_dat |>
+#     dplyr::mutate(
+#       weekly_date = lubridate::floor_date(date, unit = "week")
+#     ) |>
+#     dplyr::group_by(.data$weekly_date) |>
+#     dplyr::summarise(
+#       weekly_rt = mean(.data[["Mean(R)"]]),
+#       weekly_ymin = mean(.data[["Quantile.0.025(R)"]]),
+#       weekly_ymax = mean(.data[["Quantile.0.975(R)"]])
+#     )
+#   p <- ggplot2::ggplot(rt_dat, ggplot2::aes(x = .data$weekly_date)) +
+#     ggplot2::geom_ribbon(ggplot2::aes(ymin = .data$weekly_ymin, ymax = .data$weekly_ymax), fill = "#08519C", alpha = 0.25) +
+#     ggplot2::geom_line(ggplot2::aes(y = .data$weekly_rt), color = "#08519C") +
+#     ggplot2::theme_bw() +
+#     ggplot2::labs(x = "Time", y = "mean(expression(R[t]))") +
+#     ggplot2::geom_line(ggplot2::aes(y = .data$weekly_rt), color = "#08519C") +
+#     ggplot2::theme_bw() +
+#     ggplot2::labs(x = "Time", y = "Mean(Rt)")+
+#     ggplot2::geom_hline(
+#       yintercept = 1,
+#       linetype = "dashed",
+#       colour = "black",
+#       linewidth = 0.6
+#     )
+#   return(p)
+# }
 plot_rt <- function(forecast_results) {
 
-  # check input from forecast func
   model_data_dates <- forecast_results$original_data$date
+  rt_dat <- forecast_results$estimate_R$R
 
-  rt_dat <-forecast_results$estimate_R$R
-  rt_start_date <- model_data_dates[rt_dat$t_start[1]]
-  rt_date_seq <- seq(rt_start_date, by = "day", length.out = length(rt_dat$t_start))
-  rt_dat$date <- rt_date_seq
-  rt_dat <- rt_dat |>
-    dplyr::mutate(
-      weekly_date = lubridate::floor_date(date, unit = "week")
-    ) |>
-    dplyr::group_by(.data$weekly_date) |>
-    dplyr::summarise(
-      weekly_rt = mean(.data[["Mean(R)"]]), weekly_ymin = mean(.data[["Quantile.0.025(R)"]]),
-      weekly_ymax = mean(.data[["Quantile.0.975(R)"]])
-    )
-  p <- ggplot2::ggplot(rt_dat, ggplot2::aes(x = .data$weekly_date)) +
-    ggplot2::geom_ribbon(ggplot2::aes(ymin = .data$weekly_ymin, ymax = .data$weekly_ymax), fill = "#08519C", alpha = 0.25) +
-    ggplot2::geom_line(ggplot2::aes(y = .data$weekly_rt), color = "#08519C") +
-    ggplot2::theme_bw() +
-    ggplot2::labs(x = "Time", y = "mean(expression(R[t]))") +
-    ggplot2::geom_line(ggplot2::aes(y = .data$weekly_rt), color = "#08519C") +
-    ggplot2::theme_bw() +
-    ggplot2::labs(x = "Time", y = "Mean(Rt)")+
+  # Map each Rt estimate to the end date of its estimation window
+  rt_dat$date <- model_data_dates[rt_dat$t_end]
+
+  p <- ggplot2::ggplot(
+    rt_dat,
+    ggplot2::aes(x = .data$date)
+  ) +
+    ggplot2::geom_ribbon(
+      ggplot2::aes(
+        ymin = .data[["Quantile.0.025(R)"]],
+        ymax = .data[["Quantile.0.975(R)"]]
+      ),
+      fill = "#08519C",
+      alpha = 0.25
+    ) +
+    ggplot2::geom_line(
+      ggplot2::aes(y = .data[["Mean(R)"]]),
+      color = "#08519C"
+    ) +
     ggplot2::geom_hline(
       yintercept = 1,
       linetype = "dashed",
       colour = "black",
       linewidth = 0.6
+    ) +
+    ggplot2::theme_bw() +
+    ggplot2::labs(
+      x = "Date",
+      y = "Mean(Rt)"
     )
+
   return(p)
 }
-
 
 
 #' Plot a ribbon plot with each time horizon predictions against true values for validation

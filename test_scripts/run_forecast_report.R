@@ -27,3 +27,31 @@ data <- data %>%
 readr::write_csv(data, file.path(DATA_FOLDER_PATH,"all_disease_data.csv"))
 
 # run as report
+# if(Sys.getenv("R_PLATFORM") == "x86_64-pc-linux-gnu"){
+#   cdr_dir <- "/mnt/BCCDC/Depts"
+# } else {
+#   cdr_dir <- "O:/BCCDC/Groups"
+# }
+#
+# surv_dir <- file.path(cdr_dir, "Lab/2019-nCoV/BC Labs Surveillance Indicators/surveillance")
+#
+# proj_dir <- file.path(surv_dir, "projects/vri_forecast_report")
+#
+#
+# generate_forecast_report(
+#   input_data_dir =  file.path(proj_dir, "data/vri_season_2025_2026.csv"),
+#   # input filepath
+#   output_dir = file.path(proj_dir, "output/test"),
+#   # output directory
+#   n_days = 7,
+#   # number of days to forecast
+#   validate_window_size = 7,
+#   # number of days between each validation window
+#   smooth = FALSE,
+#   # logical indicating whether smoothing should be applied in the forecast
+#   disease_season = list(
+#     "flu_a" = c("2025-08-24", "2026-03-06"),
+#     "rsv" = c("2025-08-24", "2026-03-06"),
+#     "sars_cov2" = c("2025-08-24", "2026-03-06")
+#   )
+# )
